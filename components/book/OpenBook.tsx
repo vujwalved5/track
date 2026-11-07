@@ -811,6 +811,24 @@ export function OpenBook({
           </button>
         )}
 
+        {/* ── Print Ribbon Tab at Top Edge (L1 — ribbon, Correction 6) ── */}
+        {isSetupDone && (
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="absolute -top-7 left-48 z-30 flex items-center justify-center px-4 py-1 font-hand text-xs transition-all duration-200 cursor-pointer select-none rounded-t-sm shadow-[0_-2px_6px_rgba(28,36,51,0.3)] bg-kraft/90 hover:bg-kraft text-paper hover:-translate-y-0.5"
+            style={{
+              clipPath: 'polygon(0 100%, 0 0, 100% 0, 100% 100%, 50% 85%)',
+              height: '38px',
+              paddingBottom: '8px',
+            }}
+            aria-label="Print this month"
+            title="Print this month"
+          >
+            Print
+          </button>
+        )}
+
         {/* ── Red Ribbon hanging from bottom of spine ── */}
         <div
           className="absolute bottom-[-68px] left-1/2 -translate-x-1/2 w-[22px] h-[78px] bg-redpen z-30 pointer-events-none"

@@ -186,8 +186,24 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - `NumberLogMobile`: 3-subpage pagination (Days 1–10, 11–20, 21–daysInMonth). Rows are `44px` tall with inline tappable edit input. Continuation pages show handwritten `(cont.)`.
   - Zero inner scrollbars at 390×844.
 
+### Phase 6 / Task 12 (Batch A) — PWA Manifest, Icons, and Desktop Print
+- **Manifest**: Created `app/manifest.ts` and `public/manifest.json` with name `"Memorable Moments"`, `short_name: "Memorable Moments"`, `start_url: "/"`, `display: "standalone"`, `background_color: "#211b16"`, `theme_color: "#211b16"`.
+- **Icons**: Generated `public/icons/icon.svg` using only L6 colours (oxblood book `#702028`, gold border `#d8b45a`, desk background `#211b16`, red pen ribbon `#b3261e`). Generated `icon-192.png`, `icon-512.png`, and `apple-touch-icon.png` via existing `sharp` tooling already in `node_modules` with ZERO new dependencies.
+- **Layout Integration**: Added `themeColor: "#211b16"` to viewport, manifest reference, icons, and Apple Web App meta to `app/layout.tsx`. No service worker registered in development or in Batch A.
+- **Print Ribbon Tab (Correction 6)**: Placed a second ribbon tab labelled "Print" at the top edge of `OpenBook.tsx` (styled identically to the Arrange tab, hidden while a month is unset).
+- **Print is Desktop-Only (Correction 4)**: Print ribbon tab is mounted strictly on desktop spread; hidden on mobile.
+- **Print Stylesheet (Correction 5)**: Added `@media print` in `app/globals.css`:
+  - `print-color-adjust: exact` and `-webkit-print-color-adjust: exact` ensuring paper cream background and dot grids print.
+  - `@page { size: landscape; margin: 0; }`.
+  - Book spread scaled via `transform: scale(0.92)` to fit on a single landscape sheet.
+  - Hides desk background, dark casing frame, ribbons, month tabs, folded corner, drawer, steppers, cross-out buttons, arrange handles, and browser UI chrome.
+- **Offline Scope Documented (Correction 3)**:
+  - Only entry reads and writes work offline (local cache, pending saves queue, replay on `online` and app start; upserts are idempotent; stale items for deleted widgets dropped).
+  - Moving, resizing, configuring, adding or removing widgets, and Month Setup require an active connection; attempting them offline displays handwritten red-pen text ("needs a connection") and commits nothing.
+
 ## Next
-- Task 11 (Batch B) — Arrange mode on mobile (ribbon long-press, move up/down), WidgetDrawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets' mobile render.
+- Task 12 (Batch B) — Serwist service worker, offline entries cache & replay queue, and cache clearing on sign-out.
+- Task 11 (Batch B) — Mobile Arrange mode (long-press on top ribbon), drawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets.
 
 ## Open Questions
 - Sign-up flow and password reset not built.
