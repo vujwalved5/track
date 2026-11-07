@@ -39,6 +39,7 @@ interface OpenBookProps {
   paperRight?: PaperType
   initialSetupDone?: boolean
   initialWidgets?: WidgetData[]
+  setupConfig?: Record<string, unknown>
   prevMonthData?: PreviousMonthData
   showNextMonthPrompt?: boolean
   nextMonthName?: string
@@ -55,6 +56,7 @@ export function OpenBook({
   paperRight = 'dotted',
   initialSetupDone = false,
   initialWidgets = [],
+  setupConfig = {},
   prevMonthData = { exists: false },
   showNextMonthPrompt = false,
   nextMonthName,
@@ -543,6 +545,9 @@ export function OpenBook({
                 <PageWidgetLayer
                   page="left"
                   monthId={monthId}
+                  year={year}
+                  month={month}
+                  setupConfig={setupConfig}
                   widgets={leftWidgets}
                   isArrangeMode={isArrangeMode}
                   onWidgetsChange={handleLeftWidgetsChange}
@@ -564,6 +569,9 @@ export function OpenBook({
                 <PageWidgetLayer
                   page="right"
                   monthId={monthId}
+                  year={year}
+                  month={month}
+                  setupConfig={setupConfig}
                   widgets={rightWidgets}
                   isArrangeMode={isArrangeMode}
                   onWidgetsChange={handleRightWidgetsChange}

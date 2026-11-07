@@ -90,9 +90,40 @@
 - Drawer is hidden while month setup is pending (`!isSetupDone`).
 - Palette strictly L6 (`desk`, `kraft`, `oxblood`, `gold`, `paper`, `ink`), zero new hex codes, zero scrollbars at 1440×900.
 
+### Phase 5 / Task 9 (Batch A) — Entries Plumbing + First Three Widgets
+- `components/widgets/entryActions.ts` — Server actions (`getWidgetEntries`, `saveWidgetEntry`) with Zod schema validation (day 1..31, specific payload value shapes), RLS enforcement via `createClient()`, and red-pen error handling.
+- `components/widgets/shared/DayStepper.tsx` — Approved shared day navigator using hand-drawn SVG prev/next arrows (no dropdowns or pickers) displaying "Day X". Defaults to today if viewed month matches current month, else day 1.
+- Context plumbing: `year`, `month`, and `setupConfig` queried in `app/book/[year]/[month]/page.tsx` and threaded through `OpenBook` → `PageWidgetLayer` → `WidgetWrapper` → `WidgetRenderProps`.
+- **Widget 1: Memorable Moments** (`memorable-moments`, Group `Track`, `22×18`, min `14×18`): Two columns (days 1–16 and 17–31) on 22px rules, tap to write Kalam text, ~500ms long-press toggles yellow highlighter (`#ffd84a`), line-end hand-drawn cross button toggles cross-out with SVG strike.
+- **Widget 2: Habit Tracker** (`habit-tracker`, Group `Track`, `14×24`, min `8×18`): 31 daily rows (~14.58px/row) with rotated header names sourced strictly from `months.setup_config.habits` (empty table if unset; no invented habits). Red pen headers for `isRed` habits; tap cell draws hand-drawn SVG X (ink or red pen). Marks keyed by stable habit position (`"0"`, `"1"`).
+- **Widget 3: Counter** (`counter`, Group `Track`, `6×6`, min `5×5`): Big handwritten Kalam number with hand-drawn `-` and `+` buttons, label, optional target, and optional `perDay` mode. In `perDay` mode, active day is adjusted via `DayStepper`. In non-`perDay` mode, total is stored at `day = 1`.
+- Registered in `registry.ts` and barrel-exported in `index.ts`. Mobile placeholder components registered for each.
+
+## Entries Table Value Shapes (L2, L11)
+All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
+1. **Memorable Moments** (`day` 1..31):
+   `{ text: string, highlighted: boolean, crossedOut: boolean }`
+2. **Habit Tracker** (`day` 1..31):
+   `{ marks: Record<string, boolean> }` (keys are stable habit array index strings `"0"`, `"1"`, ...)
+3. **Counter**:
+   `{ count: number }`
+   - `perDay = true`: stored at active day (1..31).
+   - `perDay = false`: stored strictly at `day = 1`.
+4. **Poll** (Batch B, `day` 1..31):
+   `{ selectedOption: string }`
+5. **Number Log** (Batch B, `day` 1..31):
+   `{ value: number | null }`
+6. **Mood Tracker** (Batch B, `day` 1..31):
+   `{ mood: number }` (1..5)
+
+## Pixel Size Reports (Default Sizes)
+- **Habit Tracker** (`14×24` = 308×528px): 64px rotated header + 31 rows = **14.58px per row** (>= 14px threshold).
+- **Number Log** (`6×24` = 132×528px): 32px header + 12px padding + 31 rows = **15.61px per row** (>= 14px threshold).
+- **Mood Tracker** (`22×4` = 484×88px): 16px horizontal padding + 31 day slots = **15.09px width per day face slot** (>= 14px threshold).
+
 ## Next
-- Every widget registered in Tasks 9 and 10 must set its group: Track = Memorable Moments, Habit Tracker, Counter, Number Log, Mood Tracker. Charts = Line Graph, Bar Chart, Scatter Plot, Donut. Ask = Poll, Checklist, Goal Bar. Write = Free Note, Sticky Note.
-- Phase 4 / Tasks 9 & 10 — Building the actual widgets.
+- BATCH B (awaiting user GO): Build Poll, Number Log, and Mood Tracker.
+- Task 10 — Building remaining widgets (Charts, Goal Bar, etc.).
 - Task 11 — Mobile / single-page responsive layout (L8).
 
 ## Open Questions

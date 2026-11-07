@@ -3,17 +3,67 @@
     "40c4e51303f4da1bc9227d93b087cd1eed72af5f93": {
       "workers": {
         "app/book/[year]/[month]/page": {
-          "moduleId": 92881,
+          "moduleId": 99157,
           "async": false
         }
       },
       "exportedName": "completeMonthSetup",
       "filename": "components/setup/setupActions.ts"
     },
+    "406e722ef642c33d4cbc3b0af3b726dca2add7f1a3": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 99157,
+          "async": false
+        }
+      },
+      "exportedName": "getWidgetEntries",
+      "filename": "components/widgets/entryActions.ts"
+    },
+    "70a8036ff0e605e691ad828d23b5780bb4bc5f23a1": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 99157,
+          "async": false
+        }
+      },
+      "exportedName": "saveWidgetEntry",
+      "filename": "components/widgets/entryActions.ts"
+    },
+    "7f5505a12b4bbb02accadbcc6209e697ed45f2fdab": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 99157,
+          "async": false
+        }
+      },
+      "exportedName": "memorableMomentsEntrySchema",
+      "filename": "components/widgets/entryActions.ts"
+    },
+    "7faa69d9a34a31014c37ebdd222a2bb7b2b1b2071f": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 99157,
+          "async": false
+        }
+      },
+      "exportedName": "habitTrackerEntrySchema",
+      "filename": "components/widgets/entryActions.ts"
+    },
+    "7f8925e0d0aa980defa5d76dda8c80a69e0e081661": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 99157,
+          "async": false
+        }
+      },
+      "exportedName": "counterEntrySchema",
+      "filename": "components/widgets/entryActions.ts"
+    },
     "6037589a52602256cb89ba862c5017a9688af5e024": {
       "workers": {
         "app/book/[year]/[month]/page": {
-          "moduleId": 92881,
+          "moduleId": 99157,
           "async": false
         }
       },
@@ -23,7 +73,7 @@
     "404c0b437e8b7e53bca4046b8e93ca105a80d539aa": {
       "workers": {
         "app/book/[year]/[month]/page": {
-          "moduleId": 92881,
+          "moduleId": 99157,
           "async": false
         }
       },
@@ -33,7 +83,7 @@
     "605f7299666e8e65efd3823b8d14e67d33e7890974": {
       "workers": {
         "app/book/[year]/[month]/page": {
-          "moduleId": 92881,
+          "moduleId": 99157,
           "async": false
         }
       },
@@ -43,7 +93,7 @@
     "7c8042ec01b8d3349d0b3853630dbe412884789ffe": {
       "workers": {
         "app/book/[year]/[month]/page": {
-          "moduleId": 92881,
+          "moduleId": 99157,
           "async": false
         }
       },
@@ -53,7 +103,7 @@
     "605f1a74b29722bfe2cc48f657c97c358ca90e38a5": {
       "workers": {
         "app/book/[year]/[month]/page": {
-          "moduleId": 92881,
+          "moduleId": 99157,
           "async": false
         }
       },

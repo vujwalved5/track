@@ -53,6 +53,9 @@ export interface WidgetRenderProps<T = Record<string, unknown>> {
   w: number
   h: number
   isArrangeMode?: boolean
+  year?: number
+  month?: number
+  setupConfig?: Record<string, unknown>
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

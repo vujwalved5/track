@@ -220,3 +220,34 @@ FAM | META SEQ | SST SEQ         | RANGE
     |          | 00000104 SST DELETED
     |          | 00000063 00000071 00000076 00000087 00000094 00000102 00000108 META DELETED
     |          | 00000064 00000070 00000077 00000088 00000093 00000101 00000107 META DELETED
+Time 2026-11-07T16:43:02.5573368Z
+Commit 00000123 31470 keys in 15ms 639µs 200ns
+FAM | META SEQ | SST SEQ         | RANGE
+  0 | 00000120 | 00000119 SST    |                                                                             O                        | c44bdff4074eecdb-c44bdff4074eecdb (0 MiB, fresh, 38 bytes, 1 entries, 0 tombstones)
+  3 | 00000121 | 00000116 SST    | [==================================================================================================] | 000030d5cf1b9a7f-fff6f81e352458da (0 MiB, fresh, 48165 bytes, 3997 entries, 0 tombstones)
+  2 | 00000122 | 00000117 SST    | [==================================================================================================] | 0005ffee8faa14c0-ffdbdf932f9838e7 (6 MiB, fresh, 7081731 bytes, 9484 entries, 0 tombstones)
+  1 | 00000123 | 00000118 SST    | [==================================================================================================] | 0001aad651887b10-fffec925b18eeb5e (1 MiB, fresh, 2045022 bytes, 17988 entries, 0 tombstones)
+Time 2026-11-07T16:53:19.9207376Z
+Commit 00000131 441 keys in 10ms 786µs 700ns
+FAM | META SEQ | SST SEQ         | RANGE
+  0 | 00000128 | 00000127 SST    |                                                                             O                        | c44bdff4074eecdb-c44bdff4074eecdb (0 MiB, fresh, 38 bytes, 1 entries, 0 tombstones)
+  3 | 00000129 | 00000124 SST    |                                       [==]                                                           | 6387412cd69d3bbd-69d3ace2e5a6fec9 (0 MiB, fresh, 57 bytes, 2 entries, 0 tombstones)
+  2 | 00000130 | 00000126 SST    |    [==========================================================================================]      | 090ba600c3820fc2-f2c12d49bd476737 (0 MiB, fresh, 27963 bytes, 8 entries, 0 tombstones)
+  1 | 00000131 | 00000125 SST    | [==================================================================================================] | 005470c361d45191-ffce5cbf43acc8a3 (0 MiB, fresh, 254110 bytes, 430 entries, 0 tombstones)
+  0 | 00000133 | Compaction:
+  0 | 00000133 | MERGE (1 keys):
+  0 | 00000133 | 00000078 INPUT  |                                                                             O                        | c44bdff4074eecdb-c44bdff4074eecdb
+  0 | 00000133 | 00000084 INPUT  |                                                                             O                        | c44bdff4074eecdb-c44bdff4074eecdb
+  0 | 00000133 | 00000091 INPUT  |                                                                             O                        | c44bdff4074eecdb-c44bdff4074eecdb
+  0 | 00000133 | 00000098 INPUT  |                                                                             O                        | c44bdff4074eecdb-c44bdff4074eecdb
+  0 | 00000133 | 00000105 INPUT  |                                                                             O                        | c44bdff4074eecdb-c44bdff4074eecdb
+  0 | 00000133 | 00000119 INPUT  |                                                                             O                        | c44bdff4074eecdb-c44bdff4074eecdb
+  0 | 00000133 | 00000127 INPUT  |                                                                             O                        | c44bdff4074eecdb-c44bdff4074eecdb
+  0 | 00000133 | 00000132 OUTPUT |                                                                             O                        | c44bdff4074eecdb-c44bdff4074eecdb (compacted)
+Time 2026-11-07T16:53:19.9471301Z
+Commit 00000134 1 keys in 6ms 134µs 500ns
+FAM | META SEQ | SST SEQ         | RANGE
+  0 | 00000133 | 00000132 SST    |                                                                             O                        | c44bdff4074eecdb-c44bdff4074eecdb (0 MiB, compacted, 38 bytes, 1 entries, 0 tombstones)
+  0 | 00000133 | 00000078 00000084 00000091 00000098 00000105 00000119 00000127 OBSOLETE SST
+    |          | 00000078 00000084 00000091 00000098 00000105 00000119 00000127 SST DELETED
+    |          | 00000079 00000085 00000092 00000099 00000106 00000120 00000128 META DELETED

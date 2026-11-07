@@ -16,6 +16,7 @@ interface MonthRow {
   setup_done: boolean
   paper_left: PaperType
   paper_right: PaperType
+  setup_config?: Record<string, unknown>
 }
 
 export default async function BookMonthPage({ params }: PageProps) {
@@ -34,6 +35,7 @@ export default async function BookMonthPage({ params }: PageProps) {
   let setupDone = false
   let showNextMonthPrompt = false
   let monthId: string | undefined = undefined
+  let setupConfig: Record<string, unknown> = {}
   let initialWidgets: WidgetData[] = []
 
   const nextYear = month === 12 ? year + 1 : year
@@ -61,7 +63,7 @@ export default async function BookMonthPage({ params }: PageProps) {
       if (bookRes.data) {
         const monthRes = (await supabase
           .from('months')
-          .select('id, setup_done, paper_left, paper_right')
+          .select('id, setup_done, paper_left, paper_right, setup_config')
           .eq('book_id', bookRes.data.id)
           .eq('month', month)
           .maybeSingle()) as { data: MonthRow | null }
@@ -71,6 +73,7 @@ export default async function BookMonthPage({ params }: PageProps) {
           paperLeft = monthRes.data.paper_left || 'dotted'
           paperRight = monthRes.data.paper_right || 'dotted'
           monthId = monthRes.data.id
+          setupConfig = (monthRes.data.setup_config as Record<string, unknown>) || {}
 
           // Load widgets for the current month spread
           const widgetsRes = await supabase
@@ -138,6 +141,7 @@ export default async function BookMonthPage({ params }: PageProps) {
         paperRight={paperRight}
         initialSetupDone={setupDone}
         initialWidgets={initialWidgets}
+        setupConfig={setupConfig}
         prevMonthData={prevMonthData}
         showNextMonthPrompt={showNextMonthPrompt}
         nextMonthName={nextMonthName}

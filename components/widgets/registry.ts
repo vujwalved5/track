@@ -16,6 +16,9 @@
 
 import type { WidgetDefinition, WidgetGroup } from './types'
 import { stickyNoteWidgetDefinition } from './sticky-note/StickyNoteWidget'
+import { memorableMomentsWidgetDefinition } from './memorable-moments/MemorableMomentsWidget'
+import { habitTrackerWidgetDefinition } from './habit-tracker/HabitTrackerWidget'
+import { counterWidgetDefinition } from './counter/CounterWidget'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const registry = new Map<string, WidgetDefinition<any>>()
@@ -54,3 +57,6 @@ export function getWidgetsByGroup(group: WidgetGroup): WidgetDefinition<any>[] {
 
 // ── Register initial built-in widget(s) ───────────────────────
 registerWidget(stickyNoteWidgetDefinition)
+registerWidget(memorableMomentsWidgetDefinition)
+registerWidget(habitTrackerWidgetDefinition)
+registerWidget(counterWidgetDefinition)

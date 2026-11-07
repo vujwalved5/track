@@ -28,6 +28,9 @@ import { getWidgetDefinition } from './registry'
 
 interface WidgetWrapperProps {
   widget: WidgetData
+  year?: number
+  month?: number
+  setupConfig?: Record<string, unknown>
   isArrangeMode: boolean
   otherWidgets: WidgetData[]
   onResizeEnd: (
@@ -40,6 +43,9 @@ interface WidgetWrapperProps {
 
 export function WidgetWrapper({
   widget,
+  year,
+  month,
+  setupConfig,
   isArrangeMode,
   otherWidgets,
   onResizeEnd,
@@ -219,6 +225,9 @@ export function WidgetWrapper({
             w={liveW}
             h={liveH}
             isArrangeMode={isArrangeMode}
+            year={year}
+            month={month}
+            setupConfig={setupConfig}
           />
         ) : (
           <div className="w-full h-full bg-paper/50 border border-ink/20 p-2 font-hand text-xs text-ink/70">
