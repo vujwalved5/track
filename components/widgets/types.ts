@@ -10,7 +10,7 @@
 
 import type { ComponentType } from 'react'
 import type { z } from 'zod'
-import { PAGE_COLS, PAGE_ROWS, GRID_PX } from '@/components/paper'
+import { PAGE_COLS, PAGE_ROWS, GRID_PX } from '../paper'
 
 export { PAGE_COLS, PAGE_ROWS, GRID_PX }
 
@@ -46,14 +46,17 @@ export interface WidgetRenderProps<T = Record<string, unknown>> {
   isArrangeMode?: boolean
 }
 
-export interface WidgetDefinition<TSchema extends z.ZodTypeAny = z.ZodTypeAny> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface WidgetDefinition<TSchema extends z.ZodTypeAny = any> {
   id: string
   displayName: string
   defaultSize: WidgetSize
   minSize: WidgetSize
   schema: TSchema
-  component: ComponentType<WidgetRenderProps<z.infer<TSchema>>>
-  mobileComponent: ComponentType<WidgetRenderProps<z.infer<TSchema>>>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  component: ComponentType<WidgetRenderProps<any>>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mobileComponent: ComponentType<WidgetRenderProps<any>>
   icon: ComponentType<{ className?: string }>
 }
 

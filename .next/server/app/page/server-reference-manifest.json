@@ -3,12 +3,52 @@
     "40c4e51303f4da1bc9227d93b087cd1eed72af5f93": {
       "workers": {
         "app/page": {
-          "moduleId": 67852,
+          "moduleId": 78708,
           "async": false
         }
       },
       "exportedName": "completeMonthSetup",
       "filename": "components/setup/setupActions.ts"
+    },
+    "6037589a52602256cb89ba862c5017a9688af5e024": {
+      "workers": {
+        "app/page": {
+          "moduleId": 78708,
+          "async": false
+        }
+      },
+      "exportedName": "updateWidgetPosition",
+      "filename": "components/widgets/widgetActions.ts"
+    },
+    "404c0b437e8b7e53bca4046b8e93ca105a80d539aa": {
+      "workers": {
+        "app/page": {
+          "moduleId": 78708,
+          "async": false
+        }
+      },
+      "exportedName": "deleteWidget",
+      "filename": "components/widgets/widgetActions.ts"
+    },
+    "606946585edb1d482e2731b36046b868957f59011c": {
+      "workers": {
+        "app/page": {
+          "moduleId": 78708,
+          "async": false
+        }
+      },
+      "exportedName": "addTestStickyNote",
+      "filename": "components/widgets/widgetActions.ts"
+    },
+    "605f7299666e8e65efd3823b8d14e67d33e7890974": {
+      "workers": {
+        "app/page": {
+          "moduleId": 78708,
+          "async": false
+        }
+      },
+      "exportedName": "updateWidgetConfig",
+      "filename": "components/widgets/widgetActions.ts"
     }
   },
   "edge": {}

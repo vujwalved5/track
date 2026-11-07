@@ -4,6 +4,11 @@ import React, { useState, useEffect, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Paper, { PAGE_W, PAGE_H, type PaperType } from '@/components/paper'
 import { MonthSetupWizard, type PreviousMonthData } from '@/components/setup'
+import {
+  PageWidgetLayer,
+  WidgetConfigCard,
+  type WidgetData,
+} from '@/components/widgets'
 
 // ── Month definitions (JAN - DEC) ─────────────────────────────
 export const MONTHS = [
@@ -24,9 +29,11 @@ export const MONTHS = [
 interface OpenBookProps {
   year: number
   month: number
+  monthId?: string
   paperLeft?: PaperType
   paperRight?: PaperType
   initialSetupDone?: boolean
+  initialWidgets?: WidgetData[]
   prevMonthData?: PreviousMonthData
   showNextMonthPrompt?: boolean
   nextMonthName?: string
@@ -38,9 +45,11 @@ type TurnDirection = 'forward' | 'backward'
 export function OpenBook({
   year,
   month,
+  monthId,
   paperLeft = 'dotted',
   paperRight = 'dotted',
   initialSetupDone = false,
+  initialWidgets = [],
   prevMonthData = { exists: false },
   showNextMonthPrompt = false,
   nextMonthName,
@@ -53,6 +62,11 @@ export function OpenBook({
   const [isSetupDone, setIsSetupDone] = useState(initialSetupDone)
   const [currentPaperLeft, setCurrentPaperLeft] = useState<PaperType>(paperLeft)
   const [currentPaperRight, setCurrentPaperRight] = useState<PaperType>(paperRight)
+
+  // Widgets & Arrange Mode state
+  const [widgets, setWidgets] = useState<WidgetData[]>(initialWidgets)
+  const [isArrangeMode, setIsArrangeMode] = useState(false)
+  const [activeConfigWidgetId, setActiveConfigWidgetId] = useState<string | null>(null)
 
   // Navigation / animation state
   const [isTurning, setIsTurning] = useState<TurnDirection | null>(null)
@@ -81,7 +95,27 @@ export function OpenBook({
     setIsSetupDone(initialSetupDone)
     setCurrentPaperLeft(paperLeft)
     setCurrentPaperRight(paperRight)
-  }, [year, month, initialSetupDone, paperLeft, paperRight])
+    setWidgets(initialWidgets)
+    setIsArrangeMode(false)
+    setActiveConfigWidgetId(null)
+  }, [year, month, initialSetupDone, paperLeft, paperRight, initialWidgets])
+
+  const leftWidgets = widgets.filter((w) => w.page === 'left')
+  const rightWidgets = widgets.filter((w) => w.page === 'right')
+
+  const handleLeftWidgetsChange = useCallback((newLeft: WidgetData[]) => {
+    setWidgets((prev) => [...prev.filter((w) => w.page !== 'left'), ...newLeft])
+  }, [])
+
+  const handleRightWidgetsChange = useCallback((newRight: WidgetData[]) => {
+    setWidgets((prev) => [...prev.filter((w) => w.page !== 'right'), ...newRight])
+  }, [])
+
+  const handleWidgetSaved = useCallback((updated: WidgetData) => {
+    setWidgets((prev) => prev.map((w) => (w.id === updated.id ? updated : w)))
+  }, [])
+
+  const activeConfigWidget = widgets.find((w) => w.id === activeConfigWidgetId)
 
   // Calculate previous and next month dates with year boundary turn support
   const getPrevDate = useCallback(
@@ -331,6 +365,14 @@ export function OpenBook({
               <div className="absolute top-0 left-0">
                 <Paper type={currentPaperLeft} side="left">
                   {renderMonthTitle(month, year)}
+                  <PageWidgetLayer
+                    page="left"
+                    monthId={monthId}
+                    widgets={leftWidgets}
+                    isArrangeMode={false}
+                    onWidgetsChange={handleLeftWidgetsChange}
+                    onOpenConfig={() => {}}
+                  />
                   {renderLeftFolio(month, year)}
                   <div className="absolute inset-0 bg-ink pointer-events-none animate-shadow-under-left" />
                 </Paper>
@@ -357,6 +399,14 @@ export function OpenBook({
                 {/* Front Face of Leaf */}
                 <div className="absolute inset-0 backface-hidden">
                   <Paper type={currentPaperRight} side="right">
+                    <PageWidgetLayer
+                      page="right"
+                      monthId={monthId}
+                      widgets={rightWidgets}
+                      isArrangeMode={false}
+                      onWidgetsChange={handleRightWidgetsChange}
+                      onOpenConfig={() => {}}
+                    />
                     {renderRightFolio(month, year)}
                     {renderFoldedCorner(() => {})}
                     <div className="absolute inset-0 bg-ink pointer-events-none animate-leaf-shadow-forward" />
@@ -395,6 +445,14 @@ export function OpenBook({
               {/* Base Right Page */}
               <div className="absolute top-0 left-[484px]">
                 <Paper type={currentPaperRight} side="right">
+                  <PageWidgetLayer
+                    page="right"
+                    monthId={monthId}
+                    widgets={rightWidgets}
+                    isArrangeMode={false}
+                    onWidgetsChange={handleRightWidgetsChange}
+                    onOpenConfig={() => {}}
+                  />
                   {renderRightFolio(month, year)}
                   {renderFoldedCorner(() => {})}
                   <div className="absolute inset-0 bg-ink pointer-events-none animate-shadow-under-left" />
@@ -414,6 +472,14 @@ export function OpenBook({
                 <div className="absolute inset-0 backface-hidden">
                   <Paper type={currentPaperLeft} side="left">
                     {renderMonthTitle(month, year)}
+                    <PageWidgetLayer
+                      page="left"
+                      monthId={monthId}
+                      widgets={leftWidgets}
+                      isArrangeMode={false}
+                      onWidgetsChange={handleLeftWidgetsChange}
+                      onOpenConfig={() => {}}
+                    />
                     {renderLeftFolio(month, year)}
                     <div className="absolute inset-0 bg-ink pointer-events-none animate-leaf-shadow-backward" />
                   </Paper>
@@ -442,11 +508,27 @@ export function OpenBook({
               {/* Left Page */}
               <Paper type={currentPaperLeft} side="left">
                 {renderMonthTitle(month, year)}
+                <PageWidgetLayer
+                  page="left"
+                  monthId={monthId}
+                  widgets={leftWidgets}
+                  isArrangeMode={isArrangeMode}
+                  onWidgetsChange={handleLeftWidgetsChange}
+                  onOpenConfig={(id) => setActiveConfigWidgetId(id)}
+                />
                 {renderLeftFolio(month, year, turnBackward)}
               </Paper>
 
               {/* Right Page */}
               <Paper type={currentPaperRight} side="right">
+                <PageWidgetLayer
+                  page="right"
+                  monthId={monthId}
+                  widgets={rightWidgets}
+                  isArrangeMode={isArrangeMode}
+                  onWidgetsChange={handleRightWidgetsChange}
+                  onOpenConfig={(id) => setActiveConfigWidgetId(id)}
+                />
                 {renderRightFolio(month, year, turnForward)}
                 {renderFoldedCorner(turnForward)}
 
@@ -489,6 +571,15 @@ export function OpenBook({
                   </div>
                 )}
               </Paper>
+
+              {/* ── Widget Configuration Card (Task 6 Tucked Loose Card Style) ── */}
+              {activeConfigWidget && (
+                <WidgetConfigCard
+                  widget={activeConfigWidget}
+                  onClose={() => setActiveConfigWidgetId(null)}
+                  onSaved={handleWidgetSaved}
+                />
+              )}
 
               {/* ── Month Setup Wizard Overlay (Unset month sheet, L9) ── */}
               {!isSetupDone && (
@@ -543,6 +634,29 @@ export function OpenBook({
             )
           })}
         </nav>
+
+        {/* ── Arrange Ribbon Tab at Top Edge (L1 — ribbon, not toolbar) ── */}
+        {isSetupDone && (
+          <button
+            type="button"
+            onClick={() => setIsArrangeMode((prev) => !prev)}
+            className={`absolute -top-7 left-24 z-30 flex items-center justify-center px-4 py-1 font-hand text-xs transition-all duration-200 cursor-pointer select-none rounded-t-sm shadow-[0_-2px_6px_rgba(28,36,51,0.3)] ${
+              isArrangeMode
+                ? 'bg-gold text-ink font-bold -translate-y-1'
+                : 'bg-kraft/90 hover:bg-kraft text-paper hover:-translate-y-0.5'
+            }`}
+            style={{
+              clipPath: 'polygon(0 100%, 0 0, 100% 0, 100% 100%, 50% 85%)',
+              height: '38px',
+              paddingBottom: '8px',
+            }}
+            aria-pressed={isArrangeMode}
+            aria-label="Toggle Arrange Mode"
+            title={isArrangeMode ? 'Finish arranging' : 'Arrange widgets'}
+          >
+            {isArrangeMode ? 'Done' : 'Arrange'}
+          </button>
+        )}
 
         {/* ── Red Ribbon hanging from bottom of spine ── */}
         <div

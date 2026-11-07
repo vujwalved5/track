@@ -2,6 +2,7 @@ import { OpenBook, MONTHS } from '@/components/book'
 import type { PaperType } from '@/components/paper'
 import { createClient } from '@/lib/supabase/server'
 import { getPreviousMonthData } from '@/components/setup'
+import type { WidgetData } from '@/components/widgets'
 
 interface PageProps {
   params: Promise<{
@@ -11,6 +12,7 @@ interface PageProps {
 }
 
 interface MonthRow {
+  id: string
   setup_done: boolean
   paper_left: PaperType
   paper_right: PaperType
@@ -31,6 +33,8 @@ export default async function BookMonthPage({ params }: PageProps) {
   let paperRight: PaperType = 'dotted'
   let setupDone = false
   let showNextMonthPrompt = false
+  let monthId: string | undefined = undefined
+  let initialWidgets: WidgetData[] = []
 
   const nextYear = month === 12 ? year + 1 : year
   const nextMonth = month === 12 ? 1 : month + 1
@@ -57,7 +61,7 @@ export default async function BookMonthPage({ params }: PageProps) {
       if (bookRes.data) {
         const monthRes = (await supabase
           .from('months')
-          .select('setup_done, paper_left, paper_right')
+          .select('id, setup_done, paper_left, paper_right')
           .eq('book_id', bookRes.data.id)
           .eq('month', month)
           .maybeSingle()) as { data: MonthRow | null }
@@ -66,6 +70,18 @@ export default async function BookMonthPage({ params }: PageProps) {
           setupDone = !!monthRes.data.setup_done
           paperLeft = monthRes.data.paper_left || 'dotted'
           paperRight = monthRes.data.paper_right || 'dotted'
+          monthId = monthRes.data.id
+
+          // Load widgets for the current month spread
+          const widgetsRes = await supabase
+            .from('widgets')
+            .select('*')
+            .eq('month_id', monthId)
+            .order('created_at', { ascending: true })
+
+          if (widgetsRes.data) {
+            initialWidgets = widgetsRes.data as WidgetData[]
+          }
         }
       }
 
@@ -117,9 +133,11 @@ export default async function BookMonthPage({ params }: PageProps) {
       <OpenBook
         year={year}
         month={month}
+        monthId={monthId}
         paperLeft={paperLeft}
         paperRight={paperRight}
         initialSetupDone={setupDone}
+        initialWidgets={initialWidgets}
         prevMonthData={prevMonthData}
         showNextMonthPrompt={showNextMonthPrompt}
         nextMonthName={nextMonthName}

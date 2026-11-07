@@ -1,10 +1,10 @@
 [
   {
     "route": "/",
-    "firstLoadUncompressedJsBytes": 755661,
+    "firstLoadUncompressedJsBytes": 860398,
     "firstLoadChunkPaths": [
       ".next\\static\\chunks\\3qfy96eoyh-ek.js",
-      ".next\\static\\chunks\\40ajtz81wsdij.js",
+      ".next\\static\\chunks\\34537fxyvtrhk.js",
       ".next\\static\\chunks\\0j1we3cwg31qe.js",
       ".next\\static\\chunks\\331cmii2the74.js",
       ".next\\static\\chunks\\23e6jep2anmtk.js",
@@ -14,10 +14,10 @@
   },
   {
     "route": "/book/[year]/[month]",
-    "firstLoadUncompressedJsBytes": 755661,
+    "firstLoadUncompressedJsBytes": 860398,
     "firstLoadChunkPaths": [
       ".next\\static\\chunks\\3qfy96eoyh-ek.js",
-      ".next\\static\\chunks\\40ajtz81wsdij.js",
+      ".next\\static\\chunks\\34537fxyvtrhk.js",
       ".next\\static\\chunks\\0j1we3cwg31qe.js",
       ".next\\static\\chunks\\331cmii2the74.js",
       ".next\\static\\chunks\\23e6jep2anmtk.js",
