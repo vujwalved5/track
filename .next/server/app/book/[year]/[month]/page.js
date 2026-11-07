@@ -11,8 +11,8 @@ R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_unauthor
 R.c("server/chunks/ssr/node_modules_next_dist_1c5t_vsn6u8fr._.js")
 R.c("server/chunks/ssr/_next-internal_server_app_book_[year]_[month]_page_actions_1qiwv4e8hmrsq.js")
 R.c("server/chunks/ssr/[root-of-the-server]__0ebvs2u8-b-2j._.js")
-R.c("server/chunks/ssr/components_widgets_215v_ukdzyo9c._.js")
-R.c("server/chunks/ssr/_17p8r0njlgki5._.js")
+R.c("server/chunks/ssr/_0od-m_uti71ig._.js")
+R.c("server/chunks/ssr/components_widgets_entryActions_ts_1zsy3rger21ny._.js")
 R.c("server/chunks/ssr/node_modules_next_dist_compiled_@edge-runtime_cookies_index_1kiz_an963mbg.js")
 R.m(18191)
 module.exports=R.m(18191).exports

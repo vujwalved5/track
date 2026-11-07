@@ -25,6 +25,10 @@ import { moodTrackerWidgetDefinition } from './mood-tracker/MoodTrackerWidget'
 import { lineGraphWidgetDefinition } from './line-graph/LineGraphWidget'
 import { barChartWidgetDefinition } from './bar-chart/BarChartWidget'
 import { scatterPlotWidgetDefinition } from './scatter-plot/ScatterPlotWidget'
+import { donutWidgetDefinition } from './donut/DonutWidget'
+import { goalBarWidgetDefinition } from './goal-bar/GoalBarWidget'
+import { checklistWidgetDefinition } from './checklist/ChecklistWidget'
+import { freeNoteWidgetDefinition } from './free-note/FreeNoteWidget'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const registry = new Map<string, WidgetDefinition<any>>()
@@ -74,3 +78,8 @@ registerWidget(moodTrackerWidgetDefinition)
 registerWidget(lineGraphWidgetDefinition)
 registerWidget(barChartWidgetDefinition)
 registerWidget(scatterPlotWidgetDefinition)
+// Task 10 Batch B
+registerWidget(donutWidgetDefinition)
+registerWidget(goalBarWidgetDefinition)
+registerWidget(checklistWidgetDefinition)
+registerWidget(freeNoteWidgetDefinition)

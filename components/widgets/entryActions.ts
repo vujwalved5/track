@@ -41,6 +41,16 @@ export const moodTrackerEntrySchema = z.object({
   mood: z.number().int().min(1).max(5),
 })
 
+export const checklistItemSchema = z.object({
+  text: z.string(),
+  ticked: z.boolean().default(false),
+  crossed: z.boolean().default(false),
+})
+
+export const checklistEntrySchema = z.object({
+  items: z.array(checklistItemSchema).default([]),
+})
+
 export const entryPayloadSchema = z.object({
   widgetId: z.string().uuid(),
   day: z.number().int().min(1).max(31),

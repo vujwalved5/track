@@ -126,6 +126,34 @@
       "filename": "components/widgets/entryActions.ts",
       "exportedName": "moodTrackerEntrySchema"
     },
+    "7fdca8dc029f98e1526853d0f4c374b31bff6e86b8": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 99157,
+          "async": false
+        },
+        "app/page": {
+          "moduleId": 33372,
+          "async": false
+        }
+      },
+      "filename": "components/widgets/entryActions.ts",
+      "exportedName": "checklistEntrySchema"
+    },
+    "605f7299666e8e65efd3823b8d14e67d33e7890974": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 99157,
+          "async": false
+        },
+        "app/page": {
+          "moduleId": 33372,
+          "async": false
+        }
+      },
+      "filename": "components/widgets/widgetActions.ts",
+      "exportedName": "updateWidgetConfig"
+    },
     "6037589a52602256cb89ba862c5017a9688af5e024": {
       "workers": {
         "app/book/[year]/[month]/page": {
@@ -153,20 +181,6 @@
       },
       "filename": "components/widgets/widgetActions.ts",
       "exportedName": "deleteWidget"
-    },
-    "605f7299666e8e65efd3823b8d14e67d33e7890974": {
-      "workers": {
-        "app/book/[year]/[month]/page": {
-          "moduleId": 99157,
-          "async": false
-        },
-        "app/page": {
-          "moduleId": 33372,
-          "async": false
-        }
-      },
-      "filename": "components/widgets/widgetActions.ts",
-      "exportedName": "updateWidgetConfig"
     },
     "7c8042ec01b8d3349d0b3853630dbe412884789ffe": {
       "workers": {

@@ -90,6 +90,31 @@
 - Drawer is hidden while month setup is pending (`!isSetupDone`).
 - Palette strictly L6 (`desk`, `kraft`, `oxblood`, `gold`, `paper`, `ink`), zero new hex codes, zero scrollbars at 1440×900.
 
+### Phase 5 / Task 10b — Apply Starting Layout from Month Setup
+
+- `components/setup/setupActions.ts` — `completeMonthSetup` applies the starting layout chosen in Month Setup:
+  - **Layout "Empty"**: creates zero widgets.
+  - **Layout "Journal"**: generates and inserts starting widgets in a single batch before setting `setup_done = true`:
+    - **Memorable Moments** (`memorable-moments`, `22×18`) placed at `(x: 0, y: 0)` on the left page.
+    - **Habit Tracker** (`habit-tracker`, `14×24`) placed at `(x: 0, y: 0)` on the right page with habit names sourced strictly from `setup_config.habits`.
+    - **Sleep Score Number Log** (`number-log`, `6×24`, label: "Sleep Score") placed at `(x: 14, y: 0)` on the right page when sleep score is toggled on in `setup_config`.
+    - **Line Graph** (`line-graph`, `w: 14`) placed at `(x: 0, y: 18)` on the left page reading from the sleep score Number Log via `sourceWidgetId`. Height is `h: 8` if Mood Tracker is enabled, `h: 12` if disabled (both above `8×8` minSize).
+    - **Mood Tracker** (`mood-tracker`, `22×4`) placed at `(x: 0, y: 26)` on the left page when mood is toggled on in `setup_config`.
+    - If sleep score is disabled and weight is enabled: Weight Number Log (`6×24`) placed at `(x: 14, y: 0)` on the right page.
+  - **Omitted Trackers Note**: Weight and custom Number Logs are omitted from the Journal layout when no space remains; consider a layout change later.
+  - **Server-Side Validation**: All candidate widgets run through `validateStartingWidgets()` (bounds within `22×30`, registry `minSize`, and pairwise zero-overlap check) before committing to database.
+  - **Execution Order & Failure Handling**: Starting widgets created FIRST, then `setup_done = true`. If either step fails, user stays on the sheet with a red-pen error message, `setup_done` remains false, and the "Open the month" button is disabled during submission. Re-running after a partial failure never duplicates widgets.
+  - **Single Batch Insert & Immediate UI Display**: All starting widgets are inserted in one Supabase batch call and returned through `MonthSetupWizard.tsx` to `OpenBook.tsx`, which updates `widgets` state and calls `router.refresh()` so widgets appear immediately without a page refresh.
+  - **Idempotent**: Verifies `widgetCount > 0` before insertion; never runs on a month that already has widgets, and reloading the page never duplicates widgets.
+
+### Phase 5 / Task 10 (Batch B) — Donut, Goal Bar, Checklist, Free Note
+
+- **Widget 10: Donut** (`donut`, Group `Charts`, `10×10`, min `8×8`): Source is Poll or Habit Tracker. Calculates share of poll options across the month or habit completion shares using palette colors (`oxblood`, `kraft`, `gold`, `ink`, `redpen`) and hand-drawn SVG arc segments with deterministic jitter. Central count display and handwritten legend. Live updates via `entriesVersionStore`.
+- **Widget 11: Goal Bar** (`goal-bar`, Group `Ask`, `14×4`, min `8×3`): Source is Counter (total sum) or Number Log (sum of readings). Hand-drawn progress capsule with pen-stroke diagonal hatching pattern, live target tracking, and red-pen completion marker.
+- **Widget 12: Checklist** (`checklist`, Group `Ask`, `10×10`, min `6×6`): Stored in `entries` at `day = 1` as `{ items: [{ text, ticked, crossed }] }`. Hand-drawn SVG tick boxes, red-pen cross-out action, and bottom blank line to write new items.
+- **Widget 13: Free Note** (`free-note`, Group `Write`, `10×10`, min `6×6`): Paper mode (`lined` with 22px grid rules or `blank`). Text stored in widget config and committed on blur. Dynamic font shrinking down to 12px floor; beyond that, overflow is hidden and a hand-drawn folded "more" corner appears. Zero inner scrolling.
+- Registered in `registry.ts`. All `<select>` elements in `WidgetConfigCard.tsx` replaced with accessible handwritten radio list.
+
 ### Phase 5 / Task 10 (Batch A) — Chart Utilities, Live-Update Plumbing, First Three Charts
 
 - `store/entriesVersion.ts` — Zustand store tracking global `version: number` incremented after successful entry saves.
@@ -133,6 +158,8 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
    `{ value: number | null }`
 6. **Mood Tracker** (Batch B, `day` 1..31):
    `{ mood: number }` (1..5)
+7. **Checklist** (Task 10 Batch B, stored strictly at `day = 1`):
+   `{ items: Array<{ text: string, ticked: boolean, crossed: boolean }> }`
 
 ## Pixel Size Reports (Default Sizes)
 - **Habit Tracker** (`14×24` = 308×528px): 64px rotated header + 31 rows = **14.58px per row** (>= 14px threshold).
@@ -140,7 +167,6 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - **Mood Tracker** (`22×4` = 484×88px): 16px horizontal padding + 31 day slots = **15.09px width per day face slot** (>= 14px threshold).
 
 ## Next
-- Task 10 Batch B (awaiting user GO): Donut, Goal Bar, Checklist, Free Note.
 - Task 11 — Mobile / single-page responsive layout (L8).
 
 ## Open Questions

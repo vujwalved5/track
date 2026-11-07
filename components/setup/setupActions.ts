@@ -2,6 +2,16 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { HabitConfig, MonthSetupConfig, PaperStyle, StartingLayout, TrackedNumbersConfig } from '@/types/db'
+import {
+  PAGE_COLS,
+  PAGE_ROWS,
+  hasOverlap,
+  isWithinBounds,
+  type WidgetData,
+  type WidgetRect,
+  type PageSide,
+} from '@/components/widgets/types'
+import { getWidgetDefinition } from '@/components/widgets/registry'
 
 export interface PreviousMonthData {
   exists: boolean
@@ -105,14 +115,116 @@ export interface SaveMonthSetupParams {
   startingLayout: StartingLayout
 }
 
+export interface CompleteMonthSetupResult {
+  success: boolean
+  monthId?: string
+  widgets?: WidgetData[]
+  setupConfig?: MonthSetupConfig
+  error?: string
+}
+
 /**
- * Saves the month setup. Missing books or months rows are created strictly here.
- * If copyFromPrevious is true, duplicates widget rows from the preceding month.
- * Sets setup_done = true only upon successful completion.
+ * Server-side bounds, minimum size, and zero-overlap validator for starting layout widgets.
+ * Strictly enforces Task 7 geometric constraints (PAGE_COLS, PAGE_ROWS, minSize, hasOverlap).
+ */
+function validateStartingWidgets(
+  widgets: Array<{
+    page: PageSide
+    type: string
+    x: number
+    y: number
+    w: number
+    h: number
+  }>,
+): { valid: boolean; error?: string } {
+  for (const w of widgets) {
+    const def = getWidgetDefinition(w.type)
+    const minW = def?.minSize.w ?? 1
+    const minH = def?.minSize.h ?? 1
+
+    if (w.w < minW || w.h < minH) {
+      return {
+        valid: false,
+        error: `Widget ${w.type} (${w.w}×${w.h}) is below minimum allowed size (${minW}×${minH})`,
+      }
+    }
+
+    const rect: WidgetRect = { x: w.x, y: w.y, w: w.w, h: w.h }
+    if (!isWithinBounds(rect, PAGE_COLS, PAGE_ROWS)) {
+      return {
+        valid: false,
+        error: `Widget ${w.type} placement exceeds page bounds (${PAGE_COLS} cols × ${PAGE_ROWS} rows)`,
+      }
+    }
+  }
+
+  // Check overlaps on left page
+  const leftWidgets = widgets.filter((w) => w.page === 'left')
+  for (let i = 0; i < leftWidgets.length; i++) {
+    for (let j = i + 1; j < leftWidgets.length; j++) {
+      const r1: WidgetRect = {
+        x: leftWidgets[i].x,
+        y: leftWidgets[i].y,
+        w: leftWidgets[i].w,
+        h: leftWidgets[i].h,
+      }
+      const r2: WidgetRect = {
+        x: leftWidgets[j].x,
+        y: leftWidgets[j].y,
+        w: leftWidgets[j].w,
+        h: leftWidgets[j].h,
+      }
+      if (hasOverlap(r1, r2)) {
+        return {
+          valid: false,
+          error: `Overlap detected on left page between ${leftWidgets[i].type} and ${leftWidgets[j].type}`,
+        }
+      }
+    }
+  }
+
+  // Check overlaps on right page
+  const rightWidgets = widgets.filter((w) => w.page === 'right')
+  for (let i = 0; i < rightWidgets.length; i++) {
+    for (let j = i + 1; j < rightWidgets.length; j++) {
+      const r1: WidgetRect = {
+        x: rightWidgets[i].x,
+        y: rightWidgets[i].y,
+        w: rightWidgets[i].w,
+        h: rightWidgets[i].h,
+      }
+      const r2: WidgetRect = {
+        x: rightWidgets[j].x,
+        y: rightWidgets[j].y,
+        w: rightWidgets[j].w,
+        h: rightWidgets[j].h,
+      }
+      if (hasOverlap(r1, r2)) {
+        return {
+          valid: false,
+          error: `Overlap detected on right page between ${rightWidgets[i].type} and ${rightWidgets[j].type}`,
+        }
+      }
+    }
+  }
+
+  return { valid: true }
+}
+
+/**
+ * Saves the month setup (Phase 5 / Task 10b).
+ * Order:
+ * 1. Ensure book and months records exist.
+ * 2. Check if widgets already exist for this month.
+ * 3. Create starting widgets FIRST (if layout is Journal and month has zero widgets).
+ * 4. Run through server-side bounds & overlap validator.
+ * 5. Batch-insert starting widgets into Supabase.
+ * 6. Set setup_done = true only AFTER widget creation succeeds.
+ * 7. Return created widgets so UI displays them immediately without refresh.
  */
 export async function completeMonthSetup(
   params: SaveMonthSetupParams,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<CompleteMonthSetupResult> {
   try {
     const supabase = await createClient()
     const {
@@ -176,11 +288,13 @@ export async function completeMonthSetup(
       startingLayout,
     }
 
-    // 2. Ensure or update months row
+    const cleanNote = nextMonthNote.trim() || null
+
+    // 2. Ensure months row exists (setup_done remains false until widgets are created)
     let monthId: string
     const { data: existingMonth, error: monthFetchErr } = await supabase
       .from('months')
-      .select('id')
+      .select('id, setup_done')
       .eq('book_id', bookId)
       .eq('month', month)
       .maybeSingle()
@@ -189,31 +303,15 @@ export async function completeMonthSetup(
       return { success: false, error: monthFetchErr.message }
     }
 
-    const cleanNote = nextMonthNote.trim() || null
-
     if (existingMonth) {
       monthId = existingMonth.id
-      const { error: updateErr } = await supabase
-        .from('months')
-        .update({
-          setup_done: true,
-          paper_left: paperLeft,
-          paper_right: paperRight,
-          next_month_note: cleanNote,
-          setup_config: setupConfig,
-        })
-        .eq('id', monthId)
-
-      if (updateErr) {
-        return { success: false, error: updateErr.message }
-      }
     } else {
       const { data: newMonth, error: insertErr } = await supabase
         .from('months')
         .insert({
           book_id: bookId,
           month,
-          setup_done: true,
+          setup_done: false,
           paper_left: paperLeft,
           paper_right: paperRight,
           next_month_note: cleanNote,
@@ -231,62 +329,256 @@ export async function completeMonthSetup(
       monthId = newMonth.id
     }
 
-    // 3. If copyFromPrevious, copy widget ROWS only (never entries)
+    // 3. Check if month already has widgets (prevent duplicate runs or reload duplicates)
+    const { count: widgetCount, error: widgetCountErr } = await supabase
+      .from('widgets')
+      .select('id', { count: 'exact', head: true })
+      .eq('month_id', monthId)
+
+    if (widgetCountErr) {
+      return { success: false, error: widgetCountErr.message }
+    }
+
+    const hasWidgets = (widgetCount ?? 0) > 0
+    let createdWidgets: WidgetData[] = []
+
+    // 4. Create starting widgets FIRST (before setting setup_done = true)
     if (copyFromPrevious) {
-      const prevYear = month === 1 ? year - 1 : year
-      const prevMonth = month === 1 ? 12 : month - 1
+      if (!hasWidgets) {
+        const prevYear = month === 1 ? year - 1 : year
+        const prevMonth = month === 1 ? 12 : month - 1
 
-      const { data: prevBook } = await supabase
-        .from('books')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('year', prevYear)
-        .maybeSingle()
-
-      if (prevBook) {
-        const { data: prevMonthRow } = await supabase
-          .from('months')
+        const { data: prevBook } = await supabase
+          .from('books')
           .select('id')
-          .eq('book_id', prevBook.id)
-          .eq('month', prevMonth)
+          .eq('user_id', user.id)
+          .eq('year', prevYear)
           .maybeSingle()
 
-        if (prevMonthRow) {
-          const { data: prevWidgets, error: widgetFetchError } = await supabase
-            .from('widgets')
-            .select('page, type, x, y, w, h, config, z')
-            .eq('month_id', prevMonthRow.id)
+        if (prevBook) {
+          const { data: prevMonthRow } = await supabase
+            .from('months')
+            .select('id')
+            .eq('book_id', prevBook.id)
+            .eq('month', prevMonth)
+            .maybeSingle()
 
-          if (widgetFetchError) {
-            return { success: false, error: widgetFetchError.message }
-          }
-
-          if (prevWidgets && prevWidgets.length > 0) {
-            const rowsToInsert = prevWidgets.map((w) => ({
-              month_id: monthId,
-              page: w.page,
-              type: w.type,
-              x: w.x,
-              y: w.y,
-              w: w.w,
-              h: w.h,
-              config: w.config,
-              z: w.z,
-            }))
-
-            const { error: widgetInsertError } = await supabase
+          if (prevMonthRow) {
+            const { data: prevWidgets, error: widgetFetchError } = await supabase
               .from('widgets')
-              .insert(rowsToInsert)
+              .select('page, type, x, y, w, h, config, z')
+              .eq('month_id', prevMonthRow.id)
 
-            if (widgetInsertError) {
-              return { success: false, error: widgetInsertError.message }
+            if (widgetFetchError) {
+              return { success: false, error: widgetFetchError.message }
+            }
+
+            if (prevWidgets && prevWidgets.length > 0) {
+              const rowsToInsert = prevWidgets.map((w) => ({
+                month_id: monthId,
+                page: w.page,
+                type: w.type,
+                x: w.x,
+                y: w.y,
+                w: w.w,
+                h: w.h,
+                config: w.config,
+                z: w.z,
+              }))
+
+              const { data: copied, error: widgetInsertError } = await supabase
+                .from('widgets')
+                .insert(rowsToInsert)
+                .select()
+
+              if (widgetInsertError) {
+                return { success: false, error: widgetInsertError.message }
+              }
+              createdWidgets = (copied as WidgetData[]) || []
             }
           }
         }
+      } else {
+        const { data: existingRows } = await supabase
+          .from('widgets')
+          .select('*')
+          .eq('month_id', monthId)
+          .order('created_at', { ascending: true })
+        createdWidgets = (existingRows as WidgetData[]) || []
       }
+    } else if (startingLayout === 'journal') {
+      if (!hasWidgets) {
+        const rowsToInsert: Array<{
+          id: string
+          month_id: string
+          page: PageSide
+          type: string
+          x: number
+          y: number
+          w: number
+          h: number
+          config: Record<string, unknown>
+          z: number
+        }> = []
+
+        // Widget 1: Memorable Moments on left page — w 22, h 18 at (x 0, y 0)
+        rowsToInsert.push({
+          id: crypto.randomUUID(),
+          month_id: monthId,
+          page: 'left',
+          type: 'memorable-moments',
+          x: 0,
+          y: 0,
+          w: 22,
+          h: 18,
+          config: { title: 'Memorable Moments' },
+          z: 0,
+        })
+
+        // Widget 2: Habit Tracker on right page — w 14, h 24 at (x 0, y 0)
+        rowsToInsert.push({
+          id: crypto.randomUUID(),
+          month_id: monthId,
+          page: 'right',
+          type: 'habit-tracker',
+          x: 0,
+          y: 0,
+          w: 14,
+          h: 24,
+          config: { title: 'Habits' },
+          z: 0,
+        })
+
+        // Widget 3 & 4: Sleep Score Number Log + Line Graph (if enabled)
+        if (trackedNumbers.sleepScore) {
+          const sleepScoreId = crypto.randomUUID()
+
+          // Sleep score Number Log on right page: w 6, h 24 at (x 14, y 0)
+          rowsToInsert.push({
+            id: sleepScoreId,
+            month_id: monthId,
+            page: 'right',
+            type: 'number-log',
+            x: 14,
+            y: 0,
+            w: 6,
+            h: 24,
+            config: { label: 'Sleep Score', unit: '' },
+            z: 0,
+          })
+
+          // Line Graph on left page: w 14 at (x 0, y 18), h = 8 if Mood Tracker is enabled, h = 12 if not
+          const lineGraphH = trackedNumbers.mood ? 8 : 12
+          rowsToInsert.push({
+            id: crypto.randomUUID(),
+            month_id: monthId,
+            page: 'left',
+            type: 'line-graph',
+            x: 0,
+            y: 18,
+            w: 14,
+            h: lineGraphH,
+            config: {
+              title: 'Sleep Score',
+              sourceWidgetId: sleepScoreId,
+              vertical: false,
+            },
+            z: 0,
+          })
+        }
+
+        // Widget 5: Mood Tracker on left page (when enabled): w 22, h 4 at (x 0, y 26)
+        if (trackedNumbers.mood) {
+          rowsToInsert.push({
+            id: crypto.randomUUID(),
+            month_id: monthId,
+            page: 'left',
+            type: 'mood-tracker',
+            x: 0,
+            y: 26,
+            w: 22,
+            h: 4,
+            config: { title: 'Mood' },
+            z: 0,
+          })
+        }
+
+        // Fallback: If sleep score is OFF, weight Number Log fits on right page at (x 14, y 0)
+        if (!trackedNumbers.sleepScore && trackedNumbers.weight) {
+          rowsToInsert.push({
+            id: crypto.randomUUID(),
+            month_id: monthId,
+            page: 'right',
+            type: 'number-log',
+            x: 14,
+            y: 0,
+            w: 6,
+            h: 24,
+            config: { label: 'Weight', unit: 'kg' },
+            z: 0,
+          })
+        }
+
+        // Run every created widget through the server-side bounds & overlap validator (Correction 2)
+        const validation = validateStartingWidgets(rowsToInsert)
+        if (!validation.valid) {
+          return {
+            success: false,
+            error: validation.error || 'Starting widgets failed geometric validation.',
+          }
+        }
+
+        // Single batch insert for all starting widgets (Correction 4)
+        const { data: inserted, error: widgetInsertError } = await supabase
+          .from('widgets')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .insert(rowsToInsert as any)
+          .select()
+
+        if (widgetInsertError || !inserted) {
+          return {
+            success: false,
+            error: widgetInsertError?.message || 'Failed to create starting widgets.',
+          }
+        }
+
+        createdWidgets = inserted as WidgetData[]
+      } else {
+        // Month already had widgets: do not duplicate
+        const { data: existingRows } = await supabase
+          .from('widgets')
+          .select('*')
+          .eq('month_id', monthId)
+          .order('created_at', { ascending: true })
+        createdWidgets = (existingRows as WidgetData[]) || []
+      }
+    } else {
+      // Layout "Empty": create nothing
+      createdWidgets = []
     }
 
-    return { success: true }
+    // 5. FINALLY, set setup_done = true only AFTER starting widgets have been successfully created (Correction 1)
+    const { error: updateErr } = await supabase
+      .from('months')
+      .update({
+        setup_done: true,
+        paper_left: paperLeft,
+        paper_right: paperRight,
+        next_month_note: cleanNote,
+        setup_config: setupConfig,
+      })
+      .eq('id', monthId)
+
+    if (updateErr) {
+      return { success: false, error: updateErr.message }
+    }
+
+    return {
+      success: true,
+      monthId,
+      widgets: createdWidgets,
+      setupConfig,
+    }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error during month setup.'
     return { success: false, error: message }

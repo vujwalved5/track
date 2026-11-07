@@ -113,6 +113,99 @@ function getWidgetLabel(w: WidgetData): string {
   return sub ? `${displayName}: ${sub}` : displayName
 }
 
+// ── Hand-Drawn Radio Circle & Tick (L13, no emoji) ────────────
+function HandDrawnRadioCircle({ checked }: { checked: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      aria-hidden="true"
+      className="shrink-0 text-ink"
+    >
+      {/* Hand-drawn wobbly circle outline */}
+      <path
+        d="M 8 2.5 C 11.2 2.2, 13.8 4.8, 13.5 8 C 13.7 11.2, 11.2 13.8, 8 13.5 C 4.8 13.7, 2.2 11.2, 2.5 8 C 2.2 4.8, 4.8 2.2, 8 2.5"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Hand-drawn pen tick when selected */}
+      {checked && (
+        <path
+          d="M 4.5 8.2 C 6 9.5, 6.8 11, 7.2 11.5 C 8.5 9, 10.5 5.5, 12.5 4"
+          stroke="#1c2433"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
+    </svg>
+  )
+}
+
+// ── Shared Handwritten Radio List for Config Card ─────────────
+interface HandwrittenRadioListProps {
+  name: string
+  label: string
+  value: string
+  options: Array<{ value: string; label: string }>
+  onChange: (value: string) => void
+  emptyMessage?: string
+}
+
+function HandwrittenRadioList({
+  name,
+  label,
+  value,
+  options,
+  onChange,
+  emptyMessage,
+}: HandwrittenRadioListProps) {
+  return (
+    <div className="flex flex-col gap-1" role="radiogroup" aria-label={label}>
+      <span className="text-xs font-bold text-ink/80 capitalize">
+        {label}
+      </span>
+
+      {options.length === 0 && emptyMessage ? (
+        <p className="text-[10px] text-ink/50 font-hand italic leading-tight">
+          {emptyMessage}
+        </p>
+      ) : (
+        <div className="flex flex-col gap-0.5">
+          {options.map((opt) => {
+            const isChecked = value === opt.value
+            return (
+              <label
+                key={opt.value}
+                className={`flex items-center gap-2 px-2 py-1 rounded-xs font-hand text-xs text-ink cursor-pointer transition-colors border border-transparent select-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#ffd84a] has-[:focus-visible]:bg-[#ffd84a]/25 ${
+                  isChecked
+                    ? 'bg-ink/[0.05] border-ink/20 font-semibold'
+                    : 'hover:bg-ink/[0.03]'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name={name}
+                  value={opt.value}
+                  checked={isChecked}
+                  onChange={() => onChange(opt.value)}
+                  className="sr-only"
+                />
+                <HandDrawnRadioCircle checked={isChecked} />
+                <span className="truncate">{opt.label}</span>
+              </label>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function WidgetConfigCard({
   widget,
   onClose,
@@ -271,26 +364,14 @@ export function WidgetConfigCard({
 
             case 'enum':
               return (
-                <div key={key} className="flex flex-col gap-1">
-                  <label
-                    htmlFor={`field-${key}`}
-                    className="text-xs font-bold text-ink/80 capitalize"
-                  >
-                    {key}
-                  </label>
-                  <select
-                    id={`field-${key}`}
-                    value={typeof value === 'string' ? value : field.options[0]}
-                    onChange={(e) => handleChange(key, e.target.value)}
-                    className="w-full bg-paper border border-ink/30 rounded p-1 text-xs text-ink font-hand focus:outline-none cursor-pointer"
-                  >
-                    {field.options.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <HandwrittenRadioList
+                  key={key}
+                  name={`field-${key}`}
+                  label={key}
+                  value={typeof value === 'string' ? value : field.options[0]}
+                  options={field.options.map((opt) => ({ value: opt, label: opt }))}
+                  onChange={(val) => handleChange(key, val)}
+                />
               )
 
             case 'widgetSource': {
@@ -303,33 +384,25 @@ export function WidgetConfigCard({
                   : key === 'sourceWidgetId2'
                     ? 'Second source (Y axis)'
                     : key
+
+              const options = [
+                { value: '', label: '— none —' },
+                ...compatibleWidgets.map((w) => ({
+                  value: w.id,
+                  label: getWidgetLabel(w),
+                })),
+              ]
+
               return (
-                <div key={key} className="flex flex-col gap-1">
-                  <label
-                    htmlFor={`field-${key}`}
-                    className="text-xs font-bold text-ink/80"
-                  >
-                    {friendlyLabel}
-                  </label>
-                  <select
-                    id={`field-${key}`}
-                    value={typeof value === 'string' ? value : ''}
-                    onChange={(e) => handleChange(key, e.target.value)}
-                    className="w-full bg-paper border border-ink/30 rounded p-1 text-xs text-ink font-hand focus:outline-none cursor-pointer"
-                  >
-                    <option value="">— none —</option>
-                    {compatibleWidgets.map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {getWidgetLabel(w)}
-                      </option>
-                    ))}
-                  </select>
-                  {compatibleWidgets.length === 0 && (
-                    <p className="text-[10px] text-ink/50 font-hand italic leading-tight">
-                      No compatible widgets on this spread yet
-                    </p>
-                  )}
-                </div>
+                <HandwrittenRadioList
+                  key={key}
+                  name={`field-${key}`}
+                  label={friendlyLabel}
+                  value={typeof value === 'string' ? value : ''}
+                  options={compatibleWidgets.length > 0 ? options : []}
+                  onChange={(val) => handleChange(key, val)}
+                  emptyMessage="No compatible widgets on this spread yet"
+                />
               )
             }
 

@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import type { HabitConfig, PaperStyle, StartingLayout, TrackedNumbersConfig } from '@/types/db'
+import type { HabitConfig, MonthSetupConfig, PaperStyle, StartingLayout, TrackedNumbersConfig } from '@/types/db'
+import type { WidgetData } from '@/components/widgets/types'
 import { completeMonthSetup, type PreviousMonthData } from './setupActions'
 
 interface MonthSetupWizardProps {
@@ -9,7 +10,13 @@ interface MonthSetupWizardProps {
   month: number
   monthName: string
   prevMonthData: PreviousMonthData
-  onComplete: (paperLeft: PaperStyle, paperRight: PaperStyle) => void
+  onComplete: (
+    paperLeft: PaperStyle,
+    paperRight: PaperStyle,
+    createdWidgets?: WidgetData[],
+    monthId?: string,
+    setupConfig?: MonthSetupConfig,
+  ) => void
 }
 
 const PAPER_OPTIONS: Array<{ type: PaperStyle; label: string }> = [
@@ -314,7 +321,13 @@ export function MonthSetupWizard({
       }
 
       // Success: notify parent
-      onComplete(paperLeft, paperRight)
+      onComplete(
+        paperLeft,
+        paperRight,
+        result.widgets,
+        result.monthId,
+        result.setupConfig,
+      )
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Save failed.'
       setErrorMessage(msg)

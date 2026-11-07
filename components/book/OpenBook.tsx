@@ -67,6 +67,8 @@ export function OpenBook({
 
   // Setup state for the month
   const [isSetupDone, setIsSetupDone] = useState(initialSetupDone)
+  const [currentMonthId, setCurrentMonthId] = useState<string | undefined>(monthId)
+  const [currentSetupConfig, setCurrentSetupConfig] = useState<Record<string, unknown>>(setupConfig)
   const [currentPaperLeft, setCurrentPaperLeft] = useState<PaperType>(paperLeft)
   const [currentPaperRight, setCurrentPaperRight] = useState<PaperType>(paperRight)
 
@@ -105,6 +107,8 @@ export function OpenBook({
     setIsFading(false)
     setTargetDate({ year, month })
     setIsSetupDone(initialSetupDone)
+    setCurrentMonthId(monthId)
+    setCurrentSetupConfig(setupConfig)
     setCurrentPaperLeft(paperLeft)
     setCurrentPaperRight(paperRight)
     setWidgets(initialWidgets)
@@ -112,7 +116,7 @@ export function OpenBook({
     setActiveConfigWidgetId(null)
     setIsDrawerOpen(false)
     setPickedWidgetDef(null)
-  }, [year, month, initialSetupDone, paperLeft, paperRight, initialWidgets])
+  }, [year, month, initialSetupDone, paperLeft, paperRight, initialWidgets, monthId, setupConfig])
 
   const leftWidgets = widgets.filter((w) => w.page === 'left')
   const rightWidgets = widgets.filter((w) => w.page === 'right')
@@ -131,10 +135,10 @@ export function OpenBook({
 
   const handlePlaceWidget = useCallback(
     async (targetPage: PageSide, x: number, y: number) => {
-      if (!monthId || !pickedWidgetDef) return
+      if (!currentMonthId || !pickedWidgetDef) return
 
       const defToPlace = pickedWidgetDef
-      const res = await createWidget(monthId, targetPage, defToPlace.id, x, y)
+      const res = await createWidget(currentMonthId, targetPage, defToPlace.id, x, y)
       if (res.success && res.data) {
         setWidgets((prev) => [...prev, res.data!])
         setPickedWidgetDef(null)
@@ -142,7 +146,7 @@ export function OpenBook({
         setIsArrangeMode(true) // Automatically enter Arrange mode (Correction & Detail)
       }
     },
-    [monthId, pickedWidgetDef],
+    [currentMonthId, pickedWidgetDef],
   )
 
   const activeConfigWidget = widgets.find((w) => w.id === activeConfigWidgetId)
@@ -401,7 +405,7 @@ export function OpenBook({
                   {renderMonthTitle(month, year)}
                   <PageWidgetLayer
                     page="left"
-                    monthId={monthId}
+                    monthId={currentMonthId}
                     widgets={leftWidgets}
                     isArrangeMode={false}
                     onWidgetsChange={handleLeftWidgetsChange}
@@ -544,10 +548,10 @@ export function OpenBook({
                 {renderMonthTitle(month, year)}
                 <PageWidgetLayer
                   page="left"
-                  monthId={monthId}
+                  monthId={currentMonthId}
                   year={year}
                   month={month}
-                  setupConfig={setupConfig}
+                  setupConfig={currentSetupConfig}
                   widgets={leftWidgets}
                   isArrangeMode={isArrangeMode}
                   onWidgetsChange={handleLeftWidgetsChange}
@@ -568,10 +572,10 @@ export function OpenBook({
               <Paper type={currentPaperRight} side="right">
                 <PageWidgetLayer
                   page="right"
-                  monthId={monthId}
+                  monthId={currentMonthId}
                   year={year}
                   month={month}
-                  setupConfig={setupConfig}
+                  setupConfig={currentSetupConfig}
                   widgets={rightWidgets}
                   isArrangeMode={isArrangeMode}
                   onWidgetsChange={handleRightWidgetsChange}
@@ -645,10 +649,22 @@ export function OpenBook({
                   month={month}
                   monthName={curMonthObj.name}
                   prevMonthData={prevMonthData}
-                  onComplete={(newLeft, newRight) => {
+                  onComplete={(newLeft, newRight, createdWidgets, newMonthId, newSetupConfig) => {
                     setCurrentPaperLeft(newLeft)
                     setCurrentPaperRight(newRight)
+                    if (newMonthId) {
+                      setCurrentMonthId(newMonthId)
+                    }
+                    if (newSetupConfig) {
+                      setCurrentSetupConfig(newSetupConfig)
+                    }
+                    if (createdWidgets && createdWidgets.length > 0) {
+                      setWidgets(createdWidgets)
+                    }
                     setIsSetupDone(true)
+                    startTransition(() => {
+                      router.refresh()
+                    })
                   }}
                 />
               )}
