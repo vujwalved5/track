@@ -243,6 +243,103 @@ export async function deleteWidget(
 }
 
 /**
+ * Places a newly selected widget on a page at (x, y) with its default dimensions.
+ * Strictly verifies bounds and no-overlap before writing to Supabase.
+ */
+export async function createWidget(
+  monthId: string,
+  page: PageSide,
+  type: string,
+  x: number,
+  y: number,
+): Promise<ActionResult<WidgetData>> {
+  try {
+    const supabase = await createClient()
+
+    const def = getWidgetDefinition(type)
+    if (!def) {
+      return { success: false, error: `Unknown widget type: ${type}` }
+    }
+
+    const candidate: WidgetRect = {
+      x: Math.round(x),
+      y: Math.round(y),
+      w: def.defaultSize.w,
+      h: def.defaultSize.h,
+    }
+
+    if (!isWithinBounds(candidate, PAGE_COLS, PAGE_ROWS)) {
+      return {
+        success: false,
+        error: 'Widget placement exceeds page bounds (22 cols × 30 rows)',
+      }
+    }
+
+    // Check sibling widgets on this page
+    const { data: siblingWidgets, error: siblingsErr } = await supabase
+      .from('widgets')
+      .select('*')
+      .eq('month_id', monthId)
+      .eq('page', page)
+
+    if (siblingsErr) {
+      return { success: false, error: siblingsErr.message }
+    }
+
+    for (const other of siblingWidgets || []) {
+      const otherRect: WidgetRect = {
+        x: other.x,
+        y: other.y,
+        w: other.w,
+        h: other.h,
+      }
+      if (hasOverlap(candidate, otherRect)) {
+        return {
+          success: false,
+          error: 'Widget overlaps with an existing widget on this page',
+        }
+      }
+    }
+
+    // Default configuration inferred from schema
+    const parsedConfig = def.schema.safeParse({})
+    const initialConfig = parsedConfig.success
+      ? (parsedConfig.data as Record<string, unknown>)
+      : {}
+
+    const { data: inserted, error: insertErr } = await supabase
+      .from('widgets')
+      .insert({
+        month_id: monthId,
+        page,
+        type,
+        x: candidate.x,
+        y: candidate.y,
+        w: candidate.w,
+        h: candidate.h,
+        config: initialConfig,
+        z: 0,
+      })
+      .select()
+      .single()
+
+    if (insertErr || !inserted) {
+      return {
+        success: false,
+        error: insertErr?.message || 'Failed to place widget',
+      }
+    }
+
+    return { success: true, data: inserted as WidgetData }
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Failed to place widget',
+    }
+  }
+}
+
+/**
  * Programmatic helper to add a test sticky note on a page.
  * Scans for an open non-overlapping slot on the page before inserting.
  */

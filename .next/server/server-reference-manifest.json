@@ -42,20 +42,6 @@
       "filename": "components/widgets/widgetActions.ts",
       "exportedName": "deleteWidget"
     },
-    "606946585edb1d482e2731b36046b868957f59011c": {
-      "workers": {
-        "app/book/[year]/[month]/page": {
-          "moduleId": 92881,
-          "async": false
-        },
-        "app/page": {
-          "moduleId": 78708,
-          "async": false
-        }
-      },
-      "filename": "components/widgets/widgetActions.ts",
-      "exportedName": "addTestStickyNote"
-    },
     "605f7299666e8e65efd3823b8d14e67d33e7890974": {
       "workers": {
         "app/book/[year]/[month]/page": {
@@ -69,6 +55,20 @@
       },
       "filename": "components/widgets/widgetActions.ts",
       "exportedName": "updateWidgetConfig"
+    },
+    "7c8042ec01b8d3349d0b3853630dbe412884789ffe": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 92881,
+          "async": false
+        },
+        "app/page": {
+          "moduleId": 78708,
+          "async": false
+        }
+      },
+      "filename": "components/widgets/widgetActions.ts",
+      "exportedName": "createWidget"
     },
     "605f1a74b29722bfe2cc48f657c97c358ca90e38a5": {
       "workers": {

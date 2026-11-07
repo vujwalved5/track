@@ -16,6 +16,15 @@ export { PAGE_COLS, PAGE_ROWS, GRID_PX }
 
 export type PageSide = 'left' | 'right'
 
+export type WidgetGroup = 'Track' | 'Charts' | 'Ask' | 'Write'
+
+export const WIDGET_GROUPS: readonly WidgetGroup[] = [
+  'Track',
+  'Charts',
+  'Ask',
+  'Write',
+] as const
+
 export interface WidgetSize {
   w: number // grid units (1..22)
   h: number // grid units (1..30)
@@ -50,6 +59,7 @@ export interface WidgetRenderProps<T = Record<string, unknown>> {
 export interface WidgetDefinition<TSchema extends z.ZodTypeAny = any> {
   id: string
   displayName: string
+  group: WidgetGroup
   defaultSize: WidgetSize
   minSize: WidgetSize
   schema: TSchema

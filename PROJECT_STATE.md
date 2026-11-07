@@ -82,9 +82,17 @@
 - Dev add control: added dev-only control labelled `dev: add sticky note` rendered during development. **Note: Remove dev add-control in Task 8.**
 - Confirmed foreign key cascade: deleting a widget cascades to its entries rows (`ON DELETE CASCADE` verified in migration `0001_initial_schema.sql`).
 
+### Phase 4 / Task 8 — The Widget Library
+- `components/widgets/WidgetDrawer.tsx` — Wooden card-catalogue drawer sliding out from the bottom edge of the desk under the book; toggled by a small brass cup handle (gold/kraft); four card-stock tabbed dividers ("Track", "Charts", "Ask", "Write") always visible with no placeholder text; paper index cards dynamically populated from registry displaying only the hand-drawn SVG icon and handwritten name in Kalam font.
+- `components/widgets/PlacementOverlay.tsx` — Interactive placement overlay for Left and Right paper pages active only when a card is held; renders 22px grid-snapped footprint in highlighter yellow (`#ffd84a`) when valid or red pen (`#b3261e`) when invalid/overlapping using `isValidPlacement()`; on click, places the widget, commits to Supabase, closes the drawer, and enters Arrange mode.
+- Cancel interactions: holding a card is cancelled by `Escape`, tapping the handle, or turning pages; placement overlay unmounts completely so book navigation is never blocked.
+- Removed the temporary dev add-control from `PageWidgetLayer.tsx`.
+- Drawer is hidden while month setup is pending (`!isSetupDone`).
+- Palette strictly L6 (`desk`, `kraft`, `oxblood`, `gold`, `paper`, `ink`), zero new hex codes, zero scrollbars at 1440×900.
+
 ## Next
-- Phase 4 / Task 8 — The Widget Library Drawer (L10) (and remove dev add-control).
-- Actual widgets (habit tracker, hand-drawn plots, counters, lists).
+- Every widget registered in Tasks 9 and 10 must set its group: Track = Memorable Moments, Habit Tracker, Counter, Number Log, Mood Tracker. Charts = Line Graph, Bar Chart, Scatter Plot, Donut. Ask = Poll, Checklist, Goal Bar. Write = Free Note, Sticky Note.
+- Phase 4 / Tasks 9 & 10 — Building the actual widgets.
 - Task 11 — Mobile / single-page responsive layout (L8).
 
 ## Open Questions

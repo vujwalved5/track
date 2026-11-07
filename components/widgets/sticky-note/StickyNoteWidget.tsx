@@ -113,6 +113,7 @@ export function StickyNoteMobile({
 export const stickyNoteWidgetDefinition: WidgetDefinition<typeof stickyNoteSchema> = {
   id: 'sticky_note',
   displayName: 'Sticky note',
+  group: 'Write',
   defaultSize: { w: 7, h: 6 }, // 154px × 132px on 22px grid
   minSize: { w: 4, h: 4 },     // 88px × 88px minimum
   schema: stickyNoteSchema,

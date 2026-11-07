@@ -32,7 +32,6 @@ import { WidgetWrapper } from './WidgetWrapper'
 import {
   updateWidgetPosition,
   deleteWidget,
-  addTestStickyNote,
 } from './widgetActions'
 
 interface PageWidgetLayerProps {
@@ -53,7 +52,6 @@ export function PageWidgetLayer({
   onOpenConfig,
 }: PageWidgetLayerProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [isAddingDevWidget, setIsAddingDevWidget] = useState(false)
 
   // Configure pointer sensor with activation distance to avoid misclicks
   const sensors = useSensors(
@@ -191,22 +189,6 @@ export function PageWidgetLayer({
     }
   }
 
-  // Handle dev-only sticky note insertion (Correction 5)
-  const handleAddDevStickyNote = async () => {
-    if (!monthId || isAddingDevWidget) return
-    setIsAddingDevWidget(true)
-
-    const res = await addTestStickyNote(monthId, page)
-    setIsAddingDevWidget(false)
-
-    if (!res.success || !res.data) {
-      showError(res.error || 'Could not add sticky note')
-      return
-    }
-
-    onWidgetsChange([...widgets, res.data])
-  }
-
   return (
     <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
       {/* Red-Pen Error Feedback Message (Correction 6) */}
@@ -218,21 +200,6 @@ export function PageWidgetLayer({
           <p className="font-hand text-xs text-redpen font-bold tracking-wide">
             {errorMessage}
           </p>
-        </div>
-      )}
-
-      {/* Dev-only placement control (Correction 5) */}
-      {process.env.NODE_ENV === 'development' && isArrangeMode && monthId && (
-        <div className="absolute top-2 right-4 z-40 pointer-events-auto">
-          <button
-            type="button"
-            onClick={handleAddDevStickyNote}
-            disabled={isAddingDevWidget}
-            className="font-hand text-[11px] text-ink/70 hover:text-redpen border border-dotted border-ink/40 bg-paper/90 px-2 py-0.5 rounded shadow-xs cursor-pointer transition-colors disabled:opacity-50"
-            title="Development test trigger: add sticky note"
-          >
-            {isAddingDevWidget ? 'adding...' : 'dev: add sticky note'}
-          </button>
         </div>
       )}
 

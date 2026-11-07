@@ -14,7 +14,7 @@
  * - hand-drawn SVG icon (L13)
  */
 
-import type { WidgetDefinition } from './types'
+import type { WidgetDefinition, WidgetGroup } from './types'
 import { stickyNoteWidgetDefinition } from './sticky-note/StickyNoteWidget'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,6 +42,14 @@ export function getWidgetDefinition(type: string): WidgetDefinition<any> | undef
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getAllWidgetDefinitions(): WidgetDefinition<any>[] {
   return Array.from(registry.values())
+}
+
+/**
+ * Returns all registered widget definitions for a specific group.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getWidgetsByGroup(group: WidgetGroup): WidgetDefinition<any>[] {
+  return Array.from(registry.values()).filter((def) => def.group === group)
 }
 
 // ── Register initial built-in widget(s) ───────────────────────

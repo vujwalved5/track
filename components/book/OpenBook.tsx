@@ -7,7 +7,12 @@ import { MonthSetupWizard, type PreviousMonthData } from '@/components/setup'
 import {
   PageWidgetLayer,
   WidgetConfigCard,
+  WidgetDrawer,
+  PlacementOverlay,
+  createWidget,
   type WidgetData,
+  type WidgetDefinition,
+  type PageSide,
 } from '@/components/widgets'
 
 // ── Month definitions (JAN - DEC) ─────────────────────────────
@@ -68,6 +73,11 @@ export function OpenBook({
   const [isArrangeMode, setIsArrangeMode] = useState(false)
   const [activeConfigWidgetId, setActiveConfigWidgetId] = useState<string | null>(null)
 
+  // Card-catalogue drawer & placement state (Task 8)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [pickedWidgetDef, setPickedWidgetDef] = useState<WidgetDefinition<any> | null>(null)
+
   // Navigation / animation state
   const [isTurning, setIsTurning] = useState<TurnDirection | null>(null)
   const [targetDate, setTargetDate] = useState<{ year: number; month: number }>({
@@ -98,6 +108,8 @@ export function OpenBook({
     setWidgets(initialWidgets)
     setIsArrangeMode(false)
     setActiveConfigWidgetId(null)
+    setIsDrawerOpen(false)
+    setPickedWidgetDef(null)
   }, [year, month, initialSetupDone, paperLeft, paperRight, initialWidgets])
 
   const leftWidgets = widgets.filter((w) => w.page === 'left')
@@ -114,6 +126,22 @@ export function OpenBook({
   const handleWidgetSaved = useCallback((updated: WidgetData) => {
     setWidgets((prev) => prev.map((w) => (w.id === updated.id ? updated : w)))
   }, [])
+
+  const handlePlaceWidget = useCallback(
+    async (targetPage: PageSide, x: number, y: number) => {
+      if (!monthId || !pickedWidgetDef) return
+
+      const defToPlace = pickedWidgetDef
+      const res = await createWidget(monthId, targetPage, defToPlace.id, x, y)
+      if (res.success && res.data) {
+        setWidgets((prev) => [...prev, res.data!])
+        setPickedWidgetDef(null)
+        setIsDrawerOpen(false)
+        setIsArrangeMode(true) // Automatically enter Arrange mode (Correction & Detail)
+      }
+    },
+    [monthId, pickedWidgetDef],
+  )
 
   const activeConfigWidget = widgets.find((w) => w.id === activeConfigWidgetId)
 
@@ -145,6 +173,10 @@ export function OpenBook({
     (tgtYear: number, tgtMonth: number, direction: TurnDirection) => {
       if (isTurning || isFading) return
       if (tgtYear === year && tgtMonth === month) return
+
+      // Cancel picked card and close drawer on page turn (Correction 4)
+      setPickedWidgetDef(null)
+      setIsDrawerOpen(false)
 
       setTargetDate({ year: tgtYear, month: tgtMonth })
 
@@ -516,6 +548,14 @@ export function OpenBook({
                   onWidgetsChange={handleLeftWidgetsChange}
                   onOpenConfig={(id) => setActiveConfigWidgetId(id)}
                 />
+                {pickedWidgetDef && (
+                  <PlacementOverlay
+                    page="left"
+                    pickedWidgetDef={pickedWidgetDef}
+                    existingWidgets={leftWidgets}
+                    onPlace={handlePlaceWidget}
+                  />
+                )}
                 {renderLeftFolio(month, year, turnBackward)}
               </Paper>
 
@@ -529,6 +569,14 @@ export function OpenBook({
                   onWidgetsChange={handleRightWidgetsChange}
                   onOpenConfig={(id) => setActiveConfigWidgetId(id)}
                 />
+                {pickedWidgetDef && (
+                  <PlacementOverlay
+                    page="right"
+                    pickedWidgetDef={pickedWidgetDef}
+                    existingWidgets={rightWidgets}
+                    onPlace={handlePlaceWidget}
+                  />
+                )}
                 {renderRightFolio(month, year, turnForward)}
                 {renderFoldedCorner(turnForward)}
 
@@ -670,6 +718,25 @@ export function OpenBook({
           <div className="w-full h-full bg-gradient-to-r from-ink/20 via-transparent to-ink/20" />
         </div>
       </div>
+
+      {/* ── Wooden Card-Catalogue Widget Library Drawer (Task 8) ── */}
+      <WidgetDrawer
+        isOpen={isDrawerOpen}
+        isSetupDone={isSetupDone}
+        pickedWidgetDef={pickedWidgetDef}
+        onToggleOpen={() => {
+          if (pickedWidgetDef) {
+            setPickedWidgetDef(null)
+          } else {
+            setIsDrawerOpen((prev) => !prev)
+          }
+        }}
+        onPickCard={(def) => {
+          setPickedWidgetDef(def)
+          setIsDrawerOpen(false)
+        }}
+        onCancelPick={() => setPickedWidgetDef(null)}
+      />
     </div>
   )
 }
