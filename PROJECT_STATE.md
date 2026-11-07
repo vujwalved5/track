@@ -165,9 +165,29 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - **Habit Tracker** (`14×24` = 308×528px): 64px rotated header + 31 rows = **14.58px per row** (>= 14px threshold).
 - **Number Log** (`6×24` = 132×528px): 32px header + 12px padding + 31 rows = **15.61px per row** (>= 14px threshold).
 - **Mood Tracker** (`22×4` = 484×88px): 16px horizontal padding + 31 day slots = **15.09px width per day face slot** (>= 14px threshold).
+- **Habit Tracker on Mobile (390×844)**:
+  - Row height: **44.0px** (satisfies >= 44px tap target rule).
+  - Cell width: **23.17px** with 12 habits, **46.33px** with 6 habits, **69.5px** with 4 habits (available grid width is 278px after 32px day column).
+  - **Known Exception**: Habit Tracker cell widths below 44px on mobile are a documented, intentional exception to the 44px tap target rule due to columns sharing pocket notebook page width.
+
+### Phase 6 / Task 11 (Batch A) — Mobile Layout Shell, Viewport Switch, and Tall Widgets
+- **Mobile `z` column audit**: Confirmed `widgets.z` was completely unused (default 0, never queried for ordering or z-index). Now adopted as primary mobile sequence index: widgets order by `z ASC`, with tie-breakers: `page ('left' first) -> y -> x`.
+- **Viewport Switch (Correction 7)**: `OpenBook.tsx` renders exactly ONE tree determined by `matchMedia("(min-width: 768px)")`, rendering a neutral desk-coloured placeholder during initial hydration to prevent mismatch. Unsaved state is retained across viewport resizes.
+- **MobileBook Shell**:
+  - Kraft `#b9895a` full background, single cream page (`#f4eddc`), dashed stitched binding line near left edge, hanging swallowtail red ribbon bookmark (`#b3261e`) at top edge.
+  - Folded bottom-right dog-ear corner for "next" page (`48×48px` >= 44px).
+  - Handwritten "back" text at bottom-left (`min-w-[44px] min-h-[44px]`).
+  - Month tabs on right edge: all 12 tabs (JAN–DEC), each `46px` tall (>= 44px), active month in red pen with paper text, inactive in paper tint.
+  - Touch gestures: horizontal swipe turning (swiping left turns forward, swiping right turns back) with horizontal distance threshold and vertical gesture rejection; suppressed during interaction with inputs or interactive controls.
+  - Inter-month navigation: turning past month's last page turns to next month's first page; turning back from first page lands on previous month's last page. Unset months render `MonthSetupWizard`.
+- **Dynamic Pagination & Tall Widgets**:
+  - `MemorableMomentsMobile`: 3-subpage pagination (Days 1–10, 11–20, 21–daysInMonth). Rows are `44px` tall; cross-out buttons are `44×44px`. Continuation pages show handwritten `(cont.)`.
+  - `HabitTrackerMobile`: 3-subpage pagination (Days 1–10, 11–20, 21–daysInMonth). Rows are `44px` tall; columns share the available 278px page grid width. Continuation pages show handwritten `(cont.)`.
+  - `NumberLogMobile`: 3-subpage pagination (Days 1–10, 11–20, 21–daysInMonth). Rows are `44px` tall with inline tappable edit input. Continuation pages show handwritten `(cont.)`.
+  - Zero inner scrollbars at 390×844.
 
 ## Next
-- Task 11 — Mobile / single-page responsive layout (L8).
+- Task 11 (Batch B) — Arrange mode on mobile (ribbon long-press, move up/down), WidgetDrawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets' mobile render.
 
 ## Open Questions
 - Sign-up flow and password reset not built.

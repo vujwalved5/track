@@ -56,6 +56,8 @@ export interface WidgetRenderProps<T = Record<string, unknown>> {
   year?: number
   month?: number
   setupConfig?: Record<string, unknown>
+  mobileSubPage?: number
+  mobileTotalSubPages?: number
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -71,6 +73,8 @@ export interface WidgetDefinition<TSchema extends z.ZodTypeAny = any> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mobileComponent: ComponentType<WidgetRenderProps<any>>
   icon: ComponentType<{ className?: string }>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getMobilePageCount?: (config?: any) => number
 }
 
 // ── Geometry & Collision Math ─────────────────────────────────

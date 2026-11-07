@@ -104,27 +104,13 @@ function HandDrawnX({ isRed = false }: { isRed?: boolean }) {
   )
 }
 
-// ── Desktop / Main Component ──────────────────────────────────
-export function HabitTrackerDesktop({
-  id,
-  setupConfig,
-  isArrangeMode,
-}: WidgetRenderProps<HabitTrackerConfig>) {
-  // Read habits strictly from setupConfig (Correction 1: no invented habits)
-  const habits: HabitConfig[] = useMemo(() => {
-    if (!setupConfig || !Array.isArray(setupConfig.habits)) {
-      return []
-    }
-    return setupConfig.habits as HabitConfig[]
-  }, [setupConfig])
-
-  // Map of day (1..31) -> marks { [habitPosition]: boolean }
+// ── Custom Hook for shared entry management ────────────────────
+function useHabitTrackerEntries(id: string, isArrangeMode?: boolean) {
   const [entriesMap, setEntriesMap] = useState<
     Record<number, Record<string, boolean>>
   >({})
   const [saveError, setSaveError] = useState<string | null>(null)
 
-  // Load entries from DB
   useEffect(() => {
     let cancelled = false
     async function load() {
@@ -146,7 +132,6 @@ export function HabitTrackerDesktop({
     }
   }, [id])
 
-  // Toggle cell mark and save
   const toggleCell = useCallback(
     async (day: number, habitIdx: number) => {
       if (isArrangeMode) return
@@ -158,7 +143,6 @@ export function HabitTrackerDesktop({
         [posKey]: !prevVal,
       }
 
-      // Optimistic update
       setEntriesMap((prev) => ({
         ...prev,
         [day]: nextDayMarks,
@@ -169,7 +153,6 @@ export function HabitTrackerDesktop({
       })
 
       if (!res.success) {
-        // Rollback on error & display red-pen message (Correction 6)
         setEntriesMap((prev) => ({
           ...prev,
           [day]: currentDayMarks,
@@ -179,6 +162,28 @@ export function HabitTrackerDesktop({
       }
     },
     [id, entriesMap, isArrangeMode],
+  )
+
+  return { entriesMap, saveError, toggleCell }
+}
+
+// ── Desktop / Main Component ──────────────────────────────────
+export function HabitTrackerDesktop({
+  id,
+  setupConfig,
+  isArrangeMode,
+}: WidgetRenderProps<HabitTrackerConfig>) {
+  // Read habits strictly from setupConfig (Correction 1: no invented habits)
+  const habits: HabitConfig[] = useMemo(() => {
+    if (!setupConfig || !Array.isArray(setupConfig.habits)) {
+      return []
+    }
+    return setupConfig.habits as HabitConfig[]
+  }, [setupConfig])
+
+  const { entriesMap, saveError, toggleCell } = useHabitTrackerEntries(
+    id,
+    isArrangeMode,
   )
 
   return (
@@ -273,11 +278,135 @@ export function HabitTrackerDesktop({
   )
 }
 
-// ── Mobile Render Component (Task 11 placeholder per Correction 7) ────
-export function HabitTrackerMobile(
-  props: WidgetRenderProps<HabitTrackerConfig>,
-) {
-  return <HabitTrackerDesktop {...props} />
+// ── Mobile Render Component (Task 11, Correction 4) ──────────
+export function HabitTrackerMobile({
+  id,
+  setupConfig,
+  isArrangeMode,
+  year,
+  month,
+  mobileSubPage = 0,
+}: WidgetRenderProps<HabitTrackerConfig>) {
+  const habits: HabitConfig[] = useMemo(() => {
+    if (!setupConfig || !Array.isArray(setupConfig.habits)) {
+      return []
+    }
+    return setupConfig.habits as HabitConfig[]
+  }, [setupConfig])
+
+  const { entriesMap, saveError, toggleCell } = useHabitTrackerEntries(
+    id,
+    isArrangeMode,
+  )
+
+  const daysInMonth =
+    year && month ? new Date(year, month, 0).getDate() : 31
+
+  let startDay = 1
+  let endDay = 10
+  if (mobileSubPage === 1) {
+    startDay = 11
+    endDay = 20
+  } else if (mobileSubPage >= 2) {
+    startDay = 21
+    endDay = daysInMonth
+  }
+
+  const daysCount = Math.max(0, endDay - startDay + 1)
+  const daysArray = Array.from({ length: daysCount }, (_, i) => startDay + i)
+
+  return (
+    <div className="relative w-full h-full flex flex-col bg-transparent select-none p-1">
+      {/* Red-Pen Save Error Feedback */}
+      {saveError && (
+        <div
+          className="absolute top-0 right-1 z-40 bg-paper border border-redpen px-2 py-0.5 rounded shadow text-redpen font-hand text-[10px]"
+          role="alert"
+        >
+          {saveError}
+        </div>
+      )}
+
+      {/* Top Header: Title on page 1, strictly "(cont.)" on continuation pages (Correction 4) */}
+      <div className="shrink-0 mb-1 flex items-baseline justify-between">
+        {mobileSubPage === 0 ? (
+          <h2 className="font-hand text-base font-bold text-ink">Habit Tracker</h2>
+        ) : (
+          <span className="font-hand text-sm text-ink/70 italic">(cont.)</span>
+        )}
+      </div>
+
+      {/* Table grid */}
+      <div className="flex-1 flex flex-col border border-ink/25 rounded-xs overflow-hidden">
+        {/* Table Header with column names / rotated labels */}
+        <div className="h-[60px] flex border-b border-ink/30 bg-paper/30 shrink-0">
+          <div className="w-8 shrink-0 flex items-end justify-center pb-1 border-r border-ink/20 font-hand text-[11px] text-ink/60">
+            d.
+          </div>
+          {habits.map((habit, idx) => (
+            <div
+              key={idx}
+              className="flex-1 flex items-end justify-center pb-1 border-r border-ink/15 last:border-r-0 overflow-hidden"
+              title={habit.name}
+            >
+              <span
+                className={`font-hand text-[11px] tracking-tight whitespace-nowrap [writing-mode:vertical-rl] rotate-180 select-none ${
+                  habit.isRed ? 'text-redpen font-bold' : 'text-ink font-medium'
+                }`}
+              >
+                {habit.name}
+              </span>
+            </div>
+          ))}
+          {habits.length === 0 && (
+            <div className="flex-1 flex items-center justify-center p-1 text-center font-hand text-xs text-ink/40 italic">
+              No habits set
+            </div>
+          )}
+        </div>
+
+        {/* Rows at least 44px tall; columns share the page width */}
+        <div className="flex-1 flex flex-col divide-y divide-ink/10">
+          {daysArray.map((day) => {
+            const dayMarks = entriesMap[day] || {}
+
+            return (
+              <div
+                key={day}
+                className="min-h-[44px] h-[44px] flex items-center hover:bg-ink/[0.02] transition-colors"
+              >
+                {/* Day label */}
+                <div className="w-8 shrink-0 h-full flex items-center justify-center border-r border-ink/20 font-hand text-xs text-ink/65 select-none pointer-events-none">
+                  {day}
+                </div>
+
+                {/* Habit cells sharing page width */}
+                {habits.map((habit, habitIdx) => {
+                  const isChecked = !!dayMarks[String(habitIdx)]
+                  return (
+                    <button
+                      key={habitIdx}
+                      type="button"
+                      disabled={isArrangeMode}
+                      onClick={() => toggleCell(day, habitIdx)}
+                      aria-label={`Day ${day} ${habit.name} ${isChecked ? 'completed' : 'not completed'}`}
+                      className="flex-1 h-full min-h-[44px] flex items-center justify-center border-r border-ink/10 last:border-r-0 cursor-pointer active:bg-ink/5 focus:outline-none"
+                    >
+                      {isChecked && <HandDrawnX isRed={habit.isRed} />}
+                    </button>
+                  )
+                })}
+
+                {habits.length === 0 && (
+                  <div className="flex-1 h-full border-r border-ink/10 last:border-r-0 pointer-events-none" />
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ── Widget Definition ─────────────────────────────────────────
@@ -293,4 +422,5 @@ export const habitTrackerWidgetDefinition: WidgetDefinition<
   component: HabitTrackerDesktop,
   mobileComponent: HabitTrackerMobile,
   icon: HabitTrackerIcon,
+  getMobilePageCount: () => 3,
 }

@@ -88,21 +88,13 @@ export function MemorableMomentsIcon({
   )
 }
 
-// ── Desktop / Main Component ──────────────────────────────────
-export function MemorableMomentsDesktop({
-  id,
-  config,
-  isArrangeMode,
-}: WidgetRenderProps<MemorableMomentsConfig>) {
-  const title = config?.title || 'Memorable Moments'
-
-  // Map of day (1..31) to DayEntryState
+// ── Custom Hook for shared entry management ────────────────────
+function useMemorableMomentsEntries(id: string, isArrangeMode?: boolean) {
   const [entriesMap, setEntriesMap] = useState<Record<number, DayEntryState>>({})
   const [saveError, setSaveError] = useState<string | null>(null)
   const longPressTimerRef = useRef<{ [day: number]: NodeJS.Timeout }>({})
   const longPressFiredRef = useRef<{ [day: number]: boolean }>({})
 
-  // Load entries from DB
   useEffect(() => {
     let cancelled = false
     async function load() {
@@ -124,7 +116,6 @@ export function MemorableMomentsDesktop({
     }
   }, [id])
 
-  // Helper to commit an entry state to Supabase with rollback on failure
   const commitDayState = useCallback(
     async (day: number, nextState: DayEntryState) => {
       const prevState = entriesMap[day] || {
@@ -133,7 +124,6 @@ export function MemorableMomentsDesktop({
         crossedOut: false,
       }
 
-      // Optimistic update
       setEntriesMap((prev) => ({
         ...prev,
         [day]: nextState,
@@ -146,7 +136,6 @@ export function MemorableMomentsDesktop({
       })
 
       if (!res.success) {
-        // Rollback on error & display red-pen message (Correction 6)
         setEntriesMap((prev) => ({
           ...prev,
           [day]: prevState,
@@ -197,7 +186,6 @@ export function MemorableMomentsDesktop({
     commitDayState(day, { ...cur, highlighted: !cur.highlighted })
   }
 
-  // Pointer down: initiate ~500ms long press for highlighter toggle
   const handlePointerDown = (day: number) => {
     if (isArrangeMode) return
     longPressFiredRef.current[day] = false
@@ -213,6 +201,34 @@ export function MemorableMomentsDesktop({
       delete longPressTimerRef.current[day]
     }
   }
+
+  return {
+    entriesMap,
+    saveError,
+    handleTextChange,
+    handleTextBlur,
+    toggleCrossOut,
+    handlePointerDown,
+    handlePointerUpOrLeave,
+  }
+}
+
+// ── Desktop / Main Component ──────────────────────────────────
+export function MemorableMomentsDesktop({
+  id,
+  config,
+  isArrangeMode,
+}: WidgetRenderProps<MemorableMomentsConfig>) {
+  const title = config?.title || 'Memorable Moments'
+  const {
+    entriesMap,
+    saveError,
+    handleTextChange,
+    handleTextBlur,
+    toggleCrossOut,
+    handlePointerDown,
+    handlePointerUpOrLeave,
+  } = useMemorableMomentsEntries(id, isArrangeMode)
 
   // Render a single day row on 22px rule
   const renderDayRow = (day: number) => {
@@ -345,11 +361,172 @@ export function MemorableMomentsDesktop({
   )
 }
 
-// ── Mobile Render Component (Task 11 placeholder per Correction 7) ────
-export function MemorableMomentsMobile(
-  props: WidgetRenderProps<MemorableMomentsConfig>,
-) {
-  return <MemorableMomentsDesktop {...props} />
+// ── Mobile Render Component (Task 11) ────────────────────────
+export function MemorableMomentsMobile({
+  id,
+  config,
+  isArrangeMode,
+  year,
+  month,
+  mobileSubPage = 0,
+}: WidgetRenderProps<MemorableMomentsConfig>) {
+  const title = config?.title || 'Memorable Moments'
+  const {
+    entriesMap,
+    saveError,
+    handleTextChange,
+    handleTextBlur,
+    toggleCrossOut,
+    handlePointerDown,
+    handlePointerUpOrLeave,
+  } = useMemorableMomentsEntries(id, isArrangeMode)
+
+  const daysInMonth =
+    year && month ? new Date(year, month, 0).getDate() : 31
+
+  // Dynamic pagination into 3 sub-pages:
+  // SubPage 0: Days 1..10
+  // SubPage 1: Days 11..20
+  // SubPage 2: Days 21..daysInMonth
+  let startDay = 1
+  let endDay = 10
+  if (mobileSubPage === 1) {
+    startDay = 11
+    endDay = 20
+  } else if (mobileSubPage >= 2) {
+    startDay = 21
+    endDay = daysInMonth
+  }
+
+  const daysCount = Math.max(0, endDay - startDay + 1)
+  const daysArray = Array.from({ length: daysCount }, (_, i) => startDay + i)
+
+  return (
+    <div className="relative w-full h-full flex flex-col bg-transparent select-none p-1">
+      {/* Red-Pen Save Error Feedback */}
+      {saveError && (
+        <div
+          className="absolute top-0 right-1 z-40 bg-paper border border-redpen px-2 py-0.5 rounded shadow text-redpen font-hand text-[10px]"
+          role="alert"
+        >
+          {saveError}
+        </div>
+      )}
+
+      {/* Header: Title or (cont.) */}
+      <div className="shrink-0 mb-1 flex items-baseline justify-between border-b border-ink/20 pb-1">
+        {mobileSubPage === 0 ? (
+          <h2 className="font-hand text-base font-bold text-ink">{title}</h2>
+        ) : (
+          <span className="font-hand text-sm text-ink/70 italic">(cont.)</span>
+        )}
+        <span className="font-hand text-xs text-ink/50">
+          Days {startDay}–{endDay}
+        </span>
+      </div>
+
+      {/* Rows with >= 44px tap targets */}
+      <div className="flex-1 flex flex-col divide-y divide-ink/10">
+        {daysArray.map((day) => {
+          const entry = entriesMap[day] || {
+            text: '',
+            highlighted: false,
+            crossedOut: false,
+          }
+
+          return (
+            <div
+              key={day}
+              className="relative flex items-center min-h-[44px] h-[44px] px-0.5 select-none"
+              onPointerDown={() => handlePointerDown(day)}
+              onPointerUp={() => handlePointerUpOrLeave(day)}
+              onPointerLeave={() => handlePointerUpOrLeave(day)}
+            >
+              {/* Day Number */}
+              <span className="w-7 shrink-0 font-hand text-xs text-ink/65 text-right pr-1 select-none pointer-events-none">
+                {day}.
+              </span>
+
+              {/* Text Input Container with Highlight */}
+              <div
+                className={`relative flex-1 h-[38px] flex items-center px-1.5 rounded-xs transition-colors ${
+                  entry.highlighted ? 'bg-[#ffd84a]/40' : ''
+                }`}
+              >
+                <input
+                  type="text"
+                  value={entry.text}
+                  disabled={isArrangeMode}
+                  onChange={(e) => handleTextChange(day, e.target.value)}
+                  onBlur={() => handleTextBlur(day)}
+                  placeholder="..."
+                  aria-label={`Memorable moment day ${day}`}
+                  className={`w-full h-full bg-transparent font-hand text-xs text-ink focus:outline-none transition-opacity ${
+                    entry.crossedOut ? 'opacity-40 line-through text-ink/50' : ''
+                  }`}
+                />
+
+                {/* Hand-drawn cross-out strike */}
+                {entry.crossedOut && (
+                  <svg
+                    className="absolute inset-0 w-full h-full pointer-events-none text-redpen/75"
+                    viewBox="0 0 100 20"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M 2 10 Q 50 8, 98 11"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                  </svg>
+                )}
+              </div>
+
+              {/* Cross-out button: >= 44px tap target */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleCrossOut(day)
+                }}
+                disabled={isArrangeMode}
+                title={entry.crossedOut ? 'Restore line' : 'Cross out line'}
+                aria-label={`Cross out day ${day}`}
+                className={`shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer transition-colors ${
+                  entry.crossedOut
+                    ? 'text-redpen'
+                    : 'text-ink/35 hover:text-redpen active:text-redpen'
+                }`}
+              >
+                <svg
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  className="w-3.5 h-3.5 pointer-events-none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M 2.5 2.5 L 11.5 11.5"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M 11.5 2.5 L 2.5 11.5"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 // ── Widget Definition ─────────────────────────────────────────
@@ -365,4 +542,5 @@ export const memorableMomentsWidgetDefinition: WidgetDefinition<
   component: MemorableMomentsDesktop,
   mobileComponent: MemorableMomentsMobile,
   icon: MemorableMomentsIcon,
+  getMobilePageCount: () => 3,
 }

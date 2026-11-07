@@ -1,11 +1,11 @@
 [
   {
     "route": "/",
-    "firstLoadUncompressedJsBytes": 935015,
+    "firstLoadUncompressedJsBytes": 951406,
     "firstLoadChunkPaths": [
       ".next\\static\\chunks\\3qfy96eoyh-ek.js",
-      ".next\\static\\chunks\\1z75lvpi9aa-j.js",
-      ".next\\static\\chunks\\3nfuwbnkl6-fu.js",
+      ".next\\static\\chunks\\1p4yte8t1kpjs.js",
+      ".next\\static\\chunks\\1zf57r79qlzj8.js",
       ".next\\static\\chunks\\0ru5qcr5m3_xy.js",
       ".next\\static\\chunks\\3jua5gvtt1jpt.js",
       ".next\\static\\chunks\\0fvd3zhp73v_t.js",
@@ -15,11 +15,11 @@
   },
   {
     "route": "/book/[year]/[month]",
-    "firstLoadUncompressedJsBytes": 935015,
+    "firstLoadUncompressedJsBytes": 951406,
     "firstLoadChunkPaths": [
       ".next\\static\\chunks\\3qfy96eoyh-ek.js",
-      ".next\\static\\chunks\\1z75lvpi9aa-j.js",
-      ".next\\static\\chunks\\3nfuwbnkl6-fu.js",
+      ".next\\static\\chunks\\1p4yte8t1kpjs.js",
+      ".next\\static\\chunks\\1zf57r79qlzj8.js",
       ".next\\static\\chunks\\0ru5qcr5m3_xy.js",
       ".next\\static\\chunks\\3jua5gvtt1jpt.js",
       ".next\\static\\chunks\\0fvd3zhp73v_t.js",

@@ -68,24 +68,14 @@ export function NumberLogIcon({ className = 'w-5 h-5' }: { className?: string })
   )
 }
 
-// ── Desktop / Main Component ──────────────────────────────────
-export function NumberLogDesktop({
-  id,
-  config,
-  isArrangeMode,
-}: WidgetRenderProps<NumberLogConfig>) {
-  const label = config?.label || 'Number Log'
-  const unit = config?.unit || ''
-
-  // Map of day -> value (number | null)
+// ── Custom Hook for shared entry management ────────────────────
+function useNumberLogEntries(id: string, isArrangeMode?: boolean) {
   const [valuesMap, setValuesMap] = useState<Record<number, number | null>>({})
   const [saveError, setSaveError] = useState<string | null>(null)
-  // Which day is currently being edited inline
   const [editingDay, setEditingDay] = useState<number | null>(null)
   const [editingText, setEditingText] = useState<string>('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Load entries from DB
   useEffect(() => {
     let cancelled = false
     async function load() {
@@ -107,7 +97,6 @@ export function NumberLogDesktop({
     }
   }, [id])
 
-  // Focus the input when editingDay changes
   useEffect(() => {
     if (editingDay !== null && inputRef.current) {
       inputRef.current.focus()
@@ -115,29 +104,25 @@ export function NumberLogDesktop({
     }
   }, [editingDay])
 
-  // Commit the edited value to Supabase
   const commitEdit = useCallback(
     async (day: number, rawText: string) => {
       const prevValue = valuesMap[day] ?? null
       const trimmed = rawText.trim()
       const nextValue = trimmed === '' ? null : parseFloat(trimmed)
-
-      // If NaN or empty string, treat as null (clear)
-      const finalValue = trimmed === '' || isNaN(nextValue as number) ? null : (nextValue as number)
+      const finalValue =
+        trimmed === '' || isNaN(nextValue as number) ? null : (nextValue as number)
 
       if (finalValue === prevValue) {
         setEditingDay(null)
         return
       }
 
-      // Optimistic update
       setValuesMap((prev) => ({ ...prev, [day]: finalValue }))
       setEditingDay(null)
 
       const res = await saveWidgetEntryAndBump(id, day, { value: finalValue })
 
       if (!res.success) {
-        // Rollback on error
         setValuesMap((prev) => ({ ...prev, [day]: prevValue }))
         setSaveError(`Failed to save Day ${day}`)
         setTimeout(() => setSaveError(null), 3500)
@@ -160,6 +145,40 @@ export function NumberLogDesktop({
       setEditingDay(null)
     }
   }
+
+  return {
+    valuesMap,
+    saveError,
+    editingDay,
+    editingText,
+    setEditingText,
+    inputRef,
+    commitEdit,
+    handleRowClick,
+    handleInputKeyDown,
+    setEditingDay,
+  }
+}
+
+// ── Desktop / Main Component ──────────────────────────────────
+export function NumberLogDesktop({
+  id,
+  config,
+  isArrangeMode,
+}: WidgetRenderProps<NumberLogConfig>) {
+  const label = config?.label || 'Number Log'
+  const unit = config?.unit || ''
+  const {
+    valuesMap,
+    saveError,
+    editingDay,
+    editingText,
+    setEditingText,
+    inputRef,
+    commitEdit,
+    handleRowClick,
+    handleInputKeyDown,
+  } = useNumberLogEntries(id, isArrangeMode)
 
   return (
     <div className="relative w-full h-full flex flex-col bg-transparent select-none overflow-hidden">
@@ -245,9 +264,133 @@ export function NumberLogDesktop({
   )
 }
 
-// ── Mobile Render Component (Task 11 placeholder) ─────────────
-export function NumberLogMobile(props: WidgetRenderProps<NumberLogConfig>) {
-  return <NumberLogDesktop {...props} />
+// ── Mobile Render Component (Task 11) ────────────────────────
+export function NumberLogMobile({
+  id,
+  config,
+  isArrangeMode,
+  year,
+  month,
+  mobileSubPage = 0,
+}: WidgetRenderProps<NumberLogConfig>) {
+  const label = config?.label || 'Number Log'
+  const unit = config?.unit || ''
+  const {
+    valuesMap,
+    saveError,
+    editingDay,
+    editingText,
+    setEditingText,
+    inputRef,
+    commitEdit,
+    handleRowClick,
+    handleInputKeyDown,
+    setEditingDay,
+  } = useNumberLogEntries(id, isArrangeMode)
+
+  const daysInMonth =
+    year && month ? new Date(year, month, 0).getDate() : 31
+
+  let startDay = 1
+  let endDay = 10
+  if (mobileSubPage === 1) {
+    startDay = 11
+    endDay = 20
+  } else if (mobileSubPage >= 2) {
+    startDay = 21
+    endDay = daysInMonth
+  }
+
+  const daysCount = Math.max(0, endDay - startDay + 1)
+  const daysArray = Array.from({ length: daysCount }, (_, i) => startDay + i)
+
+  return (
+    <div className="relative w-full h-full flex flex-col bg-transparent select-none p-1">
+      {/* Save Error */}
+      {saveError && (
+        <div
+          className="absolute top-0 right-1 z-40 bg-paper border border-redpen px-2 py-0.5 rounded shadow text-redpen font-hand text-[10px]"
+          role="alert"
+        >
+          {saveError}
+        </div>
+      )}
+
+      {/* Header: Title or (cont.) */}
+      <div className="shrink-0 mb-1 flex items-baseline justify-between border-b border-ink/20 pb-1">
+        {mobileSubPage === 0 ? (
+          <div className="flex items-baseline gap-2">
+            <h2 className="font-hand text-base font-bold text-ink">{label}</h2>
+            {unit && (
+              <span className="font-hand text-xs text-ink/60">({unit})</span>
+            )}
+          </div>
+        ) : (
+          <span className="font-hand text-sm text-ink/70 italic">(cont.)</span>
+        )}
+        <span className="font-hand text-xs text-ink/50">
+          Days {startDay}–{endDay}
+        </span>
+      </div>
+
+      {/* Rows with >= 44px tap targets */}
+      <div className="flex-1 flex flex-col divide-y divide-ink/10">
+        {daysArray.map((day) => {
+          const value = valuesMap[day]
+          const isEditing = editingDay === day
+          const hasValue = value !== null && value !== undefined
+
+          return (
+            <div
+              key={day}
+              onClick={() => handleRowClick(day)}
+              className="flex items-center min-h-[44px] h-[44px] px-1 hover:bg-ink/[0.03] transition-colors cursor-pointer select-none"
+            >
+              {/* Day label */}
+              <span className="w-8 shrink-0 font-hand text-xs text-ink/65 text-right pr-2 select-none pointer-events-none">
+                {day}.
+              </span>
+
+              {/* Value or Inline Input (>= 44px tap target) */}
+              <div className="flex-1 h-full flex items-center">
+                {isEditing ? (
+                  <input
+                    ref={inputRef}
+                    type="number"
+                    step="any"
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    onBlur={() => commitEdit(day, editingText)}
+                    onKeyDown={(e) => handleInputKeyDown(e, day)}
+                    aria-label={`Enter value for day ${day}`}
+                    className="w-full h-[36px] bg-transparent font-hand text-sm text-ink focus:outline-none border-b border-ink/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <div className="flex items-baseline gap-1.5 w-full h-full flex items-center">
+                    <span
+                      className={`font-hand text-sm ${
+                        hasValue
+                          ? 'text-ink font-bold'
+                          : 'text-ink/20 italic'
+                      }`}
+                    >
+                      {hasValue ? value : '—'}
+                    </span>
+                    {hasValue && unit && (
+                      <span className="font-hand text-xs text-ink/50">
+                        {unit}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 // ── Widget Definition ─────────────────────────────────────────
@@ -261,4 +404,5 @@ export const numberLogWidgetDefinition: WidgetDefinition<typeof numberLogConfigS
   component: NumberLogDesktop,
   mobileComponent: NumberLogMobile,
   icon: NumberLogIcon,
+  getMobilePageCount: () => 3,
 }

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Paper, { PAGE_W, PAGE_H, type PaperType } from '@/components/paper'
 import { MonthSetupWizard, type PreviousMonthData } from '@/components/setup'
+import { MobileBook } from './MobileBook'
 import {
   PageWidgetLayer,
   WidgetConfigCard,
@@ -90,6 +91,19 @@ export function OpenBook({
   })
   const [isFading, setIsFading] = useState(false)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+
+  // Viewport detection (Correction 7: exactly ONE tree, null avoids hydration mismatch)
+  const [isDesktop, setIsDesktop] = useState<boolean | null>(null)
+  const [mobilePageMode, setMobilePageMode] = useState<'first' | 'last'>('first')
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(min-width: 768px)')
+    setIsDesktop(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   // Listen to prefers-reduced-motion media query
   useEffect(() => {
@@ -217,6 +231,19 @@ export function OpenBook({
     const prev = getPrevDate(year, month)
     executeTurn(prev.year, prev.month, 'backward')
   }, [getPrevDate, year, month, executeTurn, isSetupDone])
+
+  const handleMobileTurnMonth = useCallback(
+    (
+      tgtYear: number,
+      tgtMonth: number,
+      direction: TurnDirection,
+      targetPageMode: 'first' | 'last' = 'first',
+    ) => {
+      setMobilePageMode(targetPageMode)
+      executeTurn(tgtYear, tgtMonth, direction)
+    },
+    [executeTurn],
+  )
 
   // Month tabs navigate to other months (allowed by correction 5)
   const handleTabClick = useCallback(
@@ -369,6 +396,59 @@ export function OpenBook({
           <div className="w-full h-full bg-kraft/20" />
         </div>
       </div>
+    )
+  }
+
+  // Neutral desk-coloured placeholder until matchMedia is known (avoid hydration mismatch, Correction 7)
+  if (isDesktop === null) {
+    return (
+      <div
+        className="w-full min-h-screen bg-desk flex items-center justify-center"
+        aria-hidden="true"
+      />
+    )
+  }
+
+  // Mobile layout (< 768px, L8, Correction 7)
+  if (!isDesktop) {
+    return (
+      <MobileBook
+        year={year}
+        month={month}
+        monthId={currentMonthId}
+        paperType={currentPaperLeft}
+        isSetupDone={isSetupDone}
+        setupConfig={currentSetupConfig}
+        prevMonthData={prevMonthData}
+        widgets={widgets}
+        onWidgetsChange={setWidgets}
+        onWidgetSaved={handleWidgetSaved}
+        onTurnMonth={handleMobileTurnMonth}
+        onCompleteSetup={(
+          newLeft,
+          newRight,
+          createdWidgets,
+          newMonthId,
+          newSetupConfig,
+        ) => {
+          setCurrentPaperLeft(newLeft)
+          setCurrentPaperRight(newRight)
+          if (newMonthId) {
+            setCurrentMonthId(newMonthId)
+          }
+          if (newSetupConfig) {
+            setCurrentSetupConfig(newSetupConfig)
+          }
+          if (createdWidgets && createdWidgets.length > 0) {
+            setWidgets(createdWidgets)
+          }
+          setIsSetupDone(true)
+          startTransition(() => {
+            router.refresh()
+          })
+        }}
+        initialPageMode={mobilePageMode}
+      />
     )
   }
 
