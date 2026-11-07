@@ -25,8 +25,8 @@ import {
   getDefaultActiveDay,
   getDaysInMonth,
 } from '../shared/DayStepper'
-import { getWidgetEntries, saveWidgetEntry, pollEntrySchema } from '../entryActions'
-import { saveWidgetEntryAndBump } from '../entryHelpers'
+import { pollEntrySchema } from '../entryActions'
+import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const pollConfigSchema = z.object({
@@ -203,7 +203,7 @@ export function PollDesktop({
   useEffect(() => {
     let cancelled = false
     async function load() {
-      const res = await getWidgetEntries(id)
+      const res = await getWidgetEntriesWithCache(id)
       if (!cancelled && res.success && res.data) {
         const next: Record<number, string> = {}
         for (const row of res.data) {

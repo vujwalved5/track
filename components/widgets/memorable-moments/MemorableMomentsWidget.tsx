@@ -21,10 +21,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
 import {
-  getWidgetEntries,
   memorableMomentsEntrySchema,
 } from '../entryActions'
-import { saveWidgetEntryAndBump } from '../entryHelpers'
+import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const memorableMomentsConfigSchema = z.object({
@@ -98,7 +97,7 @@ function useMemorableMomentsEntries(id: string, isArrangeMode?: boolean) {
   useEffect(() => {
     let cancelled = false
     async function load() {
-      const res = await getWidgetEntries(id)
+      const res = await getWidgetEntriesWithCache(id)
       if (!cancelled && res.success && res.data) {
         const next: Record<number, DayEntryState> = {}
         for (const row of res.data) {

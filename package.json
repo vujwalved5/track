@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/build-sw.js && next build",
+    "build:sw": "node scripts/build-sw.js",
     "start": "next start"
   },
   "dependencies": {

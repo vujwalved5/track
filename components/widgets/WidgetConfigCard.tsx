@@ -241,6 +241,13 @@ export function WidgetConfigCard({
     setIsSaving(true)
     setErrorMessage(null)
 
+    // Offline guard (Correction 3): configuring widgets needs a connection
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      setErrorMessage('needs a connection')
+      setIsSaving(false)
+      return
+    }
+
     // Validate using Zod schema
     const validation = schema.safeParse(formData)
     if (!validation.success) {

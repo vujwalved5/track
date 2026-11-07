@@ -9,6 +9,7 @@
  */
 import { createClient } from './client'
 import type { AuthError, User } from '@supabase/supabase-js'
+import { clearAllLocalCaches, setActiveUserId } from '@/lib/offlineSync'
 
 export interface AuthResult {
   user:  User | null
@@ -24,6 +25,9 @@ export async function signIn(
     email,
     password,
   })
+  if (data?.user) {
+    setActiveUserId(data.user.id)
+  }
   return { user: data.user, error }
 }
 
@@ -33,10 +37,15 @@ export async function signUp(
 ): Promise<AuthResult> {
   const supabase = createClient()
   const { data, error } = await supabase.auth.signUp({ email, password })
+  if (data?.user) {
+    setActiveUserId(data.user.id)
+  }
   return { user: data.user, error }
 }
 
 export async function signOut(): Promise<{ error: AuthError | null }> {
+  // Clear all caches on sign-out (Correction 2: Privacy / L11)
+  await clearAllLocalCaches()
   const supabase = createClient()
   const { error } = await supabase.auth.signOut()
   return { error }

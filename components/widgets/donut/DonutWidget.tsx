@@ -18,7 +18,8 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
-import { getWidgetEntries, pollEntrySchema, habitTrackerEntrySchema } from '../entryActions'
+import { pollEntrySchema, habitTrackerEntrySchema } from '../entryActions'
+import { getWidgetEntriesWithCache } from '../entryHelpers'
 import { useEntriesVersionStore } from '@/store/entriesVersion'
 import { seedFromString, jitter } from '../charts/chartUtils'
 import type { HabitConfig } from '@/types/db'
@@ -101,7 +102,7 @@ export function DonutDesktop({
         return
       }
       setLoading(true)
-      const res = await getWidgetEntries(sourceWidgetId)
+      const res = await getWidgetEntriesWithCache(sourceWidgetId)
       if (!cancelled) {
         setEntries(res.success && res.data ? res.data : [])
         setLoading(false)

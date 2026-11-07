@@ -19,8 +19,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
-import { getWidgetEntries, checklistEntrySchema } from '../entryActions'
-import { saveWidgetEntryAndBump } from '../entryHelpers'
+import { checklistEntrySchema } from '../entryActions'
+import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const checklistConfigSchema = z.object({
@@ -132,7 +132,7 @@ export function ChecklistDesktop({
   useEffect(() => {
     let cancelled = false
     async function load() {
-      const res = await getWidgetEntries(id)
+      const res = await getWidgetEntriesWithCache(id)
       if (!cancelled && res.success && res.data) {
         const day1Row = res.data.find((e) => e.day === 1)
         if (day1Row) {

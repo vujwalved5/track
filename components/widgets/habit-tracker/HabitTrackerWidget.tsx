@@ -22,10 +22,9 @@ import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
 import type { HabitConfig } from '@/types/db'
 import {
-  getWidgetEntries,
   habitTrackerEntrySchema,
 } from '../entryActions'
-import { saveWidgetEntryAndBump } from '../entryHelpers'
+import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const habitTrackerConfigSchema = z.object({
@@ -114,7 +113,7 @@ function useHabitTrackerEntries(id: string, isArrangeMode?: boolean) {
   useEffect(() => {
     let cancelled = false
     async function load() {
-      const res = await getWidgetEntries(id)
+      const res = await getWidgetEntriesWithCache(id)
       if (!cancelled && res.success && res.data) {
         const next: Record<number, Record<string, boolean>> = {}
         for (const row of res.data) {

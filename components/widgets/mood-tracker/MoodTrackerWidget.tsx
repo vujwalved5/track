@@ -26,8 +26,8 @@ import {
   getDefaultActiveDay,
   getDaysInMonth,
 } from '../shared/DayStepper'
-import { getWidgetEntries, moodTrackerEntrySchema } from '../entryActions'
-import { saveWidgetEntryAndBump } from '../entryHelpers'
+import { moodTrackerEntrySchema } from '../entryActions'
+import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const moodTrackerConfigSchema = z.object({
@@ -234,7 +234,7 @@ export function MoodTrackerDesktop({
   useEffect(() => {
     let cancelled = false
     async function load() {
-      const res = await getWidgetEntries(id)
+      const res = await getWidgetEntriesWithCache(id)
       if (!cancelled && res.success && res.data) {
         const next: Record<number, MoodValue> = {}
         for (const row of res.data) {

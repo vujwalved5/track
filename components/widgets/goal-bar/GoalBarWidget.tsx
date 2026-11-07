@@ -19,7 +19,8 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
-import { getWidgetEntries, counterEntrySchema, numberLogEntrySchema } from '../entryActions'
+import { counterEntrySchema, numberLogEntrySchema } from '../entryActions'
+import { getWidgetEntriesWithCache } from '../entryHelpers'
 import { useEntriesVersionStore } from '@/store/entriesVersion'
 import { seedFromString } from '../charts/chartUtils'
 
@@ -98,7 +99,7 @@ export function GoalBarDesktop({
         return
       }
       setLoading(true)
-      const res = await getWidgetEntries(sourceWidgetId)
+      const res = await getWidgetEntriesWithCache(sourceWidgetId)
       if (!cancelled) {
         setEntries(res.success && res.data ? res.data : [])
         setLoading(false)

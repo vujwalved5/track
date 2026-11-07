@@ -25,10 +25,9 @@ import {
   getDaysInMonth,
 } from '../shared/DayStepper'
 import {
-  getWidgetEntries,
   counterEntrySchema,
 } from '../entryActions'
-import { saveWidgetEntryAndBump } from '../entryHelpers'
+import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const counterConfigSchema = z.object({
@@ -107,7 +106,7 @@ export function CounterDesktop({
   useEffect(() => {
     let cancelled = false
     async function load() {
-      const res = await getWidgetEntries(id)
+      const res = await getWidgetEntriesWithCache(id)
       if (!cancelled && res.success && res.data) {
         const next: Record<number, number> = {}
         for (const row of res.data) {

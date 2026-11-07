@@ -201,9 +201,22 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - Only entry reads and writes work offline (local cache, pending saves queue, replay on `online` and app start; upserts are idempotent; stale items for deleted widgets dropped).
   - Moving, resizing, configuring, adding or removing widgets, and Month Setup require an active connection; attempting them offline displays handwritten red-pen text ("needs a connection") and commits nothing.
 
+### Phase 6 / Task 12 (Batch B) — Serwist Service Worker, Offline Cache & Sync, Sign-Out Clearing
+- **Serwist Service Worker**: `app/sw.ts` implements Serwist caching precaching the app shell, manifest, and icons, using `NetworkFirst` for month routes (`/book/*`), `StaleWhileRevalidate` for static Next.js assets, and `CacheFirst` for Google fonts and images.
+- **Standalone Build Pipeline**: `scripts/build-sw.js` transpiles and bundles `app/sw.ts` directly into `public/sw.js` using Next.js internal compiler tooling. Next 16 continues using Turbopack for the main app build without switching to webpack, and zero packages beyond `serwist` were added.
+- **Service Worker Registration**: `components/pwa/ServiceWorkerRegister.tsx` registers `/sw.js` in production viewports via native `navigator.serviceWorker.register` without `@serwist/window`; never registers in development.
+- **Offline Entry Cache & Replay Queue**:
+  - `lib/offlineSync.ts` manages user-scoped entry caching (`mm_entries_${userId}:${widgetId}`) and an offline queue of pending saves (`mm_queue_${userId}`).
+  - Automatically replays pending operations upon the browser `online` event and on application startup. Upserts are idempotent; stale entries for deleted widgets are discarded.
+  - `components/widgets/entryHelpers.ts` integrates `getWidgetEntriesWithCache` and `saveWidgetEntryAndBump`, allowing all 12 widgets to read and write entries transparently while offline.
+- **Privacy & Cache Cleansing on Sign-Out (Correction 2, L11)**:
+  - `signOut()` in `lib/supabase/auth.ts` calls `clearAllLocalCaches()`.
+  - Clears all `mm_*` keys from `localStorage`, deletes all CacheStorage caches, and signals the active Service Worker via a `CLEAR_CACHES` message.
+- **Offline Non-Entry Safeguards (Correction 3)**:
+  - Moving, resizing, and removing widgets in `PageWidgetLayer.tsx`, configuring in `WidgetConfigCard.tsx`, placing from drawer in `OpenBook.tsx`, and Month Setup submission in `MonthSetupWizard.tsx` check `navigator.onLine`. When offline, they display handwritten red-pen text (`"needs a connection"`) and change nothing.
+
 ## Next
-- Task 12 (Batch B) — Serwist service worker, offline entries cache & replay queue, and cache clearing on sign-out.
-- Task 11 (Batch B) — Mobile Arrange mode (long-press on top ribbon), drawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets.
+- Task 11 (Batch B) — Mobile Arrange mode (long-press on top ribbon, move up/down), WidgetDrawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets' mobile render.
 
 ## Open Questions
 - Sign-up flow and password reset not built.

@@ -20,7 +20,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
-import { getWidgetEntries } from '../entryActions'
+import { getWidgetEntriesWithCache } from '../entryHelpers'
 import { useEntriesVersionStore } from '@/store/entriesVersion'
 import {
   wobbleCircle,
@@ -103,8 +103,8 @@ export function ScatterPlotDesktop({
       }
       setLoading(true)
       const [res1, res2] = await Promise.all([
-        getWidgetEntries(source1Id),
-        getWidgetEntries(source2Id),
+        getWidgetEntriesWithCache(source1Id),
+        getWidgetEntriesWithCache(source2Id),
       ])
 
       if (!cancelled) {

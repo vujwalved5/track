@@ -300,6 +300,13 @@ export function MonthSetupWizard({
     setIsSubmitting(true)
     setErrorMessage(null)
 
+    // Offline guard (Correction 3): Month Setup needs a connection
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      setErrorMessage('needs a connection')
+      setIsSubmitting(false)
+      return
+    }
+
     try {
       const result = await completeMonthSetup({
         year,

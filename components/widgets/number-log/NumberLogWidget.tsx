@@ -18,8 +18,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
-import { getWidgetEntries, numberLogEntrySchema } from '../entryActions'
-import { saveWidgetEntryAndBump } from '../entryHelpers'
+import { numberLogEntrySchema } from '../entryActions'
+import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const numberLogConfigSchema = z.object({
@@ -79,7 +79,7 @@ function useNumberLogEntries(id: string, isArrangeMode?: boolean) {
   useEffect(() => {
     let cancelled = false
     async function load() {
-      const res = await getWidgetEntries(id)
+      const res = await getWidgetEntriesWithCache(id)
       if (!cancelled && res.success && res.data) {
         const next: Record<number, number | null> = {}
         for (const row of res.data) {

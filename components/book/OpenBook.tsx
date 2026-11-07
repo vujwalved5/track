@@ -85,6 +85,12 @@ export function OpenBook({
 
   // Navigation / animation state
   const [isTurning, setIsTurning] = useState<TurnDirection | null>(null)
+  const [connectionError, setConnectionError] = useState<string | null>(null)
+
+  const showConnectionError = useCallback((msg = 'needs a connection') => {
+    setConnectionError(msg)
+    setTimeout(() => setConnectionError(null), 3500)
+  }, [])
   const [targetDate, setTargetDate] = useState<{ year: number; month: number }>({
     year,
     month,
@@ -150,6 +156,12 @@ export function OpenBook({
   const handlePlaceWidget = useCallback(
     async (targetPage: PageSide, x: number, y: number) => {
       if (!currentMonthId || !pickedWidgetDef) return
+
+      // Offline guard (Correction 3): placing widgets needs a connection
+      if (typeof window !== 'undefined' && !navigator.onLine) {
+        showConnectionError('needs a connection')
+        return
+      }
 
       const defToPlace = pickedWidgetDef
       const res = await createWidget(currentMonthId, targetPage, defToPlace.id, x, y)
@@ -461,6 +473,16 @@ export function OpenBook({
         width: PAGE_W * 2 + 24, // 968px + 24px casing padding = 992px
       }}
     >
+      {/* Red-Pen Offline Connection Banner (Correction 3) */}
+      {connectionError && (
+        <div
+          className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 bg-paper/95 border border-redpen px-4 py-1 rounded shadow-md font-hand text-sm text-redpen font-bold"
+          role="alert"
+        >
+          {connectionError}
+        </div>
+      )}
+
       {/* ── Hardcover Casing Frame (desk #211b16 / ink #1c2433) ── */}
       <div
         className="relative bg-ink rounded-lg p-[12px] shadow-[0_20px_50px_rgba(28,36,51,0.7),0_2px_8px_rgba(33,27,22,0.5)] border border-desk"

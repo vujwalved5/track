@@ -20,7 +20,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
-import { getWidgetEntries } from '../entryActions'
+import { getWidgetEntriesWithCache } from '../entryHelpers'
 import { useEntriesVersionStore } from '@/store/entriesVersion'
 import {
   wobblePath,
@@ -106,7 +106,7 @@ export function LineGraphDesktop({
         return
       }
       setLoading(true)
-      const res = await getWidgetEntries(sourceWidgetId)
+      const res = await getWidgetEntriesWithCache(sourceWidgetId)
       if (!cancelled) {
         if (res.success && res.data) {
           setEntries(res.data)

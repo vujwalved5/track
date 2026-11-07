@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Kalam, Cormorant_Garamond } from 'next/font/google'
+import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister'
 import './globals.css'
 
 const kalam = Kalam({
@@ -49,6 +50,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${kalam.variable} ${cormorant.variable}`}>
       <body className="bg-desk antialiased">
+        <ServiceWorkerRegister />
         {children}
       </body>
     </html>

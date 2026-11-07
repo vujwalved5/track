@@ -82,6 +82,12 @@ export function PageWidgetLayer({
     const activeWidget = widgets.find((w) => w.id === active.id)
     if (!activeWidget) return
 
+    // Offline guard (Correction 3): moving widgets needs a connection
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      showError('needs a connection')
+      return
+    }
+
     // Calculate delta in 22px grid units
     const dCols = Math.round(delta.x / GRID_PX)
     const dRows = Math.round(delta.y / GRID_PX)
@@ -152,6 +158,12 @@ export function PageWidgetLayer({
     widgetId: string,
     newSize: { w: number; h: number },
   ) => {
+    // Offline guard (Correction 3): resizing widgets needs a connection
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      showError('needs a connection')
+      return
+    }
+
     const targetWidget = widgets.find((w) => w.id === widgetId)
     if (!targetWidget) return
 
@@ -184,6 +196,12 @@ export function PageWidgetLayer({
 
   // Handle handwritten cross-out removal
   const handleRemove = async (widgetId: string) => {
+    // Offline guard (Correction 3): removing widgets needs a connection
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      showError('needs a connection')
+      return
+    }
+
     const previousList = [...widgets]
     const filteredList = widgets.filter((w) => w.id !== widgetId)
     onWidgetsChange(filteredList)
