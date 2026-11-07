@@ -634,6 +634,7 @@ export function OpenBook({
                   widget={activeConfigWidget}
                   onClose={() => setActiveConfigWidgetId(null)}
                   onSaved={handleWidgetSaved}
+                  allWidgets={widgets}
                 />
               )}
 

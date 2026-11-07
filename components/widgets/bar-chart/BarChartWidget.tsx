@@ -1,0 +1,264 @@
+'use client'
+
+/**
+ * Bar Chart Widget
+ * Memorable Moments — Phase 5 / Task 10 Batch A
+ *
+ * Rules:
+ * - Group: 'Charts' (L1)
+ * - Default size: 14x12 (14 cols × 12 rows on 22px grid = 308px × 264px)
+ * - Min size: 8x8
+ * - Source: number-log, counter, mood-tracker (chosen in config)
+ * - One bar per day, hatched fill with pen strokes (L4)
+ * - Custom SVG, ink-coloured, slightly wobbly lines (deterministic jitter) (L4, Correction 8)
+ * - Handwritten day numbers at sparse intervals only (Correction 7)
+ * - No software axes, tick marks, gridlines, tooltips or legends (Correction 7)
+ * - Live updates when source entries change via entriesVersion store (Correction 3)
+ * - Palette L6 only, fonts L5 only, no emoji, hand-drawn SVG icon (L13)
+ */
+
+import React, { useState, useEffect, useMemo } from 'react'
+import { z } from 'zod'
+import type { WidgetDefinition, WidgetRenderProps } from '../types'
+import { getWidgetEntries } from '../entryActions'
+import { useEntriesVersionStore } from '@/store/entriesVersion'
+import {
+  seedFromString,
+  resolveDataSeries,
+} from '../charts/chartUtils'
+
+// ── Zod Config Schema ─────────────────────────────────────────
+export const barChartConfigSchema = z.object({
+  title: z.string().default('Bar Chart'),
+  sourceWidgetId: z
+    .string()
+    .default('')
+    .describe('number-log, counter, mood-tracker'),
+})
+
+export type BarChartConfig = z.infer<typeof barChartConfigSchema>
+
+// ── Hand-Drawn SVG Icon ───────────────────────────────────────
+export function BarChartIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <rect
+        x="3"
+        y="3"
+        width="18"
+        height="18"
+        rx="1"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* 3 Hatched bars */}
+      <rect x="5" y="11" width="3.5" height="8" strokeWidth="1.2" />
+      <path d="M 5 15 L 8.5 12 M 5 18 L 8.5 15" strokeWidth="1" />
+
+      <rect x="10.5" y="7" width="3.5" height="12" strokeWidth="1.2" />
+      <path d="M 10.5 11 L 14 8 M 10.5 15 L 14 12 M 10.5 18 L 14 15" strokeWidth="1" />
+
+      <rect x="16" y="13" width="3.5" height="6" strokeWidth="1.2" />
+      <path d="M 16 16 L 19.5 14" strokeWidth="1" />
+    </svg>
+  )
+}
+
+// Sparse day intervals to label (e.g. 1, 5, 10, 15, 20, 25, 30)
+const SPARSE_DAYS = [1, 5, 10, 15, 20, 25, 30]
+
+// ── Desktop / Main Component ──────────────────────────────────
+export function BarChartDesktop({
+  id,
+  config,
+  w,
+  h,
+}: WidgetRenderProps<BarChartConfig>) {
+  const title = config?.title || 'Bar Chart'
+  const sourceWidgetId = config?.sourceWidgetId || ''
+
+  const version = useEntriesVersionStore((s) => s.version)
+  const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>([])
+  const [loading, setLoading] = useState(false)
+
+  // Seed for pattern ID uniqueness
+  const patternId = useMemo(() => `hatch-${id || 'bar-chart'}`, [id])
+
+  useEffect(() => {
+    let cancelled = false
+    async function fetchSourceData() {
+      if (!sourceWidgetId) {
+        setEntries([])
+        return
+      }
+      setLoading(true)
+      const res = await getWidgetEntries(sourceWidgetId)
+      if (!cancelled) {
+        if (res.success && res.data) {
+          setEntries(res.data)
+        } else {
+          setEntries([])
+        }
+        setLoading(false)
+      }
+    }
+    fetchSourceData()
+    return () => {
+      cancelled = true
+    }
+  }, [sourceWidgetId, version])
+
+  const series = useMemo(() => resolveDataSeries(entries), [entries])
+
+  // Map of day (1..31) -> value
+  const dayValueMap = useMemo(() => {
+    const map: Record<number, number> = {}
+    for (const item of series) {
+      map[item.day] = item.value
+    }
+    return map
+  }, [series])
+
+  // Pixel dimensions based on grid units w & h (each unit is 22px)
+  const widthPx = Math.max(120, w * 22)
+  const heightPx = Math.max(100, h * 22)
+
+  // Plot area
+  const padLeft = 14
+  const padRight = 14
+  const padTop = 30
+  const padBottom = 22
+
+  const plotW = Math.max(40, widthPx - padLeft - padRight)
+  const plotH = Math.max(40, heightPx - padTop - padBottom)
+
+  // Value extents: start at 0 so bars represent heights from base
+  const values = series.map((s) => s.value)
+  const maxVal = values.length > 0 ? Math.max(1, ...values) : 1
+
+  // 31 slots
+  const slotW = plotW / 31
+  const barW = Math.max(2, slotW * 0.72)
+
+  return (
+    <div className="relative w-full h-full flex flex-col bg-transparent select-none overflow-hidden p-2">
+      {/* Title Header */}
+      <div className="h-[20px] flex items-center justify-between border-b border-ink/15 px-1 shrink-0">
+        <span className="font-hand text-xs font-bold text-ink truncate">
+          {title}
+        </span>
+      </div>
+
+      {/* SVG Canvas */}
+      <div className="flex-1 w-full relative">
+        {!sourceWidgetId ? (
+          <div className="w-full h-full flex items-center justify-center text-center p-3">
+            <p className="font-hand text-xs text-ink/45 italic leading-snug">
+              Pick a source in settings
+            </p>
+          </div>
+        ) : series.length === 0 ? (
+          <div className="w-full h-full flex items-center justify-center text-center p-3">
+            <p className="font-hand text-xs text-ink/40 italic">
+              {loading ? 'Reading...' : 'No data yet'}
+            </p>
+          </div>
+        ) : (
+          <svg
+            viewBox={`0 0 ${widthPx} ${heightPx - 24}`}
+            className="w-full h-full overflow-visible"
+            aria-hidden="true"
+          >
+            <defs>
+              {/* Pen-stroke diagonal hatching pattern */}
+              <pattern
+                id={patternId}
+                width="4"
+                height="4"
+                patternTransform="rotate(45 0 0)"
+                patternUnits="userSpaceOnUse"
+              >
+                <line
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="4"
+                  stroke="#1c2433"
+                  strokeWidth="1.2"
+                />
+              </pattern>
+            </defs>
+
+            {/* Daily Bars */}
+            {Array.from({ length: 31 }, (_, i) => {
+              const day = i + 1
+              const val = dayValueMap[day]
+              if (val === undefined || val === null || val <= 0) return null
+
+              const barHeight = Math.max(2, (val / maxVal) * plotH)
+              const bx = padLeft + (day - 1) * slotW + (slotW - barW) / 2
+              const by = padTop + plotH - barHeight
+
+              return (
+                <g key={day}>
+                  {/* Hatched fill bar */}
+                  <rect
+                    x={bx}
+                    y={by}
+                    width={barW}
+                    height={barHeight}
+                    fill={`url(#${patternId})`}
+                    stroke="#1c2433"
+                    strokeWidth="1.1"
+                    strokeLinecap="round"
+                  />
+                </g>
+              )
+            })}
+
+            {/* Sparse day labels along the bottom */}
+            {SPARSE_DAYS.map((d) => {
+              const x = padLeft + (d - 1) * slotW + slotW / 2
+              return (
+                <text
+                  key={d}
+                  x={x}
+                  y={padTop + plotH + 14}
+                  textAnchor="middle"
+                  className="font-hand text-[9px] fill-ink/50"
+                >
+                  {d}
+                </text>
+              )
+            })}
+          </svg>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Mobile Render Component (Task 11 placeholder) ─────────────
+export function BarChartMobile(props: WidgetRenderProps<BarChartConfig>) {
+  return <BarChartDesktop {...props} />
+}
+
+// ── Widget Definition ─────────────────────────────────────────
+export const barChartWidgetDefinition: WidgetDefinition<typeof barChartConfigSchema> = {
+  id: 'bar-chart',
+  displayName: 'Bar Chart',
+  group: 'Charts',
+  defaultSize: { w: 14, h: 12 },
+  minSize: { w: 8, h: 8 },
+  schema: barChartConfigSchema,
+  component: BarChartDesktop,
+  mobileComponent: BarChartMobile,
+  icon: BarChartIcon,
+}

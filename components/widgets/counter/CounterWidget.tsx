@@ -26,9 +26,9 @@ import {
 } from '../shared/DayStepper'
 import {
   getWidgetEntries,
-  saveWidgetEntry,
   counterEntrySchema,
 } from '../entryActions'
+import { saveWidgetEntryAndBump } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const counterConfigSchema = z.object({
@@ -143,7 +143,7 @@ export function CounterDesktop({
         [currentDayKey]: nextCount,
       }))
 
-      const res = await saveWidgetEntry(id, currentDayKey, {
+      const res = await saveWidgetEntryAndBump(id, currentDayKey, {
         count: nextCount,
       })
 

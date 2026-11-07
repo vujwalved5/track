@@ -28,20 +28,6 @@
       "filename": "components/widgets/entryActions.ts",
       "exportedName": "getWidgetEntries"
     },
-    "70a8036ff0e605e691ad828d23b5780bb4bc5f23a1": {
-      "workers": {
-        "app/book/[year]/[month]/page": {
-          "moduleId": 99157,
-          "async": false
-        },
-        "app/page": {
-          "moduleId": 33372,
-          "async": false
-        }
-      },
-      "filename": "components/widgets/entryActions.ts",
-      "exportedName": "saveWidgetEntry"
-    },
     "7f5505a12b4bbb02accadbcc6209e697ed45f2fdab": {
       "workers": {
         "app/book/[year]/[month]/page": {
@@ -55,6 +41,20 @@
       },
       "filename": "components/widgets/entryActions.ts",
       "exportedName": "memorableMomentsEntrySchema"
+    },
+    "70a8036ff0e605e691ad828d23b5780bb4bc5f23a1": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 99157,
+          "async": false
+        },
+        "app/page": {
+          "moduleId": 33372,
+          "async": false
+        }
+      },
+      "filename": "components/widgets/entryActions.ts",
+      "exportedName": "saveWidgetEntry"
     },
     "7faa69d9a34a31014c37ebdd222a2bb7b2b1b2071f": {
       "workers": {
@@ -83,6 +83,48 @@
       },
       "filename": "components/widgets/entryActions.ts",
       "exportedName": "counterEntrySchema"
+    },
+    "7f9993d7c054c2a9fbee4de077c2b0a57ceac79322": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 99157,
+          "async": false
+        },
+        "app/page": {
+          "moduleId": 33372,
+          "async": false
+        }
+      },
+      "filename": "components/widgets/entryActions.ts",
+      "exportedName": "pollEntrySchema"
+    },
+    "7feeb762c5ebfb6da31b85d9c87a1058f8a9388bfb": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 99157,
+          "async": false
+        },
+        "app/page": {
+          "moduleId": 33372,
+          "async": false
+        }
+      },
+      "filename": "components/widgets/entryActions.ts",
+      "exportedName": "numberLogEntrySchema"
+    },
+    "7f544b09dce15c41782a942321d30ca6ded7b7b225": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 99157,
+          "async": false
+        },
+        "app/page": {
+          "moduleId": 33372,
+          "async": false
+        }
+      },
+      "filename": "components/widgets/entryActions.ts",
+      "exportedName": "moodTrackerEntrySchema"
     },
     "6037589a52602256cb89ba862c5017a9688af5e024": {
       "workers": {

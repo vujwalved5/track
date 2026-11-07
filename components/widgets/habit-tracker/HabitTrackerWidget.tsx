@@ -23,9 +23,9 @@ import type { WidgetDefinition, WidgetRenderProps } from '../types'
 import type { HabitConfig } from '@/types/db'
 import {
   getWidgetEntries,
-  saveWidgetEntry,
   habitTrackerEntrySchema,
 } from '../entryActions'
+import { saveWidgetEntryAndBump } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const habitTrackerConfigSchema = z.object({
@@ -164,7 +164,7 @@ export function HabitTrackerDesktop({
         [day]: nextDayMarks,
       }))
 
-      const res = await saveWidgetEntry(id, day, {
+      const res = await saveWidgetEntryAndBump(id, day, {
         marks: nextDayMarks,
       })
 

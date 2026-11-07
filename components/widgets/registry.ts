@@ -19,6 +19,12 @@ import { stickyNoteWidgetDefinition } from './sticky-note/StickyNoteWidget'
 import { memorableMomentsWidgetDefinition } from './memorable-moments/MemorableMomentsWidget'
 import { habitTrackerWidgetDefinition } from './habit-tracker/HabitTrackerWidget'
 import { counterWidgetDefinition } from './counter/CounterWidget'
+import { pollWidgetDefinition } from './poll/PollWidget'
+import { numberLogWidgetDefinition } from './number-log/NumberLogWidget'
+import { moodTrackerWidgetDefinition } from './mood-tracker/MoodTrackerWidget'
+import { lineGraphWidgetDefinition } from './line-graph/LineGraphWidget'
+import { barChartWidgetDefinition } from './bar-chart/BarChartWidget'
+import { scatterPlotWidgetDefinition } from './scatter-plot/ScatterPlotWidget'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const registry = new Map<string, WidgetDefinition<any>>()
@@ -55,8 +61,16 @@ export function getWidgetsByGroup(group: WidgetGroup): WidgetDefinition<any>[] {
   return Array.from(registry.values()).filter((def) => def.group === group)
 }
 
-// ── Register initial built-in widget(s) ───────────────────────
+// ── Register all built-in widgets ─────────────────────────────
 registerWidget(stickyNoteWidgetDefinition)
 registerWidget(memorableMomentsWidgetDefinition)
 registerWidget(habitTrackerWidgetDefinition)
 registerWidget(counterWidgetDefinition)
+// Batch B
+registerWidget(pollWidgetDefinition)
+registerWidget(numberLogWidgetDefinition)
+registerWidget(moodTrackerWidgetDefinition)
+// Task 10 Batch A (Charts)
+registerWidget(lineGraphWidgetDefinition)
+registerWidget(barChartWidgetDefinition)
+registerWidget(scatterPlotWidgetDefinition)

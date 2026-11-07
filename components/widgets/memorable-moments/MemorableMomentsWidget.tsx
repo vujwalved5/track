@@ -22,9 +22,9 @@ import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
 import {
   getWidgetEntries,
-  saveWidgetEntry,
   memorableMomentsEntrySchema,
 } from '../entryActions'
+import { saveWidgetEntryAndBump } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const memorableMomentsConfigSchema = z.object({
@@ -139,7 +139,7 @@ export function MemorableMomentsDesktop({
         [day]: nextState,
       }))
 
-      const res = await saveWidgetEntry(id, day, {
+      const res = await saveWidgetEntryAndBump(id, day, {
         text: nextState.text,
         highlighted: nextState.highlighted,
         crossedOut: nextState.crossedOut,

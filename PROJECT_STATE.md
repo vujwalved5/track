@@ -90,6 +90,24 @@
 - Drawer is hidden while month setup is pending (`!isSetupDone`).
 - Palette strictly L6 (`desk`, `kraft`, `oxblood`, `gold`, `paper`, `ink`), zero new hex codes, zero scrollbars at 1440×900.
 
+### Phase 5 / Task 10 (Batch A) — Chart Utilities, Live-Update Plumbing, First Three Charts
+
+- `store/entriesVersion.ts` — Zustand store tracking global `version: number` incremented after successful entry saves.
+- `components/widgets/entryHelpers.ts` — `saveWidgetEntryAndBump` helper calling `saveWidgetEntry` server action and bumping `entriesVersion` store. Swapped into all 6 existing widgets.
+- `components/widgets/charts/chartUtils.ts` — Deterministic LCG seeded jitter (`jitter`, `seedFromString`), hand-drawn cubic bezier SVG path generator (`wobblePath`, `wobbleCircle`), normalisation and data series resolution helpers. Zero `Math.random` or `Date`.
+- `components/widgets/WidgetConfigCard.tsx` — Added `widgetSource` field type rendering a handwritten dropdown listing this month's compatible widgets on the spread (with label/unit/title), passing `allWidgets` from `OpenBook`.
+- **Widget 7: Line Graph** (`line-graph`, Group `Charts`, `14×14`, min `8×8`): Custom ink SVG polyline with seeded wobbly paths, sparse handwritten day numbers (1, 5, 10, 15, 20, 25, 30), optional vertical orientation (days top-to-bottom), no software axes/gridlines/tooltips.
+- **Widget 8: Bar Chart** (`bar-chart`, Group `Charts`, `14×12`, min `8×8`): 31 daily bars with diagonal pen stroke hatching pattern, sparse day numbers, live-updating.
+- **Widget 9: Scatter Plot** (`scatter-plot`, Group `Charts`, `12×12`, min `8×8`): Two-source picker, plots only days where both sources have recorded values using wobbly hand-drawn SVG dots.
+- Registered in `registry.ts`. Mobile components delegate to desktop.
+
+### Phase 5 / Task 9 (Batch B) — Last Three Widgets
+
+- **Widget 4: Poll** (`poll`, Group `Ask`, `10×8`, min `8×6`): Question + 2–5 configurable options. DayStepper selects the active day (today or day 1). Tap an option to record `{ selectedOption: string }` for that day. Month totals shown as hand-drawn SVG tally marks (4 vertical strokes + 1 diagonal slash per group of 5) — never bars.
+- **Widget 5: Number Log** (`number-log`, Group `Track`, `6×24`, min `4×18`): 32px header (label + unit), 31 rows at 15.61px/row. Tap a row to enter a number inline; clearing removes the value. Saves `{ value: number | null }` per day.
+- **Widget 6: Mood Tracker** (`mood-tracker`, Group `Track`, `22×4`, min `14×4`): Five unique hand-drawn SVG faces (1=very sad … 5=very happy, no emoji). Layout: 16px header+DayStepper | 36px face picker | 36px 31-day row (15.09px/face slot). Tap a face in the picker to record `{ mood: 1..5 }` for the active day; small faces in the monthly row reflect stored moods.
+- Registered in `registry.ts`. Mobile placeholder components delegate to desktop (Task 11).
+
 ### Phase 5 / Task 9 (Batch A) — Entries Plumbing + First Three Widgets
 - `components/widgets/entryActions.ts` — Server actions (`getWidgetEntries`, `saveWidgetEntry`) with Zod schema validation (day 1..31, specific payload value shapes), RLS enforcement via `createClient()`, and red-pen error handling.
 - `components/widgets/shared/DayStepper.tsx` — Approved shared day navigator using hand-drawn SVG prev/next arrows (no dropdowns or pickers) displaying "Day X". Defaults to today if viewed month matches current month, else day 1.
@@ -122,8 +140,7 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - **Mood Tracker** (`22×4` = 484×88px): 16px horizontal padding + 31 day slots = **15.09px width per day face slot** (>= 14px threshold).
 
 ## Next
-- BATCH B (awaiting user GO): Build Poll, Number Log, and Mood Tracker.
-- Task 10 — Building remaining widgets (Charts, Goal Bar, etc.).
+- Task 10 Batch B (awaiting user GO): Donut, Goal Bar, Checklist, Free Note.
 - Task 11 — Mobile / single-page responsive layout (L8).
 
 ## Open Questions

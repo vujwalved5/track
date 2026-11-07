@@ -22,6 +22,7 @@ interface WidgetConfigCardProps {
   widget: WidgetData
   onClose: () => void
   onSaved: (updatedWidget: WidgetData) => void
+  allWidgets?: WidgetData[]
 }
 
 type SupportedFieldType =
@@ -29,6 +30,7 @@ type SupportedFieldType =
   | { kind: 'number'; defaultValue: number }
   | { kind: 'boolean'; defaultValue: boolean }
   | { kind: 'enum'; options: string[]; defaultValue: string }
+  | { kind: 'widgetSource'; compatibleTypes: string[]; defaultValue: string }
 
 /**
  * Unwraps Zod wrapper types (Optional, Nullable, Default) to inspect the core type.
@@ -62,7 +64,27 @@ function extractSchemaFields(
     const unwrapped = unwrapZodType(rawType)
 
     if (unwrapped instanceof z.ZodString) {
-      fields[key] = { kind: 'string', defaultValue: '' }
+      // Detect widgetSource picker: ZodString field whose key ends with 'SourceId'
+      // and whose .describe() lists compatible widget type ids (comma-separated).
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const description =
+        rawType.description ||
+        unwrapped.description ||
+        (rawType as any)._def?.description ||
+        (unwrapped as any)._def?.description
+      if (key.endsWith('SourceId') && description) {
+        const compatibleTypes = description
+          .split(',')
+          .map((t: string) => t.trim())
+          .filter(Boolean)
+        if (compatibleTypes.length > 0) {
+          fields[key] = { kind: 'widgetSource', compatibleTypes, defaultValue: '' }
+        } else {
+          fields[key] = { kind: 'string', defaultValue: '' }
+        }
+      } else {
+        fields[key] = { kind: 'string', defaultValue: '' }
+      }
     } else if (unwrapped instanceof z.ZodNumber) {
       fields[key] = { kind: 'number', defaultValue: 0 }
     } else if (unwrapped instanceof z.ZodBoolean) {
@@ -79,10 +101,23 @@ function extractSchemaFields(
   return fields
 }
 
+/**
+ * Returns a human-readable label for a widget in the source picker dropdown.
+ * Format: "Display Name: label/unit/title" if config has a subtitle field.
+ */
+function getWidgetLabel(w: WidgetData): string {
+  const def = getWidgetDefinition(w.type)
+  const displayName = def?.displayName || w.type
+  const cfg = w.config as Record<string, unknown>
+  const sub = (cfg?.label ?? cfg?.unit ?? cfg?.title ?? '') as string
+  return sub ? `${displayName}: ${sub}` : displayName
+}
+
 export function WidgetConfigCard({
   widget,
   onClose,
   onSaved,
+  allWidgets,
 }: WidgetConfigCardProps) {
   const definition = getWidgetDefinition(widget.type)
   const schema = definition?.schema || z.object({})
@@ -257,6 +292,46 @@ export function WidgetConfigCard({
                   </select>
                 </div>
               )
+
+            case 'widgetSource': {
+              const compatibleWidgets = (allWidgets || []).filter(
+                (w) => field.compatibleTypes.includes(w.type) && w.id !== widget.id,
+              )
+              const friendlyLabel =
+                key === 'sourceWidgetId'
+                  ? 'Data source'
+                  : key === 'sourceWidgetId2'
+                    ? 'Second source (Y axis)'
+                    : key
+              return (
+                <div key={key} className="flex flex-col gap-1">
+                  <label
+                    htmlFor={`field-${key}`}
+                    className="text-xs font-bold text-ink/80"
+                  >
+                    {friendlyLabel}
+                  </label>
+                  <select
+                    id={`field-${key}`}
+                    value={typeof value === 'string' ? value : ''}
+                    onChange={(e) => handleChange(key, e.target.value)}
+                    className="w-full bg-paper border border-ink/30 rounded p-1 text-xs text-ink font-hand focus:outline-none cursor-pointer"
+                  >
+                    <option value="">— none —</option>
+                    {compatibleWidgets.map((w) => (
+                      <option key={w.id} value={w.id}>
+                        {getWidgetLabel(w)}
+                      </option>
+                    ))}
+                  </select>
+                  {compatibleWidgets.length === 0 && (
+                    <p className="text-[10px] text-ink/50 font-hand italic leading-tight">
+                      No compatible widgets on this spread yet
+                    </p>
+                  )}
+                </div>
+              )
+            }
 
             default:
               return null
