@@ -1,0 +1,25 @@
+{
+  "node": {
+    "40c4e51303f4da1bc9227d93b087cd1eed72af5f93": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 88933,
+          "async": false
+        }
+      },
+      "exportedName": "completeMonthSetup",
+      "filename": "components/setup/setupActions.ts"
+    },
+    "605f1a74b29722bfe2cc48f657c97c358ca90e38a5": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 88933,
+          "async": false
+        }
+      },
+      "exportedName": "getPreviousMonthData",
+      "filename": "components/setup/setupActions.ts"
+    }
+  },
+  "edge": {}
+}

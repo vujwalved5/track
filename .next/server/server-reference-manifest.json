@@ -1,0 +1,30 @@
+{
+  "node": {
+    "40c4e51303f4da1bc9227d93b087cd1eed72af5f93": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 88933,
+          "async": false
+        },
+        "app/page": {
+          "moduleId": 67852,
+          "async": false
+        }
+      },
+      "filename": "components/setup/setupActions.ts",
+      "exportedName": "completeMonthSetup"
+    },
+    "605f1a74b29722bfe2cc48f657c97c358ca90e38a5": {
+      "workers": {
+        "app/book/[year]/[month]/page": {
+          "moduleId": 88933,
+          "async": false
+        }
+      },
+      "filename": "components/setup/setupActions.ts",
+      "exportedName": "getPreviousMonthData"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "pydE84KHt/WVRlzBkoHZR3+tIbLzxC/bwyIpMXq4GLQ="
+}
