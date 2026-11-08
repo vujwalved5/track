@@ -25,7 +25,7 @@ import {
   getDefaultActiveDay,
   getDaysInMonth,
 } from '../shared/DayStepper'
-import { pollEntrySchema } from '../entryActions'
+import { pollEntrySchema } from '../entrySchemas'
 import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────

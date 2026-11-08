@@ -18,7 +18,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
-import { pollEntrySchema, habitTrackerEntrySchema } from '../entryActions'
+import { pollEntrySchema, habitTrackerEntrySchema } from '../entrySchemas'
 import { getWidgetEntriesWithCache } from '../entryHelpers'
 import { useEntriesVersionStore } from '@/store/entriesVersion'
 import { seedFromString, jitter } from '../charts/chartUtils'

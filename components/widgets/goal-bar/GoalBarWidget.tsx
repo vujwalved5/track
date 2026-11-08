@@ -19,7 +19,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
-import { counterEntrySchema, numberLogEntrySchema } from '../entryActions'
+import { counterEntrySchema, numberLogEntrySchema } from '../entrySchemas'
 import { getWidgetEntriesWithCache } from '../entryHelpers'
 import { useEntriesVersionStore } from '@/store/entriesVersion'
 import { seedFromString } from '../charts/chartUtils'

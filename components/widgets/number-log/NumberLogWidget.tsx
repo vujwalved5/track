@@ -18,7 +18,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
-import { numberLogEntrySchema } from '../entryActions'
+import { numberLogEntrySchema } from '../entrySchemas'
 import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────

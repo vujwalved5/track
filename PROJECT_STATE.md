@@ -280,6 +280,23 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - Real browser verification:
   - Tests 1 through 6 executed with headless Edge CDP and `npm run build`, verifying mode toggle, zero layout jump, validation errors, throwaway email signup, focus ring visibility, and successful production build.
 
+### Phase 8 / Task 16 — Fix "use server" export error
+- **Problem solved**: In Step 7 of Month Setup wizard, clicking "Open the month" showed Next.js error: `'A "use server" file can only export async functions, found object.'` caused by 9 Zod schema objects exported from `'use server'` file `components/widgets/entryActions.ts`.
+- **Schema relocation**: Created `components/widgets/entrySchemas.ts` (without `'use server'`) containing `memorableMomentsEntrySchema`, `habitTrackerEntrySchema`, `counterEntrySchema`, `pollEntrySchema`, `numberLogEntrySchema`, `moodTrackerEntrySchema`, `checklistItemSchema`, `checklistEntrySchema`, `entryPayloadSchema`.
+- **Full Server Action Audit**:
+  - `components/setup/setupActions.ts`: verified only async functions (`getPreviousMonthData`, `completeMonthSetup`) and TypeScript interfaces. Zero non-async runtime exports.
+  - `components/widgets/widgetActions.ts`: verified only async functions (`getWidgetsForMonth`, `updateWidgetPosition`, `updateWidgetConfig`, `deleteWidget`, `createWidget`, `addTestStickyNote`). Zero non-async runtime exports.
+  - `components/widgets/entryActions.ts`: removed all schema exports; imports `entryPayloadSchema` from `./entrySchemas`. Exports only async functions (`getWidgetEntries`, `saveWidgetEntry`) and TypeScript interface `EntryActionResult`. Zero non-async runtime exports.
+- **Consumer Imports**: Updated imports in `components/widgets/checklist/ChecklistWidget.tsx`, `counter/CounterWidget.tsx`, `donut/DonutWidget.tsx`, `goal-bar/GoalBarWidget.tsx`, `habit-tracker/HabitTrackerWidget.tsx`, `memorable-moments/MemorableMomentsWidget.tsx`, `mood-tracker/MoodTrackerWidget.tsx`, `number-log/NumberLogWidget.tsx`, and `poll/PollWidget.tsx` to import schemas from `'../entrySchemas'`. Added `export * from './entrySchemas'` to `components/widgets/index.ts`.
+- **Real Browser Verification**:
+  - Dev server restarted and verified via headless browser with CDP at 1440x900 desktop viewport.
+  - Signed in through the real cover bookplate with test account.
+  - Set up October 2026 via Month Setup wizard (fresh setup).
+  - Walked through November 2026 wizard with "Use the same as last month" across all 7 steps; clicked "Open the month": month opened with zero red-pen error text, URL remained on `/book/2026/11`, spread displayed chosen paper, and `months.setup_done` persisted after full page reload.
+  - Exercised `widgetActions` and `entryActions`: placed Sticky Note from card catalogue drawer onto paper (`createWidget`) and wrote Day 1 entry in Memorable Moments (`saveWidgetEntry`); confirmed both persisted across page reloads and in Supabase database.
+  - Cleaned up all temporary scratch files.
+  - Full production build (`npm run build`) passed with exit code 0.
+
 ## Next
 - Task 11 (Batch B) — Mobile Arrange mode (long-press on top ribbon, move up/down), WidgetDrawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets' mobile render.
 

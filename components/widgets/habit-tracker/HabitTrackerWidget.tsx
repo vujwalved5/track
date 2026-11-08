@@ -23,7 +23,7 @@ import type { WidgetDefinition, WidgetRenderProps } from '../types'
 import type { HabitConfig } from '@/types/db'
 import {
   habitTrackerEntrySchema,
-} from '../entryActions'
+} from '../entrySchemas'
 import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────

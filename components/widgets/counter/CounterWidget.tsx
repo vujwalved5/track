@@ -26,7 +26,7 @@ import {
 } from '../shared/DayStepper'
 import {
   counterEntrySchema,
-} from '../entryActions'
+} from '../entrySchemas'
 import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────

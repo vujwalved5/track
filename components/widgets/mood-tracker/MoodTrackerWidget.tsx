@@ -26,7 +26,7 @@ import {
   getDefaultActiveDay,
   getDaysInMonth,
 } from '../shared/DayStepper'
-import { moodTrackerEntrySchema } from '../entryActions'
+import { moodTrackerEntrySchema } from '../entrySchemas'
 import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────

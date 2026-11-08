@@ -28,20 +28,6 @@
       "filename": "components/setup/setupActions.ts",
       "exportedName": "completeMonthSetup"
     },
-    "7ff0d7e6b891a43184c6eb30afb3b07fd655d1b779": {
-      "workers": {
-        "app/book/[year]/[month]/page": {
-          "moduleId": 98617,
-          "async": false
-        },
-        "app/page": {
-          "moduleId": 89800,
-          "async": false
-        }
-      },
-      "filename": "components/widgets/entryActions.ts",
-      "exportedName": "memorableMomentsEntrySchema"
-    },
     "40cadc5cb9bd4f0d6ebf856fc9d7c70dd193b4ba82": {
       "workers": {
         "app/book/[year]/[month]/page": {
@@ -55,90 +41,6 @@
       },
       "filename": "components/widgets/entryActions.ts",
       "exportedName": "getWidgetEntries"
-    },
-    "7f4158892bf5ba37a42af5794b038c1c596cb2e00a": {
-      "workers": {
-        "app/book/[year]/[month]/page": {
-          "moduleId": 98617,
-          "async": false
-        },
-        "app/page": {
-          "moduleId": 89800,
-          "async": false
-        }
-      },
-      "filename": "components/widgets/entryActions.ts",
-      "exportedName": "habitTrackerEntrySchema"
-    },
-    "7f183892b35df5cf598389650b99ff1d2f560f3b14": {
-      "workers": {
-        "app/book/[year]/[month]/page": {
-          "moduleId": 98617,
-          "async": false
-        },
-        "app/page": {
-          "moduleId": 89800,
-          "async": false
-        }
-      },
-      "filename": "components/widgets/entryActions.ts",
-      "exportedName": "counterEntrySchema"
-    },
-    "7f6a7858641a8a1c9f8f2058925e33c15a08f14b59": {
-      "workers": {
-        "app/book/[year]/[month]/page": {
-          "moduleId": 98617,
-          "async": false
-        },
-        "app/page": {
-          "moduleId": 89800,
-          "async": false
-        }
-      },
-      "filename": "components/widgets/entryActions.ts",
-      "exportedName": "pollEntrySchema"
-    },
-    "7fae948bc31c5ccf36eb5dfa4a52db9655cb5dbeae": {
-      "workers": {
-        "app/book/[year]/[month]/page": {
-          "moduleId": 98617,
-          "async": false
-        },
-        "app/page": {
-          "moduleId": 89800,
-          "async": false
-        }
-      },
-      "filename": "components/widgets/entryActions.ts",
-      "exportedName": "numberLogEntrySchema"
-    },
-    "7fa319fb3c8d1e5fdd1f712b4b2f8bba97e2e8eeed": {
-      "workers": {
-        "app/book/[year]/[month]/page": {
-          "moduleId": 98617,
-          "async": false
-        },
-        "app/page": {
-          "moduleId": 89800,
-          "async": false
-        }
-      },
-      "filename": "components/widgets/entryActions.ts",
-      "exportedName": "moodTrackerEntrySchema"
-    },
-    "7f5ba423dca10cf8e406e55096831a28903b3ca3aa": {
-      "workers": {
-        "app/book/[year]/[month]/page": {
-          "moduleId": 98617,
-          "async": false
-        },
-        "app/page": {
-          "moduleId": 89800,
-          "async": false
-        }
-      },
-      "filename": "components/widgets/entryActions.ts",
-      "exportedName": "checklistEntrySchema"
     },
     "603fe733a782c6a7478d97c688b75c1a8758087461": {
       "workers": {
