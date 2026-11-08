@@ -2,56 +2,136 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from '@/lib/supabase/auth'
+import { signIn, signUp } from '@/lib/supabase/auth'
 
 export function ClosedBook() {
   const router = useRouter()
+  const [mode, setMode] = useState<'open' | 'begin'>('open')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(
+    null
+  )
+  const [passwordError, setPasswordError] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isOpening, setIsOpening] = useState(false)
 
   const currentYear = new Date().getFullYear()
 
+  const switchMode = (newMode: 'open' | 'begin') => {
+    setMode(newMode)
+    setErrorMessage(null)
+    setConfirmationMessage(null)
+    setPasswordError(false)
+  }
+
   const handleOpenBook = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setErrorMessage(null)
-    setIsSubmitting(true)
+    setConfirmationMessage(null)
+    setPasswordError(false)
 
-    try {
-      const { user, error } = await signIn(email, password)
+    if (!email.trim()) {
+      setErrorMessage('Please enter an email address.')
+      return
+    }
 
-      if (error || !user) {
+    if (mode === 'begin') {
+      if (!password || password.length < 6) {
+        setPasswordError(true)
+        setErrorMessage('Password must be at least 6 characters.')
+        return
+      }
+
+      setIsSubmitting(true)
+
+      try {
+        const { user, session, error } = await signUp(email, password)
+
+        if (error) {
+          setIsSubmitting(false)
+          setErrorMessage(error.message || 'Could not create account.')
+          return
+        }
+
         setIsSubmitting(false)
-        setErrorMessage(error?.message || 'Invalid email or password.')
+
+        if (session) {
+          // Email confirmation is off — open the book as in sign in
+          const now = new Date()
+          const year = now.getFullYear()
+          const month = now.getMonth() + 1
+          const targetUrl = `/book/${year}/${month}`
+
+          const prefersReducedMotion =
+            typeof window !== 'undefined' &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+          if (prefersReducedMotion) {
+            router.push(targetUrl)
+            return
+          }
+
+          setIsOpening(true)
+          setTimeout(() => {
+            router.push(targetUrl)
+          }, 900)
+        } else {
+          // Confirmation is on — show ink message, do not open cover
+          setConfirmationMessage(
+            'Check your email to confirm, then open the book.'
+          )
+        }
+      } catch (err: unknown) {
+        setIsSubmitting(false)
+        const message =
+          err instanceof Error ? err.message : 'Could not create account.'
+        setErrorMessage(message)
+      }
+    } else {
+      // mode === 'open' (sign in)
+      if (!password) {
+        setErrorMessage('Please enter your password.')
         return
       }
 
-      // Successful sign in — route to current year and unpadded month number (e.g. /book/2026/11)
-      const now = new Date()
-      const year = now.getFullYear()
-      const month = now.getMonth() + 1
-      const targetUrl = `/book/${year}/${month}`
+      setIsSubmitting(true)
 
-      const prefersReducedMotion =
-        typeof window !== 'undefined' &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      try {
+        const { user, error } = await signIn(email, password)
 
-      if (prefersReducedMotion) {
-        router.push(targetUrl)
-        return
+        if (error || !user) {
+          setIsSubmitting(false)
+          setErrorMessage(error?.message || 'Invalid email or password.')
+          return
+        }
+
+        // Successful sign in — route to current year and unpadded month number (e.g. /book/2026/11)
+        const now = new Date()
+        const year = now.getFullYear()
+        const month = now.getMonth() + 1
+        const targetUrl = `/book/${year}/${month}`
+
+        const prefersReducedMotion =
+          typeof window !== 'undefined' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+        if (prefersReducedMotion) {
+          router.push(targetUrl)
+          return
+        }
+
+        setIsOpening(true)
+        setTimeout(() => {
+          router.push(targetUrl)
+        }, 900)
+      } catch (err: unknown) {
+        setIsSubmitting(false)
+        const message =
+          err instanceof Error ? err.message : 'Invalid email or password.'
+        setErrorMessage(message)
       }
-
-      setIsOpening(true)
-      setTimeout(() => {
-        router.push(targetUrl)
-      }, 900)
-    } catch (err: unknown) {
-      setIsSubmitting(false)
-      const message =
-        err instanceof Error ? err.message : 'Invalid email or password.'
-      setErrorMessage(message)
     }
   }
 
@@ -157,76 +237,112 @@ export function ClosedBook() {
             {/* Cream bookplate label glued on the lower cover */}
             <div className="relative z-10 pl-7 sm:pl-9 pr-1 sm:pr-2 pb-2 sm:pb-3">
               <div
-                className="bg-paper text-ink rounded-sm shadow-md border border-kraft/35 p-3.5 sm:p-5 max-w-[340px] sm:max-w-[370px] mx-auto"
+                className="bg-paper text-ink rounded-sm shadow-md border border-kraft/35 p-3.5 sm:p-5 max-w-[340px] sm:max-w-[370px] mx-auto h-[275px] sm:h-[305px] flex flex-col justify-between"
                 style={{
                   boxShadow:
                     '0 3px 10px rgba(0, 0, 0, 0.35), inset 0 0 16px rgba(185, 137, 90, 0.15)',
                 }}
               >
-                <p className="font-cover text-[11px] sm:text-xs font-semibold tracking-[0.22em] text-ink uppercase text-center border-b border-ink/20 pb-1.5 mb-3">
-                  THIS BOOK BELONGS TO
+                <p className="font-cover text-[11px] sm:text-xs font-semibold tracking-[0.22em] text-ink uppercase text-center border-b border-ink/20 pb-1.5 mb-2 sm:mb-2.5">
+                  {mode === 'begin' ? 'A NEW BOOK FOR' : 'THIS BOOK BELONGS TO'}
                 </p>
 
                 <form
                   onSubmit={handleOpenBook}
-                  className="flex flex-col gap-2.5 sm:gap-3"
-                  noValidate={false}
+                  className="flex flex-col flex-1 justify-between"
+                  noValidate
                 >
-                  <div className="flex flex-col gap-0.5">
-                    <label
-                      htmlFor="book-email"
-                      className="font-cover text-[10px] sm:text-[11px] tracking-wider text-ink/75 uppercase font-medium"
-                    >
-                      Email
-                    </label>
-                    <input
-                      id="book-email"
-                      name="email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="bg-transparent border-0 border-b-2 border-dotted border-ink/60 font-hand text-ink text-sm sm:text-base px-1 py-0.5 focus:border-ink focus:outline-none placeholder:text-ink/70"
-                    />
+                  <div className="flex flex-col gap-2 sm:gap-2.5">
+                    <div className="flex flex-col gap-0.5">
+                      <label
+                        htmlFor="book-email"
+                        className="font-cover text-[10px] sm:text-[11px] tracking-wider text-ink/75 uppercase font-medium"
+                      >
+                        Email
+                      </label>
+                      <input
+                        id="book-email"
+                        name="email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value)
+                          if (errorMessage) setErrorMessage(null)
+                          if (confirmationMessage) setConfirmationMessage(null)
+                          if (passwordError) setPasswordError(false)
+                        }}
+                        className="bg-transparent border-0 border-b-2 border-dotted border-ink/60 font-hand text-ink text-sm sm:text-base px-1 py-0.5 focus:border-ink placeholder:text-ink/70"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-0.5">
+                      <label
+                        htmlFor="book-password"
+                        className="font-cover text-[10px] sm:text-[11px] tracking-wider text-ink/75 uppercase font-medium"
+                      >
+                        Password
+                      </label>
+                      <input
+                        id="book-password"
+                        name="password"
+                        type="password"
+                        required
+                        autoComplete={mode === 'begin' ? 'new-password' : 'current-password'}
+                        value={password}
+                        onChange={(e) => {
+                          setPassword(e.target.value)
+                          if (errorMessage) setErrorMessage(null)
+                          if (confirmationMessage) setConfirmationMessage(null)
+                          if (passwordError) setPasswordError(false)
+                        }}
+                        className="bg-transparent border-0 border-b-2 border-dotted border-ink/60 font-hand text-ink text-sm sm:text-base px-1 py-0.5 focus:border-ink placeholder:text-ink/70"
+                      />
+                      {mode === 'begin' && (
+                        <p
+                          className={`font-hand text-[11px] sm:text-xs pt-0.5 ${
+                            passwordError ? 'text-redpen' : 'text-ink/70'
+                          }`}
+                        >
+                          Password must be at least 6 characters.
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex flex-col gap-0.5">
-                    <label
-                      htmlFor="book-password"
-                      className="font-cover text-[10px] sm:text-[11px] tracking-wider text-ink/75 uppercase font-medium"
+                  <div className="flex flex-col gap-1 mt-auto pt-1">
+                    {errorMessage && (
+                      <p
+                        role="alert"
+                        className="font-hand text-redpen text-xs sm:text-sm text-center leading-snug"
+                      >
+                        {errorMessage}
+                      </p>
+                    )}
+
+                    {confirmationMessage && (
+                      <p
+                        role="status"
+                        className="font-hand text-ink text-xs sm:text-sm text-center leading-snug"
+                      >
+                        {confirmationMessage}
+                      </p>
+                    )}
+
+                    {/* Brass button (only gold #d8b45a or kraft #b9895a) */}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || isOpening}
+                      className="mt-1 bg-gold hover:bg-kraft text-desk font-cover font-bold text-[11px] sm:text-xs tracking-[0.2em] uppercase py-2 sm:py-2.5 px-4 rounded-sm shadow-sm active:translate-y-px transition-colors duration-150 disabled:opacity-60 cursor-pointer text-center"
                     >
-                      Password
-                    </label>
-                    <input
-                      id="book-password"
-                      name="password"
-                      type="password"
-                      required
-                      autoComplete="current-password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="bg-transparent border-0 border-b-2 border-dotted border-ink/60 font-hand text-ink text-sm sm:text-base px-1 py-0.5 focus:border-ink focus:outline-none placeholder:text-ink/70"
-                    />
+                      {isSubmitting || isOpening
+                        ? 'turning the page...'
+                        : mode === 'begin'
+                        ? 'BEGIN THE BOOK'
+                        : 'OPEN THE BOOK'}
+                    </button>
                   </div>
-
-                  {errorMessage && (
-                    <p
-                      role="alert"
-                      className="font-hand text-redpen text-xs sm:text-sm text-center leading-snug pt-1"
-                    >
-                      {errorMessage}
-                    </p>
-                  )}
-
-                  {/* Brass button (only gold #d8b45a or kraft #b9895a) */}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || isOpening}
-                    className="mt-1 bg-gold hover:bg-kraft text-desk font-cover font-bold text-[11px] sm:text-xs tracking-[0.2em] uppercase py-2 sm:py-2.5 px-4 rounded-sm shadow-sm active:translate-y-px transition-colors duration-150 disabled:opacity-60 cursor-pointer text-center"
-                  >
-                    {isSubmitting || isOpening ? 'turning the page...' : 'OPEN THE BOOK'}
-                  </button>
                 </form>
               </div>
             </div>
@@ -254,7 +370,7 @@ export function ClosedBook() {
         </div>
       </div>
 
-      {/* Under the book: small links (inert placeholders) */}
+      {/* Under the book: small links */}
       <div className="flex items-center justify-center gap-5 mt-12 sm:mt-14 text-center">
         <button
           type="button"
@@ -268,10 +384,10 @@ export function ClosedBook() {
         </span>
         <button
           type="button"
-          className="font-cover text-xs tracking-widest text-gold/75 hover:text-gold transition-colors underline decoration-dotted underline-offset-4 decoration-gold/50 cursor-default"
-          aria-disabled="true"
+          onClick={() => switchMode(mode === 'open' ? 'begin' : 'open')}
+          className="font-cover text-xs tracking-widest text-gold/75 hover:text-gold transition-colors underline decoration-dotted underline-offset-4 decoration-gold/50 cursor-pointer"
         >
-          Begin a new book
+          {mode === 'begin' ? 'I already have a book' : 'Begin a new book'}
         </button>
       </div>
     </div>

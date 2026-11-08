@@ -256,11 +256,35 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - `app/book/[year]/[month]/page.tsx`:
   - Enforces server-side authentication with `supabase.auth.getUser()`. If no authenticated user exists, immediately redirects to `/` before loading month setup or widget data.
 
+### Phase 8 / Task 15 — Sign-up Flow ("Begin a new book")
+- `components/book/ClosedBook.tsx`:
+  - Added mode toggle between `"open"` (sign in) and `"begin"` (sign up) modes on the existing bookplate without modal, popup, or new route (L1).
+  - Mode "begin" presentation:
+    - Heading changes to `"A NEW BOOK FOR"`.
+    - Brass button reads `"BEGIN THE BOOK"` (or `"turning the page..."` when submitting).
+    - Bottom link toggles to `"I already have a book"` to switch back to sign-in.
+    - Password rule hint rendered under password input in "begin" mode only in ink at 70% opacity (`text-ink/70`, contrast ~4.9:1 >= 4.5:1), turning red pen (`text-redpen`) on failed submission.
+  - Dimension locking:
+    - Bookplate height locked to 305px (desktop) / 275px (mobile) in both modes, ensuring zero dimension jump (`Δw = 0, Δh = 0, Δtop = 0`) and zero layout shift on the cover.
+  - State clearing:
+    - Switching modes and input typing immediately clear all error and confirmation messages.
+  - Form validation:
+    - Validates email presence and minimum 6-character password client-side, displaying errors as handwritten red-pen text (`text-redpen`, Kalam) on the bookplate; zero popups or alert dialogues.
+  - Post-signup handling:
+    - If session returned (email confirmation off): runs 900ms 3D cover-opening animation (or immediate redirect under `prefers-reduced-motion`) and routes to `/book/[year]/[month]`.
+    - If no session returned (email confirmation on): displays handwritten ink text (`text-ink`, Kalam) on the bookplate: `"Check your email to confirm, then open the book."` with no cover opening.
+  - Accessibility:
+    - Real `<label>`, `<input>`, `<button>` elements with visible focus rings (`:focus-visible` with 2px ink outline + 2px highlighter yellow ring).
+- `lib/supabase/auth.ts`:
+  - Extended `AuthResult` to include `session: Session | null` from `supabase.auth.signUp` and `signIn` without adding any new auth methods.
+- Real browser verification:
+  - Tests 1 through 6 executed with headless Edge CDP and `npm run build`, verifying mode toggle, zero layout jump, validation errors, throwaway email signup, focus ring visibility, and successful production build.
+
 ## Next
 - Task 11 (Batch B) — Mobile Arrange mode (long-press on top ribbon, move up/down), WidgetDrawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets' mobile render.
 
 ## Open Questions
-- Sign-up flow and password reset not built.
+- Password reset not built ("Forgot the key?" remains an inert placeholder).
 - UI currently has no sign-out control (user session can only be cleared programmatically / via dev console).
 
 ## Locked Decisions (L1–L14)

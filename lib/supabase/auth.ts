@@ -8,12 +8,13 @@
  * signOut — invalidate the current session
  */
 import { createClient } from './client'
-import type { AuthError, User } from '@supabase/supabase-js'
+import type { AuthError, Session, User } from '@supabase/supabase-js'
 import { clearAllLocalCaches, setActiveUserId } from '@/lib/offlineSync'
 
 export interface AuthResult {
-  user:  User | null
-  error: AuthError | null
+  user:    User | null
+  session: Session | null
+  error:   AuthError | null
 }
 
 export async function signIn(
@@ -28,7 +29,7 @@ export async function signIn(
   if (data?.user) {
     setActiveUserId(data.user.id)
   }
-  return { user: data.user, error }
+  return { user: data.user, session: data?.session ?? null, error }
 }
 
 export async function signUp(
@@ -40,7 +41,7 @@ export async function signUp(
   if (data?.user) {
     setActiveUserId(data.user.id)
   }
-  return { user: data.user, error }
+  return { user: data.user, session: data?.session ?? null, error }
 }
 
 export async function signOut(): Promise<{ error: AuthError | null }> {
