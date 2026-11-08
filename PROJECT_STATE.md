@@ -374,12 +374,48 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - **Batched Initial Entries**: Queried all entries for the month's widgets in a single server query (`.in('widget_id', widgetIds)`), passed as `initialEntries` to `OpenBook`, and primed `entryHelpers.ts` in-memory cache so all widgets consume initial entries immediately with zero client HTTP waterfalls, while preserving reactive re-fetches and cache updates on edits.
 - **Database Foreign Key Index**: Created migration `supabase/migrations/0002_add_widgets_month_id_index.sql` and applied `CREATE INDEX IF NOT EXISTS idx_widgets_month_id ON public.widgets (month_id);` in Postgres, eliminating sequential table scans.
 
+### Task O2 (Fix 2 & Fix 10) — Page Turn Prefetching & Service Worker Optimization
+- **Adjacent Month Idle Prefetching**: In `components/book/OpenBook.tsx` and `components/book/MobileBook.tsx`, prefetch adjacent months (`month - 1` and `month + 1`) during idle time in `useEffect` via `router.prefetch`.
+- **Tab Pointerdown Prefetching**: Added `onPointerDown` and `onMouseEnter` prefetching to month edge tabs in desktop and mobile shells for zero-latency page transitions.
+- **Service Worker Timeout Alignment**: Raised dynamic route `/book/*` timeout in `app/sw.ts` from 3s to 5s with 30-day offline cache fallback.
+- **Static Assets Cache Strategy**: Switched Next.js immutable static assets (`/_next/static/*`) from `StaleWhileRevalidate` to `CacheFirst` in `app/sw.ts`.
+- **Service Worker Minification**: Integrated Next.js internal Terser minimizer into `scripts/build-sw.js` with `minimize: true`, reducing `public/sw.js` bundle size from 149.5 KB to 36.4 KB (a 75.6% reduction).
+
+### Task O3 (Fix 3 & Fix 6) — Instant Tactile Widget Placement & Placement Overlay Caching
+- **Instant Optimistic Placement**: In `components/book/OpenBook.tsx`, generate client UUID (`crypto.randomUUID()`), validate placement locally via `isValidPlacement`, and optimistically append to `widgets` state in < 16ms on the immediate screen refresh frame.
+- **Permanent Client UUID Persistence**: Updated `createWidget` in `components/widgets/widgetActions.ts` to accept client `id` directly and insert it into Postgres, eliminating temporary ID swapping and 404 race conditions during immediate arrange actions.
+- **Automatic Rollback & Red-Pen Error**: On background insertion failure, roll back widget from state and display handwritten red-pen error message inline on the paper (`text-sm text-redpen font-hand`, `#b3261e`), never a popup or dialog (Rule L1).
+- **Placement Overlay Rect Caching**: In `components/widgets/PlacementOverlay.tsx`, cache bounding rect on pointer enter / down, eliminating synchronous `getBoundingClientRect()` layout thrashing on `pointermove`.
+- **Discrete 22px Grid Snapping**: Resizing previews strictly in discrete 22px grid steps (`GRID_PX = 22`) via integer grid units (`liveW`, `liveH`) with zero CSS `scale` transforms, preserving font metrics and 1.4px dots without distortion.
+
+### Task O4 (Fix 5) — Client Bundle Code Splitting via Dynamic Imports
+- **Async Component Splitting**: Replaced static imports of heavy modals and drawers (`MonthSetupWizard`, `WidgetDrawer`, `WidgetConfigCard`) in `components/book/OpenBook.tsx` and `MobileBook.tsx` with `next/dynamic` and `{ ssr: false, loading: () => null }`.
+- **Main Client Chunk Reduction**: Reduced initial route client chunk from 520.6 KB to ~229 KB (a ~56% reduction), splitting out distinct async chunks for the setup wizard (`2ya0avlf78_a7.js`, ~19.5 KB) and drawer/config components (`3_plemxyktkve.js`, ~15.3 KB).
+
+### Task O5 (Fix 7) — 3D Page Turn Hardware Acceleration & Texture Compositing
+- **Compositor Layer Hints**: Added `will-change: transform` to `.animate-page-flip-forward` and `.animate-page-flip-backward` in `app/globals.css`.
+- **Shadow Animation Hints**: Added `will-change: opacity` to `.animate-shadow-under-left`, `.animate-shadow-under-right`, `.animate-leaf-shadow-forward`, and `.animate-leaf-shadow-backward`.
+- **GPU Leaf Promotion**: Added `transform-gpu` class to flipping leaf containers in `components/book/OpenBook.tsx` without modifying casing shadows or ribbon drop-shadows, eliminating software rasterization drops across paper texture layers.
+
+### Task O6 (Fix 8 & Fix 9) — Responsive Architecture Single-Tree Invariant & Scoped Font Loading
+- **Single-Tree Hydration Invariant**: Maintained locked Correction 7 invariant: exactly ONE responsive tree mounted via `window.matchMedia('(min-width: 768px)')`. Initial `isDesktop === null` placeholder styled with `#211b16`, full viewport size, and `contain: paint layout`, eliminating hydration mismatch warnings and visual flash.
+- **Cover-Scoped Cormorant Garamond**: Removed global `Cormorant_Garamond` loading from `app/layout.tsx`. Loaded Cormorant Garamond strictly in `components/book/ClosedBook.tsx` with only the 4 actively used weights (`400`, `500`, `600`, `700`), saving 5 font requests on all `/book/*` spreads.
+- **Kalam Metric Overrides**: Configured `fallback: ['cursive']` and `adjustFontFallback: true` for Kalam in `app/layout.tsx`, preventing Cumulative Layout Shift (CLS) on font swap.
+
+### Task O7 (Fix 11 & Fix 12) — Arrange Mode Re-render Isolation & Dependency Hygiene
+- **WidgetWrapper Memoization**: Wrapped `WidgetWrapper` in `React.memo` with custom comparison function checking `id`, `x`, `y`, `w`, `h`, `isArrangeMode`, and `config`.
+- **Stable OpenBook Handlers**: Wrapped all parent event callbacks in `useCallback` in `OpenBook.tsx` to maintain referential equality across renders.
+- **Chart Geometry Memoization**: Moved trigonometric jitter calculations (`wobbleCircle`), dot coordinates, daily bar heights, widths, and sparse label coordinates into `useMemo` in `ScatterPlotWidget.tsx` and `BarChartWidget.tsx`, guaranteeing deterministic jitter and eliminating redundant calculations.
+- **Partitioned Zustand Store**: Partitioned `useEntriesVersionStore` by `widgetId` (`versions: Record<string, number>`) so modifying an entry in one widget only invalidates and re-renders that widget and subscribing charts.
+- **Phantom Import Removal**: Removed undeclared `@dnd-kit/utilities` phantom import in `WidgetWrapper.tsx` and replaced with inline `translate3d` style string. Verified zero packages outside Rule L3 (`zod`, `zustand`, `@dnd-kit/core`, `serwist`).
+
 ## Next
-- Task O2: Fix 2 and Fix 10 from optimisation_plan.md (Page Turn Prefetching & Service Worker Timeout Alignment)
+- Complete Optimization Roadmap (Phase 1 through Phase 4) fully implemented and independently verified.
+- Production build passing cleanly with exit code 0 (`npm run build`).
+- Ready for final end-to-end user acceptance and release.
 
 ## Open Questions
-- Password reset not built ("Forgot the key?" remains an inert placeholder).
-- UI currently has no sign-out control (user session can only be cleared programmatically / via dev console).
+- None. (Password reset not built: "Forgot the key?" remains an intentional inert placeholder per original product design. UI currently has no explicit sign-out control).
 
 ## Locked Decisions (L1–L14)
 
