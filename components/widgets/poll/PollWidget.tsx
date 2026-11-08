@@ -183,7 +183,10 @@ export function PollDesktop({
   year,
   month,
   isArrangeMode,
+  w = 10,
+  h = 8,
 }: WidgetRenderProps<PollConfig>) {
+  const isCompact = w <= 6 || h <= 6
   const question = config?.question || 'How was today?'
   const options: string[] =
     Array.isArray(config?.options) && config.options.length >= 2
@@ -367,6 +370,29 @@ export function PollDesktop({
           )
         })}
       </div>
+
+      {/* Hand-drawn more corner when compact */}
+      {isCompact && (
+        <div
+          className="absolute bottom-0 right-0 w-3.5 h-3.5 pointer-events-none select-none z-10"
+          title="More below (resize to see all)"
+          aria-label="More below"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="w-full h-full text-ink/70"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M 24 0 L 0 24 L 24 24 Z"
+              fill="#f4eddc"
+              stroke="#1c2433"
+              strokeWidth="1.2"
+            />
+          </svg>
+        </div>
+      )}
     </div>
   )
 }

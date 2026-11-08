@@ -171,6 +171,8 @@ export function HabitTrackerDesktop({
   id,
   setupConfig,
   isArrangeMode,
+  w = 14,
+  h = 24,
 }: WidgetRenderProps<HabitTrackerConfig>) {
   // Read habits strictly from setupConfig (Correction 1: no invented habits)
   const habits: HabitConfig[] = useMemo(() => {
@@ -185,8 +187,12 @@ export function HabitTrackerDesktop({
     isArrangeMode,
   )
 
+  const isCompactHeight = h < 18
+  const headerHeight = h <= 10 ? 36 : h <= 14 ? 48 : 64
+  const showMoreCorner = h < 20
+
   return (
-    <div className="relative w-full h-full flex flex-col bg-transparent select-none overflow-hidden p-1.5">
+    <div className="relative w-full h-full flex flex-col bg-transparent select-none overflow-hidden p-1">
       {/* Red-Pen Save Error Feedback */}
       {saveError && (
         <div
@@ -197,10 +203,10 @@ export function HabitTrackerDesktop({
         </div>
       )}
 
-      {/* Habit Table: Header height = 64px; 31 rows = 450px (~14.5px/row >= 14px, Correction 5) */}
+      {/* Habit Table */}
       <div className="flex-1 flex flex-col border border-ink/25 rounded-xs overflow-hidden">
-        {/* Table Header Row (64px) with Rotated Names */}
-        <div className="h-[64px] flex border-b border-ink/30 bg-paper/30 shrink-0">
+        {/* Table Header Row with Rotated Names */}
+        <div style={{ height: `${headerHeight}px` }} className="flex border-b border-ink/30 bg-paper/30 shrink-0">
           {/* Top-left corner: Day header */}
           <div className="w-6 shrink-0 flex items-end justify-center pb-1 border-r border-ink/20 font-hand text-[10px] text-ink/70">
             d.
@@ -273,6 +279,29 @@ export function HabitTrackerDesktop({
           })}
         </div>
       </div>
+
+      {/* Hand-Drawn More Corner when table rows exceed visible height */}
+      {showMoreCorner && (
+        <div
+          className="absolute bottom-0 right-0 w-3.5 h-3.5 pointer-events-none select-none z-10"
+          title="More days below (resize to see all)"
+          aria-label="More days below"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="w-full h-full text-ink/70"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M 24 0 L 0 24 L 24 24 Z"
+              fill="#f4eddc"
+              stroke="#1c2433"
+              strokeWidth="1.2"
+            />
+          </svg>
+        </div>
+      )}
     </div>
   )
 }

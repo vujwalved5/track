@@ -77,7 +77,8 @@ export function GoalBarIcon({ className = 'w-5 h-5' }: { className?: string }) {
 export function GoalBarDesktop({
   id,
   config,
-  w,
+  w = 14,
+  h = 4,
 }: WidgetRenderProps<GoalBarConfig>) {
   const title = config?.title || 'Goal'
   const sourceWidgetId = config?.sourceWidgetId || ''
@@ -136,26 +137,29 @@ export function GoalBarDesktop({
   const isReached = currentTotal >= target
 
   // Bar SVG dimensions
-  const widthPx = Math.max(160, w * 22)
-  const barWidth = widthPx - 32
-  const barHeight = 22
+  const widthPx = w * 22
+  const isCompact = w <= 5 || h <= 2
+  const isUltraCompact = h <= 2
+  const sidePad = isCompact ? 8 : 16
+  const barWidth = Math.max(20, widthPx - sidePad * 2)
+  const barHeight = isCompact ? 16 : 22
   const filledWidth = Math.max(0, barWidth * progressFrac)
 
   return (
-    <div className="relative w-full h-full flex flex-col justify-between bg-transparent select-none overflow-hidden p-2.5">
+    <div className={`relative w-full h-full flex flex-col justify-between bg-transparent select-none overflow-hidden ${isCompact ? 'p-1' : 'p-2.5'}`}>
       {/* Top Header: Title + Target Display */}
-      <div className="flex items-center justify-between border-b border-ink/15 pb-1 shrink-0">
-        <span className="font-hand text-xs font-bold text-ink truncate">
+      <div className={`flex items-center justify-between border-b border-ink/15 ${isCompact ? 'pb-0.5' : 'pb-1'} shrink-0`}>
+        <span className={`font-hand ${isCompact ? 'text-[10px]' : 'text-xs'} font-bold text-ink truncate max-w-[50%]`}>
           {title}
         </span>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="font-hand text-[11px] text-ink font-bold">
+        <div className="flex items-center gap-1 shrink-0">
+          <span className={`font-hand ${isCompact ? 'text-[9px]' : 'text-[11px]'} text-ink font-bold`}>
             {currentTotal}
             <span className="text-ink/70 font-normal"> / {target}</span>
             {unit && <span className="text-ink/70 font-normal ml-0.5">{unit}</span>}
           </span>
           <span
-            className={`font-hand text-[10px] font-bold px-1 rounded-xs ${
+            className={`font-hand text-[9px] font-bold px-0.5 rounded-xs ${
               isReached
                 ? 'bg-redpen/15 text-redpen'
                 : 'text-ink/70'
@@ -167,19 +171,19 @@ export function GoalBarDesktop({
       </div>
 
       {/* Center: Hand-Drawn SVG Progress Bar */}
-      <div className="flex-1 flex items-center justify-center py-1">
+      <div className="flex-1 flex items-center justify-center py-0.5">
         {loading ? (
-          <p className="font-hand text-xs text-ink/70 italic">
+          <p className="font-hand text-[10px] text-ink/70 italic">
             turning the page...
           </p>
         ) : !sourceWidgetId ? (
-          <p className="font-hand text-xs text-ink/70 italic">
+          <p className="font-hand text-[10px] text-ink/70 italic text-center px-1">
             Pick a Counter or Number Log in settings
           </p>
         ) : (
           <svg
-            viewBox={`0 0 ${widthPx} 28`}
-            className="w-full h-7 overflow-visible"
+            viewBox={`0 0 ${widthPx} ${barHeight + 6}`}
+            className="w-full h-full max-h-[28px] overflow-visible"
             role="img"
             aria-label={`Goal bar for ${title}, ${currentTotal} of ${target}${unit ? ' ' + unit : ''}, ${percent}%`}
           >
@@ -205,7 +209,7 @@ export function GoalBarDesktop({
 
             {/* Outer wobbly capsule frame */}
             <rect
-              x="16"
+              x={sidePad}
               y="3"
               width={barWidth}
               height={barHeight}
@@ -219,7 +223,7 @@ export function GoalBarDesktop({
             {/* Filled progress section */}
             {filledWidth > 0 && (
               <rect
-                x="17"
+                x={sidePad + 1}
                 y="4"
                 width={Math.max(1, filledWidth - 2)}
                 height={barHeight - 2}
@@ -233,7 +237,7 @@ export function GoalBarDesktop({
             {/* Goal achieved marker */}
             {isReached && (
               <path
-                d={`M ${16 + barWidth - 1} 1 L ${16 + barWidth + 3} 3 L ${16 + barWidth - 1} 5`}
+                d={`M ${sidePad + barWidth - 1} 1 L ${sidePad + barWidth + 3} 3 L ${sidePad + barWidth - 1} 5`}
                 stroke="#b3261e"
                 strokeWidth="1.8"
                 strokeLinecap="round"
@@ -243,15 +247,40 @@ export function GoalBarDesktop({
         )}
       </div>
 
-      {/* Footer Subtitle */}
-      <div className="flex items-center justify-between text-[9px] font-hand text-ink/70 pt-0.5">
-        <span>0</span>
-        {isReached ? (
-          <span className="text-redpen font-bold">Goal achieved!</span>
-        ) : (
-          <span>Target: {target}</span>
-        )}
-      </div>
+      {/* Footer Subtitle (hidden if ultra-compact h <= 2) */}
+      {!isUltraCompact && (
+        <div className="flex items-center justify-between text-[9px] font-hand text-ink/70 pt-0.5 shrink-0">
+          <span>0</span>
+          {isReached ? (
+            <span className="text-redpen font-bold">Goal achieved!</span>
+          ) : (
+            <span>Target: {target}</span>
+          )}
+        </div>
+      )}
+
+      {/* Hand-Drawn More Corner when small or overflowing */}
+      {isUltraCompact && (
+        <div
+          className="absolute bottom-0 right-0 w-3.5 h-3.5 pointer-events-none select-none z-10"
+          title="More details (resize to see all)"
+          aria-label="More details below"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="w-full h-full text-ink/70"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M 24 0 L 0 24 L 24 24 Z"
+              fill="#f4eddc"
+              stroke="#1c2433"
+              strokeWidth="1.2"
+            />
+          </svg>
+        </div>
+      )}
     </div>
   )
 }

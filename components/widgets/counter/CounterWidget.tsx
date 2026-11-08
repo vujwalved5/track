@@ -88,6 +88,8 @@ export function CounterDesktop({
   year,
   month,
   isArrangeMode,
+  w = 6,
+  h = 6,
 }: WidgetRenderProps<CounterConfig>) {
   const label = config?.label || 'Counter'
   const target = config?.target
@@ -161,8 +163,12 @@ export function CounterDesktop({
 
   const isTargetReached = target !== undefined && currentCount >= target
 
+  const isCompact = w <= 4 || h <= 3
+  const isUltraCompact = h <= 2 || w <= 3
+  const showMoreCorner = h <= 2 && (perDay || target !== undefined)
+
   return (
-    <div className="relative w-full h-full p-2 flex flex-col justify-between items-center bg-transparent select-none overflow-hidden">
+    <div className={`relative w-full h-full flex flex-col justify-between items-center bg-transparent select-none overflow-hidden ${isCompact ? 'p-1' : 'p-2'}`}>
       {/* Red-Pen Save Error Feedback */}
       {saveError && (
         <div
@@ -173,34 +179,36 @@ export function CounterDesktop({
         </div>
       )}
 
-      {/* Top Header: Label + Optional Target */}
-      <div className="w-full flex items-center justify-between text-center border-b border-ink/15 pb-0.5 px-0.5">
-        <span
-          className="font-hand text-[11px] font-bold text-ink truncate max-w-[85px]"
-          title={label}
-        >
-          {label}
-        </span>
-        {target !== undefined && (
+      {/* Top Header: Label + Optional Target (hidden if ultra-compact h <= 2) */}
+      {!isUltraCompact && (
+        <div className="w-full flex items-center justify-between text-center border-b border-ink/15 pb-0.5 px-0.5 shrink-0">
           <span
-            className={`font-hand text-[10px] ${
-              isTargetReached ? 'text-redpen font-bold' : 'text-ink/70'
-            }`}
+            className="font-hand text-[11px] font-bold text-ink truncate max-w-[85px]"
+            title={label}
           >
-            /{target}
+            {label}
           </span>
-        )}
-      </div>
+          {target !== undefined && (
+            <span
+              className={`font-hand text-[10px] ${
+                isTargetReached ? 'text-redpen font-bold' : 'text-ink/70'
+              }`}
+            >
+              /{target}
+            </span>
+          )}
+        </div>
+      )}
 
-      {/* Center: Minus Button | Big Kalam Number | Plus Button */}
-      <div className="flex-1 flex items-center justify-center gap-2 my-0.5">
+      {/* Center: Minus Button | Kalam Number | Plus Button */}
+      <div className={`flex-1 flex items-center justify-center ${isCompact ? 'gap-1' : 'gap-2'} my-0.5`}>
         {/* Hand-Drawn Minus Button */}
         <button
           type="button"
           disabled={isArrangeMode || currentCount <= 0}
           onClick={() => adjustCount(-1)}
           aria-label="Decrease count"
-          className={`w-7 h-7 rounded-full border border-ink/40 flex items-center justify-center transition-all ${
+          className={`${isCompact ? 'w-5 h-5' : 'w-7 h-7'} rounded-full border border-ink/40 flex items-center justify-center transition-all ${
             currentCount > 0 && !isArrangeMode
               ? 'hover:border-ink hover:bg-ink/5 active:scale-95 text-ink cursor-pointer'
               : 'opacity-40 text-ink/70 cursor-not-allowed'
@@ -210,7 +218,7 @@ export function CounterDesktop({
             viewBox="0 0 16 16"
             fill="none"
             stroke="currentColor"
-            className="w-3.5 h-3.5"
+            className={isCompact ? 'w-2.5 h-2.5' : 'w-3.5 h-3.5'}
             aria-hidden="true"
           >
             <path
@@ -221,8 +229,8 @@ export function CounterDesktop({
           </svg>
         </button>
 
-        {/* Big Handwritten Number */}
-        <div className="min-w-[40px] text-center font-hand text-3xl font-bold text-ink tracking-tight select-none">
+        {/* Handwritten Number */}
+        <div className={`${isUltraCompact ? 'min-w-[20px] text-lg' : isCompact ? 'min-w-[28px] text-xl' : 'min-w-[40px] text-3xl'} text-center font-hand font-bold text-ink tracking-tight select-none`}>
           {currentCount}
         </div>
 
@@ -232,7 +240,7 @@ export function CounterDesktop({
           disabled={isArrangeMode}
           onClick={() => adjustCount(1)}
           aria-label="Increase count"
-          className={`w-7 h-7 rounded-full border border-ink/40 flex items-center justify-center transition-all ${
+          className={`${isCompact ? 'w-5 h-5' : 'w-7 h-7'} rounded-full border border-ink/40 flex items-center justify-center transition-all ${
             !isArrangeMode
               ? 'hover:border-ink hover:bg-ink/5 active:scale-95 text-ink cursor-pointer'
               : 'opacity-40 text-ink/70 cursor-not-allowed'
@@ -242,7 +250,7 @@ export function CounterDesktop({
             viewBox="0 0 16 16"
             fill="none"
             stroke="currentColor"
-            className="w-3.5 h-3.5"
+            className={isCompact ? 'w-2.5 h-2.5' : 'w-3.5 h-3.5'}
             aria-hidden="true"
           >
             <path
@@ -259,25 +267,53 @@ export function CounterDesktop({
         </button>
       </div>
 
-      {/* Bottom Area: DayStepper if perDay mode, or target status */}
-      <div className="w-full flex justify-center pt-0.5 border-t border-ink/10">
-        {perDay ? (
-          <DayStepper
-            day={activeDay}
-            maxDays={maxDays}
-            onChange={(newDay) => setActiveDay(newDay)}
-            className="scale-90"
-          />
-        ) : (
-          <span className="font-hand text-[9px] text-ink/70 tracking-wider uppercase">
-            {target !== undefined && isTargetReached ? (
-              <span className="text-redpen font-bold">Goal Met!</span>
-            ) : (
-              'Total'
-            )}
-          </span>
-        )}
-      </div>
+      {/* Bottom Area: DayStepper if perDay mode, or target status (hidden if ultra-compact) */}
+      {!isUltraCompact && (
+        <div className="w-full flex justify-center pt-0.5 border-t border-ink/10 shrink-0">
+          {perDay ? (
+            <DayStepper
+              day={activeDay}
+              maxDays={maxDays}
+              onChange={(newDay) => setActiveDay(newDay)}
+              className="scale-90"
+            />
+          ) : (
+            <span className="font-hand text-[9px] text-ink/70 tracking-wider uppercase">
+              {target !== undefined && isTargetReached ? (
+                <span className="text-redpen font-bold">Goal Met!</span>
+              ) : (
+                'Total'
+              )}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Hand-Drawn More Corner when content doesn't fit */}
+      {showMoreCorner && (
+        <div
+          className="absolute bottom-0 right-0 w-4 h-4 pointer-events-none select-none z-10"
+          title="More settings (resize to see details)"
+          aria-label="More details below"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="w-full h-full text-ink/70"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M 24 0 L 0 24 L 24 24 Z"
+              fill="#f4eddc"
+              stroke="#1c2433"
+              strokeWidth="1.2"
+            />
+            <circle cx="16" cy="19" r="1" fill="#1c2433" />
+            <circle cx="19" cy="19" r="1" fill="#1c2433" />
+            <circle cx="22" cy="19" r="1" fill="#1c2433" />
+          </svg>
+        </div>
+      )}
     </div>
   )
 }

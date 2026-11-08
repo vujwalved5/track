@@ -2,15 +2,17 @@
 
 /**
  * Widget Wrapper Component
- * Memorable Moments — Phase 4 / Task 7
+ * Memorable Moments — Phase 4 / Task F1
  *
  * Locked rules:
  * - Positioned strictly by x, y, w, h in 22px units (L7, L10)
  * - Dragging via @dnd-kit/core only (Correction 2)
- * - Resizing via plain pointer events on corner handle (Correction 2)
- * - Bounds, minSize, and no-overlap enforced in UI (Correction 3)
- * - Handwritten red-pen cross-out action for removal (L6, L13)
- * - Tucked card configuration trigger (Correction 1)
+ * - Resizing via plain pointer events on all 4 corners and all 4 edges (Step 3)
+ * - Dragging top or left edge updates x and y
+ * - Live dashed outline showing snapped size
+ * - Stops at last valid size if drag would collide or leave page
+ * - Persists to Supabase on pointer release
+ * - Strictly L6 palette
  */
 
 import React, { useState, useRef, useEffect } from 'react'
@@ -25,6 +27,9 @@ import {
   isWithinBounds,
 } from './types'
 import { getWidgetDefinition } from './registry'
+import { getWidgetMetadata } from './widgetMetadata'
+
+export type ResizeHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 
 interface WidgetWrapperProps {
   widget: WidgetData
@@ -35,7 +40,7 @@ interface WidgetWrapperProps {
   otherWidgets: WidgetData[]
   onResizeEnd: (
     widgetId: string,
-    newSize: { w: number; h: number },
+    newRect: { x: number; y: number; w: number; h: number },
   ) => Promise<void>
   onRemove: (widgetId: string) => void
   onOpenConfig: (widgetId: string) => void
@@ -53,10 +58,13 @@ export function WidgetWrapper({
   onOpenConfig,
 }: WidgetWrapperProps) {
   const definition = getWidgetDefinition(widget.type)
-  const minW = definition?.minSize.w ?? 2
-  const minH = definition?.minSize.h ?? 2
+  const meta = getWidgetMetadata(widget.type)
+  const minW = meta?.minSize.w ?? definition?.minSize.w ?? 2
+  const minH = meta?.minSize.h ?? definition?.minSize.h ?? 2
 
-  // Live dimensions during resize
+  // Live position & dimensions during resize
+  const [liveX, setLiveX] = useState(widget.x)
+  const [liveY, setLiveY] = useState(widget.y)
   const [liveW, setLiveW] = useState(widget.w)
   const [liveH, setLiveH] = useState(widget.h)
   const [isResizing, setIsResizing] = useState(false)
@@ -64,10 +72,12 @@ export function WidgetWrapper({
   // Keep live dimensions in sync with prop changes
   useEffect(() => {
     if (!isResizing) {
+      setLiveX(widget.x)
+      setLiveY(widget.y)
       setLiveW(widget.w)
       setLiveH(widget.h)
     }
-  }, [widget.w, widget.h, isResizing])
+  }, [widget.x, widget.y, widget.w, widget.h, isResizing])
 
   // @dnd-kit dragging
   const {
@@ -84,27 +94,39 @@ export function WidgetWrapper({
     },
   })
 
-  // Resize pointer tracking refs
+  // Resize pointer tracking ref
   const resizeRef = useRef<{
+    handle: ResizeHandle
     startX: number
     startY: number
-    startW: number
-    startH: number
+    startRect: WidgetRect
   } | null>(null)
 
-  const handleResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handleResizePointerDown = (
+    e: React.PointerEvent<HTMLDivElement>,
+    handle: ResizeHandle,
+  ) => {
     if (!isArrangeMode) return
     e.stopPropagation()
     e.preventDefault()
 
-    const handle = e.currentTarget
-    handle.setPointerCapture(e.pointerId)
+    const target = e.currentTarget
+    try {
+      target.setPointerCapture(e.pointerId)
+    } catch {
+      // Ignore pointer capture release failure
+    }
 
     resizeRef.current = {
+      handle,
       startX: e.clientX,
       startY: e.clientY,
-      startW: liveW,
-      startH: liveH,
+      startRect: {
+        x: liveX,
+        y: liveY,
+        w: liveW,
+        h: liveH,
+      },
     }
     setIsResizing(true)
   }
@@ -113,32 +135,95 @@ export function WidgetWrapper({
     if (!isResizing || !resizeRef.current) return
     e.stopPropagation()
 
-    const { startX, startY, startW, startH } = resizeRef.current
+    const { handle, startX, startY, startRect } = resizeRef.current
     const dx = e.clientX - startX
     const dy = e.clientY - startY
 
     const deltaCols = Math.round(dx / GRID_PX)
     const deltaRows = Math.round(dy / GRID_PX)
 
-    let candidateW = startW + deltaCols
-    let candidateH = startH + deltaRows
+    let candX = startRect.x
+    let candY = startRect.y
+    let candW = startRect.w
+    let candH = startRect.h
 
-    // 1. Min size clamping
-    candidateW = Math.max(minW, candidateW)
-    candidateH = Math.max(minH, candidateH)
-
-    // 2. Page bounds clamping
-    candidateW = Math.min(candidateW, PAGE_COLS - widget.x)
-    candidateH = Math.min(candidateH, PAGE_ROWS - widget.y)
-
-    // 3. Strict no-overlap check
-    const candidateRect: WidgetRect = {
-      x: widget.x,
-      y: widget.y,
-      w: candidateW,
-      h: candidateH,
+    // Horizontal adjustments
+    if (handle.includes('e')) {
+      candW = startRect.w + deltaCols
+    }
+    if (handle.includes('w')) {
+      candX = startRect.x + deltaCols
+      candW = startRect.w - deltaCols
     }
 
+    // Vertical adjustments
+    if (handle.includes('s')) {
+      candH = startRect.h + deltaRows
+    }
+    if (handle.includes('n')) {
+      candY = startRect.y + deltaRows
+      candH = startRect.h - deltaRows
+    }
+
+    // Min size clamping
+    if (handle.includes('w')) {
+      if (candW < minW) {
+        candW = minW
+        candX = startRect.x + startRect.w - minW
+      }
+    } else {
+      candW = Math.max(minW, candW)
+    }
+
+    if (handle.includes('n')) {
+      if (candH < minH) {
+        candH = minH
+        candY = startRect.y + startRect.h - minH
+      }
+    } else {
+      candH = Math.max(minH, candH)
+    }
+
+    // Max size clamping (Full page 22x30)
+    candW = Math.min(PAGE_COLS, candW)
+    candH = Math.min(PAGE_ROWS, candH)
+
+    // Page boundaries clamping
+    if (candX < 0) {
+      if (handle.includes('w')) {
+        candW = candW + candX
+        candX = 0
+      } else {
+        candX = 0
+      }
+    }
+    if (candY < 0) {
+      if (handle.includes('n')) {
+        candH = candH + candY
+        candY = 0
+      } else {
+        candY = 0
+      }
+    }
+    if (candX + candW > PAGE_COLS) {
+      candW = PAGE_COLS - candX
+    }
+    if (candY + candH > PAGE_ROWS) {
+      candH = PAGE_ROWS - candY
+    }
+
+    if (candW < minW || candH < minH) {
+      return // Stop at last valid size
+    }
+
+    const candidateRect: WidgetRect = {
+      x: candX,
+      y: candY,
+      w: candW,
+      h: candH,
+    }
+
+    // Strict no-overlap check against all other widgets on this page
     const collides = otherWidgets.some((other) =>
       hasOverlap(candidateRect, {
         x: other.x,
@@ -148,9 +233,12 @@ export function WidgetWrapper({
       }),
     )
 
+    // Only update live dimensions if valid; otherwise stop at last valid size (Step 3)
     if (!collides && isWithinBounds(candidateRect, PAGE_COLS, PAGE_ROWS)) {
-      setLiveW(candidateW)
-      setLiveH(candidateH)
+      setLiveX(candX)
+      setLiveY(candY)
+      setLiveW(candW)
+      setLiveH(candH)
     }
   }
 
@@ -167,14 +255,24 @@ export function WidgetWrapper({
     setIsResizing(false)
     resizeRef.current = null
 
-    if (liveW !== widget.w || liveH !== widget.h) {
-      await onResizeEnd(widget.id, { w: liveW, h: liveH })
+    if (
+      liveX !== widget.x ||
+      liveY !== widget.y ||
+      liveW !== widget.w ||
+      liveH !== widget.h
+    ) {
+      await onResizeEnd(widget.id, {
+        x: liveX,
+        y: liveY,
+        w: liveW,
+        h: liveH,
+      })
     }
   }
 
   // Calculate layout pixel values
-  const leftPx = widget.x * GRID_PX
-  const topPx = widget.y * GRID_PX
+  const leftPx = liveX * GRID_PX
+  const topPx = liveY * GRID_PX
   const widthPx = liveW * GRID_PX
   const heightPx = liveH * GRID_PX
 
@@ -216,6 +314,18 @@ export function WidgetWrapper({
         />
       )}
 
+      {/* Live dashed outline during resize showing snapped size (Step 3) */}
+      {isResizing && (
+        <div
+          className="absolute inset-0 border-2 border-dashed border-highlighter bg-highlighter/10 pointer-events-none rounded-sm z-50 flex items-center justify-center shadow-[0_0_12px_rgba(255,216,74,0.3)]"
+          aria-hidden="true"
+        >
+          <span className="font-hand text-xs font-bold bg-paper/95 border border-ink/40 text-ink px-2 py-0.5 rounded shadow-sm">
+            {liveW} × {liveH}
+          </span>
+        </div>
+      )}
+
       {/* Render registered widget component */}
       <div className="w-full h-full relative">
         {RenderComponent ? (
@@ -239,7 +349,7 @@ export function WidgetWrapper({
       {/* ── Arrange Mode Controls ────────────────────────────────── */}
       {isArrangeMode && (
         <>
-          {/* Top-left: Settings Card Trigger */}
+          {/* Top: Settings Card Trigger */}
           <button
             type="button"
             onPointerDown={(e) => e.stopPropagation()}
@@ -247,7 +357,7 @@ export function WidgetWrapper({
               e.stopPropagation()
               onOpenConfig(widget.id)
             }}
-            className="absolute -top-2.5 -left-2.5 z-40 w-6 h-6 bg-paper border border-ink/40 rounded-full shadow-sm flex items-center justify-center text-ink hover:text-gold cursor-pointer transition-colors"
+            className="absolute -top-7 left-2 z-40 w-6 h-6 bg-paper border border-ink/40 rounded-full shadow-sm flex items-center justify-center text-ink hover:text-gold cursor-pointer transition-colors"
             title="Configure widget"
             aria-label="Open widget settings card"
           >
@@ -273,7 +383,7 @@ export function WidgetWrapper({
             </svg>
           </button>
 
-          {/* Top-right: Handwritten Red-Pen Cross-Out Action (L13, no emoji) */}
+          {/* Top: Handwritten Red-Pen Cross-Out Action (L13, no emoji) */}
           <button
             type="button"
             onPointerDown={(e) => e.stopPropagation()}
@@ -281,7 +391,7 @@ export function WidgetWrapper({
               e.stopPropagation()
               onRemove(widget.id)
             }}
-            className="absolute -top-2.5 -right-2.5 z-40 w-6 h-6 bg-paper border border-redpen/60 rounded-full shadow-sm flex items-center justify-center text-redpen hover:bg-redpen/10 cursor-pointer transition-colors"
+            className="absolute -top-7 right-2 z-40 w-6 h-6 bg-paper border border-redpen/60 rounded-full shadow-sm flex items-center justify-center text-redpen hover:bg-redpen/10 cursor-pointer transition-colors"
             title="Cross out widget"
             aria-label="Remove widget"
           >
@@ -306,37 +416,94 @@ export function WidgetWrapper({
             </svg>
           </button>
 
-          {/* Bottom-right: Corner Resize Handle (Plain Pointer Events, Correction 2) */}
+          {/* ── 8 Resize Handles (All 4 Corners and All 4 Edges) ───── */}
+          {/* Top-Left Corner */}
           <div
-            onPointerDown={handleResizePointerDown}
+            onPointerDown={(e) => handleResizePointerDown(e, 'nw')}
             onPointerMove={handleResizePointerMove}
             onPointerUp={handleResizePointerUp}
-            className="absolute -bottom-2 -right-2 z-40 w-5 h-5 bg-paper border border-ink/50 rounded-xs shadow-sm flex items-center justify-center cursor-nwse-resize hover:bg-kraft/30"
-            title="Drag corner to resize"
-            aria-label="Resize widget corner handle"
-          >
-            <svg
-              className="w-3 h-3 text-ink/70"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              {/* Hand-drawn corner bracket */}
-              <path
-                d="M 13 4 L 13 13 L 4 13"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M 10 7 L 10 10 L 7 10"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
+            onLostPointerCapture={handleResizePointerUp}
+            className="absolute -top-2 -left-2 z-40 w-4 h-4 bg-paper border border-ink/60 rounded-xs shadow-xs flex items-center justify-center cursor-nwse-resize hover:bg-highlighter/40 transition-colors"
+            title="Resize top-left"
+            aria-label="Resize widget top-left corner"
+          />
+
+          {/* Top-Right Corner */}
+          <div
+            onPointerDown={(e) => handleResizePointerDown(e, 'ne')}
+            onPointerMove={handleResizePointerMove}
+            onPointerUp={handleResizePointerUp}
+            onLostPointerCapture={handleResizePointerUp}
+            className="absolute -top-2 -right-2 z-40 w-4 h-4 bg-paper border border-ink/60 rounded-xs shadow-xs flex items-center justify-center cursor-nesw-resize hover:bg-highlighter/40 transition-colors"
+            title="Resize top-right"
+            aria-label="Resize widget top-right corner"
+          />
+
+          {/* Bottom-Left Corner */}
+          <div
+            onPointerDown={(e) => handleResizePointerDown(e, 'sw')}
+            onPointerMove={handleResizePointerMove}
+            onPointerUp={handleResizePointerUp}
+            onLostPointerCapture={handleResizePointerUp}
+            className="absolute -bottom-2 -left-2 z-40 w-4 h-4 bg-paper border border-ink/60 rounded-xs shadow-xs flex items-center justify-center cursor-nesw-resize hover:bg-highlighter/40 transition-colors"
+            title="Resize bottom-left"
+            aria-label="Resize widget bottom-left corner"
+          />
+
+          {/* Bottom-Right Corner */}
+          <div
+            onPointerDown={(e) => handleResizePointerDown(e, 'se')}
+            onPointerMove={handleResizePointerMove}
+            onPointerUp={handleResizePointerUp}
+            onLostPointerCapture={handleResizePointerUp}
+            className="absolute -bottom-2 -right-2 z-40 w-4 h-4 bg-paper border border-ink/60 rounded-xs shadow-xs flex items-center justify-center cursor-nwse-resize hover:bg-highlighter/40 transition-colors"
+            title="Resize bottom-right"
+            aria-label="Resize widget bottom-right corner"
+          />
+
+          {/* Top Edge */}
+          <div
+            onPointerDown={(e) => handleResizePointerDown(e, 'n')}
+            onPointerMove={handleResizePointerMove}
+            onPointerUp={handleResizePointerUp}
+            onLostPointerCapture={handleResizePointerUp}
+            className="absolute -top-1.5 left-1/2 -translate-x-1/2 z-40 w-6 h-3 bg-paper border border-ink/60 rounded-xs shadow-xs flex items-center justify-center cursor-ns-resize hover:bg-highlighter/40 transition-colors"
+            title="Resize top edge"
+            aria-label="Resize widget top edge"
+          />
+
+          {/* Bottom Edge */}
+          <div
+            onPointerDown={(e) => handleResizePointerDown(e, 's')}
+            onPointerMove={handleResizePointerMove}
+            onPointerUp={handleResizePointerUp}
+            onLostPointerCapture={handleResizePointerUp}
+            className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 z-40 w-6 h-3 bg-paper border border-ink/60 rounded-xs shadow-xs flex items-center justify-center cursor-ns-resize hover:bg-highlighter/40 transition-colors"
+            title="Resize bottom edge"
+            aria-label="Resize widget bottom edge"
+          />
+
+          {/* Left Edge */}
+          <div
+            onPointerDown={(e) => handleResizePointerDown(e, 'w')}
+            onPointerMove={handleResizePointerMove}
+            onPointerUp={handleResizePointerUp}
+            onLostPointerCapture={handleResizePointerUp}
+            className="absolute -left-1.5 top-1/2 -translate-y-1/2 z-40 w-3 h-6 bg-paper border border-ink/60 rounded-xs shadow-xs flex items-center justify-center cursor-ew-resize hover:bg-highlighter/40 transition-colors"
+            title="Resize left edge"
+            aria-label="Resize widget left edge"
+          />
+
+          {/* Right Edge */}
+          <div
+            onPointerDown={(e) => handleResizePointerDown(e, 'e')}
+            onPointerMove={handleResizePointerMove}
+            onPointerUp={handleResizePointerUp}
+            onLostPointerCapture={handleResizePointerUp}
+            className="absolute -right-1.5 top-1/2 -translate-y-1/2 z-40 w-3 h-6 bg-paper border border-ink/60 rounded-xs shadow-xs flex items-center justify-center cursor-ew-resize hover:bg-highlighter/40 transition-colors"
+            title="Resize right edge"
+            aria-label="Resize widget right edge"
+          />
         </>
       )}
     </div>

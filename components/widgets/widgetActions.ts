@@ -20,7 +20,7 @@ import {
   isWithinBounds,
   findNextAvailablePosition,
 } from './types'
-import { getWidgetDefinition } from './registry'
+import { getWidgetMetadata } from './widgetMetadata'
 
 interface ActionResult<T = unknown> {
   success: boolean
@@ -90,10 +90,10 @@ export async function updateWidgetPosition(
       h: Math.round(pos.h),
     }
 
-    // 2. Enforce minimum size from registry
-    const def = getWidgetDefinition(targetWidget.type)
-    const minW = def?.minSize.w ?? 1
-    const minH = def?.minSize.h ?? 1
+    // 2. Enforce minimum size from metadata
+    const meta = getWidgetMetadata(targetWidget.type)
+    const minW = meta?.minSize.w ?? 1
+    const minH = meta?.minSize.h ?? 1
 
     if (candidate.w < minW || candidate.h < minH) {
       return {
@@ -186,9 +186,9 @@ export async function updateWidgetConfig(
       return { success: false, error: 'Widget not found' }
     }
 
-    const def = getWidgetDefinition(targetWidget.type)
-    if (def) {
-      const parsed = def.schema.safeParse(config)
+    const meta = getWidgetMetadata(targetWidget.type)
+    if (meta) {
+      const parsed = meta.schema.safeParse(config)
       if (!parsed.success) {
         return {
           success: false,
@@ -252,20 +252,32 @@ export async function createWidget(
   type: string,
   x: number,
   y: number,
+  w?: number,
+  h?: number,
 ): Promise<ActionResult<WidgetData>> {
   try {
     const supabase = await createClient()
 
-    const def = getWidgetDefinition(type)
-    if (!def) {
+    const meta = getWidgetMetadata(type)
+    if (!meta) {
       return { success: false, error: `Unknown widget type: ${type}` }
+    }
+
+    const candidateW = w !== undefined ? Math.round(w) : meta.defaultSize.w
+    const candidateH = h !== undefined ? Math.round(h) : meta.defaultSize.h
+
+    if (candidateW < meta.minSize.w || candidateH < meta.minSize.h) {
+      return {
+        success: false,
+        error: `Widget size ${candidateW}×${candidateH} is below minimum allowed size ${meta.minSize.w}×${meta.minSize.h}`,
+      }
     }
 
     const candidate: WidgetRect = {
       x: Math.round(x),
       y: Math.round(y),
-      w: def.defaultSize.w,
-      h: def.defaultSize.h,
+      w: candidateW,
+      h: candidateH,
     }
 
     if (!isWithinBounds(candidate, PAGE_COLS, PAGE_ROWS)) {
@@ -302,7 +314,7 @@ export async function createWidget(
     }
 
     // Default configuration inferred from schema
-    const parsedConfig = def.schema.safeParse({})
+    const parsedConfig = meta.schema.safeParse({})
     const initialConfig = parsedConfig.success
       ? (parsedConfig.data as Record<string, unknown>)
       : {}
@@ -350,9 +362,9 @@ export async function addTestStickyNote(
   try {
     const supabase = await createClient()
 
-    const def = getWidgetDefinition('sticky_note')
-    const w = def?.defaultSize.w ?? 7
-    const h = def?.defaultSize.h ?? 6
+    const meta = getWidgetMetadata('sticky_note')
+    const w = meta?.defaultSize.w ?? 7
+    const h = meta?.defaultSize.h ?? 6
 
     // Fetch existing widgets on the page
     const { data: existingWidgets, error: fetchErr } = await supabase

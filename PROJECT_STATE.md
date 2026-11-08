@@ -297,6 +297,37 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - Cleaned up all temporary scratch files.
   - Full production build (`npm run build`) passed with exit code 0.
 
+### Phase 4 / Task F1 — Fix widget placement & flexible resizing
+- **Root Cause of Placement Failure**: Server Action `widgetActions.ts` was importing `getWidgetDefinition` from `registry.ts`, which statically imported all 14 widget client components (`'use client'`). In Next.js App Router, importing a client component module into a Server Action bundle crashes server execution or breaks server action serialization. Furthermore, `createWidget` hardcoded size to defaultSize without shrink logic, and `OpenBook.tsx` had no `else` branch in `handlePlaceWidget`, silently swallowing the server action failure.
+- **Pure Metadata & Collision Engine**: Created `components/widgets/widgetMetadata.ts` with pure Zod config schemas, metadata, default sizes, minimum sizes, `findFittingSizeAt`, and `findFirstAvailableSpot`. Zero `'use client'`, zero component imports, completely server-safe.
+- **Server Action Decoupling**: Refactored `widgetActions.ts` to import purely from `widgetMetadata.ts` instead of `registry.ts`. Proved 0 violations where `'use server'` imports from `'use client'`. Added support for custom `w` and `h` in `createWidget`.
+- **Registry Integration**: Updated `registry.ts` to enforce minimum sizes and default sizes strictly from `widgetMetadata.ts` for all 14 widget types.
+- **Smart Placement & Collision Shrink**:
+  - `components/widgets/PlacementOverlay.tsx`: Interactive 22px grid overlay for left and right pages. Dynamically shrinks picked widgets to largest fitting size down to minimum size via `findFittingSizeAt`. Displays highlighter yellow preview (`#ffd84a`) when valid or red-pen preview (`#b3261e`) when invalid.
+  - Keyboard navigation: automatically focuses first empty spot fitting `minSize`, arrow keys move cursor, Enter/Space places widget.
+  - "No room here." message: hand-drawn red-pen banner with `role="status"`, auto-dismisses after 3.5s or on next pointer/keyboard interaction.
+- **Red-Pen Server Error Handling**:
+  - `components/book/OpenBook.tsx`: Added missing `else` branch in `handlePlaceWidget`. Server errors are rendered on the page as handwritten red-pen text (`font-hand text-xs text-redpen`), never popup modals or console-only logs.
+  - Placement active on both left and right pages.
+- **8-Handle Flexible Resizing**:
+  - `components/widgets/WidgetWrapper.tsx`: 8 resize handles on all 4 corners (`nw`, `ne`, `sw`, `se`) and all 4 edges (`n`, `s`, `e`, `w`). Dragging top or left edges dynamically shifts `x` and `y`.
+  - Snaps in 1-grid-unit steps (22px) with live dashed outline showing size. Min sizes enforced strictly from `widgetMetadata.ts` (3×2 for text widgets, 6×6 for charts/donut, 4×6 for trackers/poll); max size full page (22×30).
+  - Stops at last valid size instead of cancelling drag if hitting collision or page boundaries.
+  - Persists `{ x, y, w, h }` to Supabase on pointer release via `handleResizeEnd` in `PageWidgetLayer.tsx`.
+- **Content Adaptation**:
+  - Scaled layout, typography down to 11px floor, compact padding, and added hand-drawn SVG "more" folded corner for content overflow across all 11 widgets: `StickyNoteWidget`, `FreeNoteWidget`, `CounterWidget`, `GoalBarWidget`, `LineGraphWidget`, `BarChartWidget`, `ScatterPlotWidget`, `DonutWidget`, `HabitTrackerWidget`, `NumberLogWidget`, `PollWidget`. Zero inner scrollbars (L1).
+- **Arrow Navigation Bug Fix**: In `OpenBook.tsx`, added `if (pickedWidgetDef) return` to the global keyboard navigation listener. Previously, pressing ArrowRight to navigate placement or dismiss "No room here." bled through to global navigation and triggered a forward month turn, causing the spread to leave the viewed month.
+- **Verification (All 9 Checks Real In-Browser & Supabase Verified)**:
+  - Check 1 (Free Note Left Page): PASS. Highlight preview displayed; placed at (0, 0, 10, 10); Supabase row verified.
+  - Check 2 (Free Note Right Page): PASS. Highlight preview displayed on right page; placed at (0, 0, 10, 10); Supabase row verified.
+  - Check 3 (All 14 Registry Types Table): PASS. All 14 widget types placed in Supabase with 0 errors.
+  - Check 4 & 5 (Reload Persistence & Database rows): PASS. Pre-reload and post-reload Supabase rows matched with exact month_id, page, x, y, w, h; DOM render verified.
+  - Check 6 (Collision & spot too small): PASS. Red-pen "No room here." status banner (`role="status"`) rendered on collision, dismissed immediately on keypress.
+  - Check 7 (8 Resize Handles): PASS. 16 handles rendered across spread; interactive pointer drag on SE handle (+44px, +44px) dynamically resized Counter from 6×6 to 8×8 and persisted to Supabase.
+  - Check 8 (1440×900 & Keyboard Placement): PASS. Arrow keys moved cursor to (2, 2), Enter placed Sticky note at (2, 2, 7, 6), persisted to Supabase.
+  - Check 9 (Locked Decisions Audit): PASS. L3 (0 forbidden packages), L6 (palette strictly followed), L13 (100% hand-drawn SVG icons, 0 emoji).
+  - TypeScript & Turbopack build: `npm run build` passes with exit code 0; verified 0 import leaks between `'use server'` and `'use client'`.
+
 ## Next
 - Task 11 (Batch B) — Mobile Arrange mode (long-press on top ribbon, move up/down), WidgetDrawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets' mobile render.
 

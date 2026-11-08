@@ -11,7 +11,7 @@ import {
   type WidgetRect,
   type PageSide,
 } from '@/components/widgets/types'
-import { getWidgetDefinition } from '@/components/widgets/registry'
+import { getWidgetMetadata } from '@/components/widgets/widgetMetadata'
 
 export interface PreviousMonthData {
   exists: boolean
@@ -138,9 +138,9 @@ function validateStartingWidgets(
   }>,
 ): { valid: boolean; error?: string } {
   for (const w of widgets) {
-    const def = getWidgetDefinition(w.type)
-    const minW = def?.minSize.w ?? 1
-    const minH = def?.minSize.h ?? 1
+    const meta = getWidgetMetadata(w.type)
+    const minW = meta?.minSize.w ?? 1
+    const minH = meta?.minSize.h ?? 1
 
     if (w.w < minW || w.h < minH) {
       return {

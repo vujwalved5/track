@@ -15,6 +15,7 @@
  */
 
 import type { WidgetDefinition, WidgetGroup } from './types'
+import { WIDGET_METADATA } from './widgetMetadata'
 import { stickyNoteWidgetDefinition } from './sticky-note/StickyNoteWidget'
 import { memorableMomentsWidgetDefinition } from './memorable-moments/MemorableMomentsWidget'
 import { habitTrackerWidgetDefinition } from './habit-tracker/HabitTrackerWidget'
@@ -35,9 +36,15 @@ const registry = new Map<string, WidgetDefinition<any>>()
 
 /**
  * Registers a widget definition in the central registry.
+ * Enforces minimum size and default size strictly from widgetMetadata.ts (Condition 1).
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function registerWidget(definition: WidgetDefinition<any>): void {
+  const meta = WIDGET_METADATA[definition.id]
+  if (meta) {
+    definition.minSize = meta.minSize
+    definition.defaultSize = meta.defaultSize
+  }
   registry.set(definition.id, definition)
 }
 
@@ -46,7 +53,12 @@ export function registerWidget(definition: WidgetDefinition<any>): void {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getWidgetDefinition(type: string): WidgetDefinition<any> | undefined {
-  return registry.get(type)
+  const def = registry.get(type)
+  if (def && WIDGET_METADATA[type]) {
+    def.minSize = WIDGET_METADATA[type].minSize
+    def.defaultSize = WIDGET_METADATA[type].defaultSize
+  }
+  return def
 }
 
 /**

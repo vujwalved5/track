@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useTransition } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import Paper, { PAGE_W, PAGE_H, type PaperType } from '@/components/paper'
+import Paper, { PAGE_W, PAGE_H, PAGE_COLS, PAGE_ROWS, type PaperType } from '@/components/paper'
 import { MonthSetupWizard, type PreviousMonthData } from '@/components/setup'
 import { MobileBook } from './MobileBook'
 import {
@@ -15,6 +15,11 @@ import {
   type WidgetDefinition,
   type PageSide,
 } from '@/components/widgets'
+import {
+  getWidgetMetadata,
+  findFittingSizeAt,
+  findFirstAvailableSpot,
+} from '@/components/widgets/widgetMetadata'
 
 // ── Month definitions (JAN - DEC) ─────────────────────────────
 export const MONTHS = [
@@ -153,27 +158,202 @@ export function OpenBook({
     setWidgets((prev) => prev.map((w) => (w.id === updated.id ? updated : w)))
   }, [])
 
+  const [placementError, setPlacementError] = useState<string | null>(null)
+  const [activePlacement, setActivePlacement] = useState<{
+    page: PageSide
+    x: number
+    y: number
+  } | null>(null)
+  const [noRoomMessage, setNoRoomMessage] = useState(false)
+  const noRoomTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  const triggerNoRoom = useCallback(() => {
+    if (noRoomTimerRef.current) clearTimeout(noRoomTimerRef.current)
+    setNoRoomMessage(true)
+    noRoomTimerRef.current = setTimeout(() => {
+      setNoRoomMessage(false)
+    }, 3500)
+  }, [])
+
+  const dismissNoRoom = useCallback(() => {
+    if (noRoomTimerRef.current) {
+      clearTimeout(noRoomTimerRef.current)
+      noRoomTimerRef.current = null
+    }
+    setNoRoomMessage(false)
+  }, [])
+
+  // Auto-dismiss "No room here." on next tap or key (Condition 7)
+  useEffect(() => {
+    if (!noRoomMessage) return
+    const handleNextInteraction = () => {
+      dismissNoRoom()
+    }
+    window.addEventListener('keydown', handleNextInteraction, true)
+    window.addEventListener('pointerdown', handleNextInteraction, true)
+    return () => {
+      window.removeEventListener('keydown', handleNextInteraction, true)
+      window.removeEventListener('pointerdown', handleNextInteraction, true)
+    }
+  }, [noRoomMessage, dismissNoRoom])
+
   const handlePlaceWidget = useCallback(
-    async (targetPage: PageSide, x: number, y: number) => {
+    async (targetPage: PageSide, x: number, y: number, w?: number, h?: number) => {
       if (!currentMonthId || !pickedWidgetDef) return
 
       // Offline guard (Correction 3): placing widgets needs a connection
       if (typeof window !== 'undefined' && !navigator.onLine) {
-        showConnectionError('needs a connection')
+        setPlacementError('needs a connection')
+        setTimeout(() => setPlacementError(null), 3500)
         return
       }
 
       const defToPlace = pickedWidgetDef
-      const res = await createWidget(currentMonthId, targetPage, defToPlace.id, x, y)
-      if (res.success && res.data) {
-        setWidgets((prev) => [...prev, res.data!])
-        setPickedWidgetDef(null)
-        setIsDrawerOpen(false)
-        setIsArrangeMode(true) // Automatically enter Arrange mode (Correction & Detail)
+      try {
+        const res = await createWidget(currentMonthId, targetPage, defToPlace.id, x, y, w, h)
+        if (res.success && res.data) {
+          setWidgets((prev) => [...prev, res.data!])
+          setPickedWidgetDef(null)
+          setActivePlacement(null)
+          setIsDrawerOpen(false)
+          setIsArrangeMode(true) // Automatically enter Arrange mode (Correction & Detail)
+        } else {
+          setPlacementError(res.error || 'Failed to place widget')
+          setTimeout(() => setPlacementError(null), 3500)
+        }
+      } catch (err) {
+        setPlacementError(err instanceof Error ? err.message : 'Failed to place widget')
+        setTimeout(() => setPlacementError(null), 3500)
       }
     },
     [currentMonthId, pickedWidgetDef],
   )
+
+  // Find first available spot when a card is picked (Condition 6)
+  useEffect(() => {
+    if (!pickedWidgetDef) {
+      setActivePlacement(null)
+      dismissNoRoom()
+      return
+    }
+
+    const meta = getWidgetMetadata(pickedWidgetDef.id)
+    const defSize = meta?.defaultSize ?? pickedWidgetDef.defaultSize
+    const minSz = meta?.minSize ?? pickedWidgetDef.minSize
+    const leftRects = leftWidgets.map((w) => ({ x: w.x, y: w.y, w: w.w, h: w.h }))
+    const rightRects = rightWidgets.map((w) => ({ x: w.x, y: w.y, w: w.w, h: w.h }))
+
+    const leftSpot = findFirstAvailableSpot(minSz, defSize, leftRects, PAGE_COLS, PAGE_ROWS)
+    if (leftSpot) {
+      setActivePlacement({ page: 'left', x: leftSpot.x, y: leftSpot.y })
+    } else {
+      const rightSpot = findFirstAvailableSpot(minSz, defSize, rightRects, PAGE_COLS, PAGE_ROWS)
+      if (rightSpot) {
+        setActivePlacement({ page: 'right', x: rightSpot.x, y: rightSpot.y })
+      } else {
+        setActivePlacement({ page: 'left', x: 0, y: 0 })
+      }
+    }
+  }, [pickedWidgetDef])
+
+  const activePlacementRef = useRef(activePlacement)
+  activePlacementRef.current = activePlacement
+
+  const pickedWidgetDefRef = useRef(pickedWidgetDef)
+  pickedWidgetDefRef.current = pickedWidgetDef
+
+  const widgetsRef = useRef(widgets)
+  widgetsRef.current = widgets
+
+  // Keyboard navigation & global dismissal for placement (Condition 6 & 7)
+  useEffect(() => {
+    if (!pickedWidgetDef) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      dismissNoRoom()
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        e.stopPropagation()
+        setActivePlacement((prev) => {
+          if (!prev) return { page: 'left', x: 0, y: 0 }
+          if (prev.page === 'right' && prev.x === 0) {
+            return { page: 'left', x: PAGE_COLS - 1, y: prev.y }
+          }
+          return { ...prev, x: Math.max(0, prev.x - 1) }
+        })
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        e.stopPropagation()
+        setActivePlacement((prev) => {
+          if (!prev) return { page: 'left', x: 0, y: 0 }
+          if (prev.page === 'left' && prev.x === PAGE_COLS - 1) {
+            return { page: 'right', x: 0, y: prev.y }
+          }
+          return { ...prev, x: Math.min(PAGE_COLS - 1, prev.x + 1) }
+        })
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        e.stopPropagation()
+        setActivePlacement((prev) => ({
+          page: prev?.page ?? 'left',
+          x: prev?.x ?? 0,
+          y: Math.max(0, (prev?.y ?? 0) - 1),
+        }))
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        e.stopPropagation()
+        setActivePlacement((prev) => ({
+          page: prev?.page ?? 'left',
+          x: prev?.x ?? 0,
+          y: Math.min(PAGE_ROWS - 1, (prev?.y ?? 0) + 1),
+        }))
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        e.stopPropagation()
+        const curPlacement = activePlacementRef.current
+        const curDef = pickedWidgetDefRef.current
+        if (!curPlacement || !curDef) return
+
+        const meta = getWidgetMetadata(curDef.id)
+        const defSize = meta?.defaultSize ?? curDef.defaultSize
+        const minSz = meta?.minSize ?? curDef.minSize
+        const curWidgets = widgetsRef.current
+        const targetWidgets = curWidgets.filter((w) => w.page === curPlacement.page)
+        const targetRects = targetWidgets.map((w) => ({ x: w.x, y: w.y, w: w.w, h: w.h }))
+        const fit = findFittingSizeAt(
+          curPlacement.x,
+          curPlacement.y,
+          defSize,
+          minSz,
+          targetRects,
+          PAGE_COLS,
+          PAGE_ROWS,
+        )
+        if (fit) {
+          handlePlaceWidget(curPlacement.page, curPlacement.x, curPlacement.y, fit.w, fit.h)
+        } else {
+          triggerNoRoom()
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        e.stopPropagation()
+        setPickedWidgetDef(null)
+        setActivePlacement(null)
+      }
+    }
+
+    const handlePointerDown = () => {
+      dismissNoRoom()
+    }
+
+    window.addEventListener('keydown', handleKeyDown, true)
+    window.addEventListener('pointerdown', handlePointerDown, true)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true)
+      window.removeEventListener('pointerdown', handlePointerDown, true)
+    }
+  }, [pickedWidgetDef, handlePlaceWidget, dismissNoRoom, triggerNoRoom])
 
   const activeConfigWidget = widgets.find((w) => w.id === activeConfigWidgetId)
 
@@ -271,6 +451,7 @@ export function OpenBook({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isSetupDone) return // Unset month cannot be dismissed by arrows
+      if (pickedWidgetDef) return // Do not turn pages while placing a widget (arrows move placement cursor)
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -288,7 +469,7 @@ export function OpenBook({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [turnForward, turnBackward, isSetupDone])
+  }, [turnForward, turnBackward, isSetupDone, pickedWidgetDef])
 
   // Left page heading
   const renderMonthTitle = (displayMonth: number, displayYear: number) => (
@@ -638,6 +819,30 @@ export function OpenBook({
               ════════════════════════════════════════════════════════ */}
           {!isTurning && (
             <div className="flex relative">
+              {/* Server / Placement Error Feedback (Condition 4) */}
+              {placementError && (
+                <div
+                  role="alert"
+                  className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-paper/95 border border-redpen px-4 py-1.5 rounded shadow-md pointer-events-none"
+                >
+                  <p className="font-hand text-xs text-redpen font-bold tracking-wide">
+                    {placementError}
+                  </p>
+                </div>
+              )}
+
+              {/* Red-Pen "No room here." status notification (Condition 7: role="status", dismisses on tap/key or 3.5s) */}
+              {noRoomMessage && (
+                <div
+                  role="status"
+                  className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-paper/95 border border-redpen px-4 py-1.5 rounded shadow-md pointer-events-none"
+                >
+                  <p className="font-hand text-xs text-redpen font-bold tracking-wide">
+                    No room here.
+                  </p>
+                </div>
+              )}
+
               {/* Left Page */}
               <Paper type={currentPaperLeft} side="left">
                 {renderMonthTitle(month, year)}
@@ -657,7 +862,11 @@ export function OpenBook({
                     page="left"
                     pickedWidgetDef={pickedWidgetDef}
                     existingWidgets={leftWidgets}
+                    cursor={activePlacement?.page === 'left' ? activePlacement : null}
+                    onHover={(p, x, y) => setActivePlacement({ page: p, x, y })}
                     onPlace={handlePlaceWidget}
+                    onNoRoom={triggerNoRoom}
+                    onDismissNoRoom={dismissNoRoom}
                   />
                 )}
                 {renderLeftFolio(month, year, turnBackward)}
@@ -681,7 +890,11 @@ export function OpenBook({
                     page="right"
                     pickedWidgetDef={pickedWidgetDef}
                     existingWidgets={rightWidgets}
+                    cursor={activePlacement?.page === 'right' ? activePlacement : null}
+                    onHover={(p, x, y) => setActivePlacement({ page: p, x, y })}
                     onPlace={handlePlaceWidget}
+                    onNoRoom={triggerNoRoom}
+                    onDismissNoRoom={dismissNoRoom}
                   />
                 )}
                 {renderRightFolio(month, year, turnForward)}

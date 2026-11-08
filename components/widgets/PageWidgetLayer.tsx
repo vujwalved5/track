@@ -156,7 +156,7 @@ export function PageWidgetLayer({
   // Handle Resize End with grid snapping, bounds, and collision avoidance
   const handleResizeEnd = async (
     widgetId: string,
-    newSize: { w: number; h: number },
+    newRect: { x: number; y: number; w: number; h: number },
   ) => {
     // Offline guard (Correction 3): resizing widgets needs a connection
     if (typeof window !== 'undefined' && !navigator.onLine) {
@@ -169,18 +169,18 @@ export function PageWidgetLayer({
 
     const previousWidgetState = { ...targetWidget }
 
-    // Optimistically update size
+    // Optimistically update size and position
     const updatedList = widgets.map((w) =>
-      w.id === widgetId ? { ...w, w: newSize.w, h: newSize.h } : w,
+      w.id === widgetId ? { ...w, ...newRect } : w,
     )
     onWidgetsChange(updatedList)
 
     // Save to Supabase
     const res = await updateWidgetPosition(widgetId, {
-      x: targetWidget.x,
-      y: targetWidget.y,
-      w: newSize.w,
-      h: newSize.h,
+      x: newRect.x,
+      y: newRect.y,
+      w: newRect.w,
+      h: newRect.h,
       page,
     })
 

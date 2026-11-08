@@ -68,30 +68,74 @@ export function StickyNoteIcon({ className = 'w-5 h-5' }: { className?: string }
 // ── Desktop Render Component ──────────────────────────────────
 export function StickyNoteDesktop({
   config,
-  isArrangeMode,
+  w = 7,
+  h = 6,
 }: WidgetRenderProps<StickyNoteConfig>) {
   const noteText = config?.text?.trim() ? config.text : 'Click the pen icon in arrange mode to write a note...'
+  const textRef = React.useRef<HTMLParagraphElement>(null)
+  const [isOverflowing, setIsOverflowing] = React.useState(false)
+
+  const fontSize = React.useMemo(() => {
+    const area = w * h
+    if (area <= 6) return 11
+    if (area <= 12) return 12
+    if (area <= 24) return 13
+    return 14
+  }, [w, h])
+
+  React.useEffect(() => {
+    const el = textRef.current
+    if (el) {
+      setIsOverflowing(el.scrollHeight > el.clientHeight + 2)
+    }
+  }, [noteText, fontSize, w, h])
 
   return (
-    <div className="relative w-full h-full p-3 flex flex-col justify-between bg-paper border border-ink/15 rounded shadow-[1px_2px_6px_rgba(28,36,51,0.08)] select-none overflow-hidden">
-      {/* Washi tape strip at top edge */}
-      <div
-        className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-16 h-3.5 bg-kraft/35 border-t border-b border-ink/10 rotate-[-1deg] pointer-events-none"
-        aria-hidden="true"
-      />
+    <div className="relative w-full h-full p-2 flex flex-col justify-between bg-paper border border-ink/15 rounded shadow-[1px_2px_6px_rgba(28,36,51,0.08)] select-none overflow-hidden">
+      {/* Washi tape strip at top edge (hidden if h <= 2) */}
+      {h > 2 && (
+        <div
+          className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-12 h-3 bg-kraft/35 border-t border-b border-ink/10 rotate-[-1deg] pointer-events-none"
+          aria-hidden="true"
+        />
+      )}
 
       {/* Note content */}
-      <div className="pt-2 flex-1 overflow-hidden">
-        <p className="font-hand text-sm text-ink leading-relaxed break-words whitespace-pre-wrap">
+      <div className={`flex-1 overflow-hidden ${h > 2 ? 'pt-1.5' : 'pt-0.5'}`}>
+        <p
+          ref={textRef}
+          style={{ fontSize: `${fontSize}px`, lineHeight: 1.3 }}
+          className="font-hand text-ink leading-snug break-words whitespace-pre-wrap"
+        >
           {noteText}
         </p>
       </div>
 
-      {/* Bottom corner paper fold shadow */}
-      <div
-        className="absolute bottom-0 right-0 w-3 h-3 bg-gradient-to-tl from-kraft/30 to-transparent pointer-events-none"
-        aria-hidden="true"
-      />
+      {/* Hand-Drawn "More" Folded Corner when content overflows */}
+      {isOverflowing && (
+        <div
+          className="absolute bottom-0 right-0 w-5 h-5 pointer-events-none select-none z-10"
+          title="More text below (resize to see all)"
+          aria-label="More text below"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="w-full h-full text-ink/70"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M 24 0 L 0 24 L 24 24 Z"
+              fill="#f4eddc"
+              stroke="#1c2433"
+              strokeWidth="1.2"
+            />
+            <circle cx="16" cy="19" r="1" fill="#1c2433" />
+            <circle cx="19" cy="19" r="1" fill="#1c2433" />
+            <circle cx="22" cy="19" r="1" fill="#1c2433" />
+          </svg>
+        </div>
+      )}
     </div>
   )
 }

@@ -127,17 +127,18 @@ export function BarChartDesktop({
   }, [series])
 
   // Pixel dimensions based on grid units w & h (each unit is 22px)
-  const widthPx = Math.max(120, w * 22)
-  const heightPx = Math.max(100, h * 22)
+  const widthPx = w * 22
+  const heightPx = h * 22
+  const isCompact = w <= 8 || h <= 8
 
   // Plot area
-  const padLeft = 14
-  const padRight = 14
-  const padTop = 30
-  const padBottom = 22
+  const padLeft = isCompact ? 10 : 14
+  const padRight = isCompact ? 8 : 14
+  const padTop = isCompact ? 22 : 30
+  const padBottom = isCompact ? 16 : 22
 
-  const plotW = Math.max(40, widthPx - padLeft - padRight)
-  const plotH = Math.max(40, heightPx - padTop - padBottom)
+  const plotW = Math.max(30, widthPx - padLeft - padRight)
+  const plotH = Math.max(30, heightPx - padTop - padBottom)
 
   // Value extents: start at 0 so bars represent heights from base
   const values = series.map((s) => s.value)
@@ -242,6 +243,29 @@ export function BarChartDesktop({
           </svg>
         )}
       </div>
+
+      {/* Hand-drawn more corner when compact */}
+      {isCompact && (
+        <div
+          className="absolute bottom-0 right-0 w-3.5 h-3.5 pointer-events-none select-none z-10"
+          title="Resize to expand chart"
+          aria-label="Resize to expand chart"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="w-full h-full text-ink/70"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M 24 0 L 0 24 L 24 24 Z"
+              fill="#f4eddc"
+              stroke="#1c2433"
+              strokeWidth="1.2"
+            />
+          </svg>
+        </div>
+      )}
     </div>
   )
 }

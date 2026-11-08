@@ -173,12 +173,13 @@ export function DonutDesktop({
   }, [slices])
 
   // Dimensions
-  const widthPx = Math.max(120, w * 22)
-  const heightPx = Math.max(120, h * 22)
+  const widthPx = w * 22
+  const heightPx = h * 22
+  const isCompact = w <= 8 || h <= 8
 
   const cx = widthPx / 2
-  const cy = (heightPx - 30) / 2 + 16
-  const outerR = Math.min(cx - 16, cy - 24, 75)
+  const cy = (heightPx - (isCompact ? 22 : 30)) / 2 + (isCompact ? 10 : 16)
+  const outerR = Math.max(20, Math.min(cx - (isCompact ? 10 : 16), cy - (isCompact ? 14 : 24), 75))
   const innerR = outerR * 0.52
 
   // Generate SVG arc paths for slices
@@ -306,6 +307,29 @@ export function DonutDesktop({
           </div>
         )}
       </div>
+
+      {/* Hand-drawn more corner when compact */}
+      {isCompact && (
+        <div
+          className="absolute bottom-0 right-0 w-3.5 h-3.5 pointer-events-none select-none z-10"
+          title="Resize to expand chart"
+          aria-label="Resize to expand chart"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="w-full h-full text-ink/70"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M 24 0 L 0 24 L 24 24 Z"
+              fill="#f4eddc"
+              stroke="#1c2433"
+              strokeWidth="1.2"
+            />
+          </svg>
+        </div>
+      )}
     </div>
   )
 }

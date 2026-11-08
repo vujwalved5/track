@@ -82,21 +82,24 @@ export function FreeNoteDesktop({
   // Height available inside container (22px grid units)
   const containerHeight = h * 22
 
+  const isCompact = w <= 4 || h <= 3
+
   // Dynamic font size computation:
-  // Starts at 16px, scales down to 12px floor based on text length and container height
+  // Starts at 16px, scales down to 11px floor based on text length and container height
   const fontSize = useMemo(() => {
     const chars = text.length
     const area = w * h // in grid blocks (1 block = 22x22 = 484px^2)
-    // Roughly ~15 chars per grid unit at 16px
+    if (area <= 6) return 11
     const density = chars / Math.max(1, area)
     if (density < 5) return 16
     if (density < 8) return 15
     if (density < 11) return 14
     if (density < 14) return 13
-    return 12 // floor of 12px (Correction 5)
+    if (density < 18) return 12
+    return 11
   }, [text, w, h])
 
-  // Check overflow beyond the 12px floor
+  // Check overflow beyond the floor
   useEffect(() => {
     const el = textareaRef.current
     if (el) {
@@ -117,7 +120,9 @@ export function FreeNoteDesktop({
 
   return (
     <div
-      className="relative w-full h-full p-2.5 flex flex-col justify-between select-none overflow-hidden"
+      className={`relative w-full h-full flex flex-col justify-between select-none overflow-hidden ${
+        isCompact ? 'p-1.5' : 'p-2.5'
+      }`}
       style={{
         backgroundImage:
           paper === 'lined'

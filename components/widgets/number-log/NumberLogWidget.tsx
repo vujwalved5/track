@@ -165,9 +165,15 @@ export function NumberLogDesktop({
   id,
   config,
   isArrangeMode,
+  w = 6,
+  h = 24,
 }: WidgetRenderProps<NumberLogConfig>) {
   const label = config?.label || 'Number Log'
   const unit = config?.unit || ''
+  const isCompactHeight = h < 18
+  const headerHeight = h <= 10 ? 24 : 32
+  const showMoreCorner = h < 22
+
   const {
     valuesMap,
     saveError,
@@ -192,8 +198,8 @@ export function NumberLogDesktop({
         </div>
       )}
 
-      {/* Header: 32px */}
-      <div className="h-[32px] flex items-center justify-between px-2 border-b border-ink/25 shrink-0">
+      {/* Header */}
+      <div style={{ height: `${headerHeight}px` }} className="flex items-center justify-between px-2 border-b border-ink/25 shrink-0">
         <span className="font-hand text-[11px] font-bold text-ink truncate">
           {label}
         </span>
@@ -271,6 +277,29 @@ export function NumberLogDesktop({
           )
         })}
       </div>
+
+      {/* Hand-Drawn More Corner when table rows exceed visible height */}
+      {showMoreCorner && (
+        <div
+          className="absolute bottom-0 right-0 w-3.5 h-3.5 pointer-events-none select-none z-10"
+          title="More days below (resize to see all)"
+          aria-label="More days below"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="w-full h-full text-ink/70"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M 24 0 L 0 24 L 24 24 Z"
+              fill="#f4eddc"
+              stroke="#1c2433"
+              strokeWidth="1.2"
+            />
+          </svg>
+        </div>
+      )}
     </div>
   )
 }
