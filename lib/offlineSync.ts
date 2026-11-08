@@ -115,6 +115,7 @@ export function updateLocalCachedDay(
   day: number,
   value: Record<string, unknown>,
 ): void {
+  useEntriesVersionStore.getState().setLastMutatedWidgetId(widgetId)
   if (typeof window === 'undefined') return
   try {
     const existing = getLocalCachedEntries(userId, widgetId) || []
@@ -137,6 +138,7 @@ export function enqueueOfflineSave(
   day: number,
   value: Record<string, unknown>,
 ): void {
+  useEntriesVersionStore.getState().setLastMutatedWidgetId(widgetId)
   if (typeof window === 'undefined') return
   try {
     const queueKey = getQueueKey(userId)
@@ -194,6 +196,7 @@ export async function drainOfflineQueue(userId: string): Promise<void> {
       const res = await saveWidgetEntry(item.widgetId, item.day, item.value)
       if (res.success) {
         anySaved = true
+        useEntriesVersionStore.getState().bump(item.widgetId)
       } else {
         // Correction 3: If replay fails because widget no longer exists, drop that item
         const errMsg = String(res.error || '').toLowerCase()

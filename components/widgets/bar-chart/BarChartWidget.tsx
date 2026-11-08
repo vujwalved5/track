@@ -76,7 +76,7 @@ export function BarChartIcon({ className = 'w-5 h-5' }: { className?: string }) 
 const SPARSE_DAYS = [1, 5, 10, 15, 20, 25, 30]
 
 // ── Desktop / Main Component ──────────────────────────────────
-export function BarChartDesktop({
+function BarChartDesktopInner({
   id,
   config,
   w,
@@ -87,7 +87,10 @@ export function BarChartDesktop({
   const orientation = config?.orientation || 'across'
   const isDown = orientation === 'down'
 
-  const version = useEntriesVersionStore((s) => s.version)
+  // Subscribe only to source widget version plus global fallback (Fix 11, Fix 12)
+  const version = useEntriesVersionStore(
+    (s) => (sourceWidgetId ? (s.versions[sourceWidgetId] ?? 0) : 0) + s.version,
+  )
   const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>([])
   const [loading, setLoading] = useState(false)
 
@@ -155,6 +158,52 @@ export function BarChartDesktop({
   const slotH = plotH / 31
   const barH = Math.max(2, slotH * 0.72)
 
+  interface RenderedBar {
+    day: number
+    x: number
+    y: number
+    width: number
+    height: number
+  }
+
+  // Memoize daily bar geometry and coordinate math (Fix 11)
+  const renderedBars = useMemo<RenderedBar[]>(() => {
+    const bars: RenderedBar[] = []
+    for (let i = 0; i < 31; i++) {
+      const day = i + 1
+      const val = dayValueMap[day]
+      if (val === undefined || val === null || val <= 0) continue
+
+      if (isDown) {
+        // "down" draws horizontal bars with days running top to bottom
+        const barWidth = Math.max(2, (val / maxVal) * plotW)
+        const bx = padLeft
+        const by = padTop + (day - 1) * slotH + (slotH - barH) / 2
+        bars.push({ day, x: bx, y: by, width: barWidth, height: barH })
+      } else {
+        // "across" draws vertical bars with days running left to right
+        const barHeight = Math.max(2, (val / maxVal) * plotH)
+        const bx = padLeft + (day - 1) * slotW + (slotW - barW) / 2
+        const by = padTop + plotH - barHeight
+        bars.push({ day, x: bx, y: by, width: barW, height: barHeight })
+      }
+    }
+    return bars
+  }, [dayValueMap, isDown, maxVal, plotW, plotH, padLeft, padTop, slotH, slotW, barH, barW])
+
+  // Memoize sparse day label positions (Fix 11)
+  const renderedSparseLabels = useMemo(() => {
+    return SPARSE_DAYS.map((d) => {
+      if (isDown) {
+        const y = padTop + (d - 1) * slotH + slotH / 2
+        return { d, x: padLeft - 6, y: y + 3, anchor: 'end' as const }
+      } else {
+        const x = padLeft + (d - 1) * slotW + slotW / 2
+        return { d, x, y: padTop + plotH + 14, anchor: 'middle' as const }
+      }
+    })
+  }, [isDown, padLeft, padTop, slotH, slotW, plotH])
+
   return (
     <div className="relative w-full h-full flex flex-col bg-transparent select-none overflow-hidden p-2">
       {/* Title Header */}
@@ -205,87 +254,35 @@ export function BarChartDesktop({
               </pattern>
             </defs>
 
-            {/* Daily Bars */}
-            {Array.from({ length: 31 }, (_, i) => {
-              const day = i + 1
-              const val = dayValueMap[day]
-              if (val === undefined || val === null || val <= 0) return null
+            {/* Daily Bars (Fix 11: pre-memoized) */}
+            {renderedBars.map((bar) => (
+              <g key={bar.day}>
+                {/* Hatched fill bar */}
+                <rect
+                  x={bar.x}
+                  y={bar.y}
+                  width={bar.width}
+                  height={bar.height}
+                  fill={`url(#${patternId})`}
+                  stroke="#1c2433"
+                  strokeWidth="1.1"
+                  strokeLinecap="round"
+                />
+              </g>
+            ))}
 
-              if (isDown) {
-                // "down" draws horizontal bars with days running top to bottom
-                const barWidth = Math.max(2, (val / maxVal) * plotW)
-                const bx = padLeft
-                const by = padTop + (day - 1) * slotH + (slotH - barH) / 2
-
-                return (
-                  <g key={day}>
-                    {/* Hatched fill bar */}
-                    <rect
-                      x={bx}
-                      y={by}
-                      width={barWidth}
-                      height={barH}
-                      fill={`url(#${patternId})`}
-                      stroke="#1c2433"
-                      strokeWidth="1.1"
-                      strokeLinecap="round"
-                    />
-                  </g>
-                )
-              } else {
-                // "across" draws vertical bars with days running left to right
-                const barHeight = Math.max(2, (val / maxVal) * plotH)
-                const bx = padLeft + (day - 1) * slotW + (slotW - barW) / 2
-                const by = padTop + plotH - barHeight
-
-                return (
-                  <g key={day}>
-                    {/* Hatched fill bar */}
-                    <rect
-                      x={bx}
-                      y={by}
-                      width={barW}
-                      height={barHeight}
-                      fill={`url(#${patternId})`}
-                      stroke="#1c2433"
-                      strokeWidth="1.1"
-                      strokeLinecap="round"
-                    />
-                  </g>
-                )
-              }
-            })}
-
-            {/* Sparse day labels */}
-            {SPARSE_DAYS.map((d) => {
-              if (isDown) {
-                const y = padTop + (d - 1) * slotH + slotH / 2
-                return (
-                  <text
-                    key={d}
-                    x={padLeft - 6}
-                    y={y + 3}
-                    textAnchor="end"
-                    className="font-hand text-[9px] fill-ink/70"
-                  >
-                    {d}
-                  </text>
-                )
-              } else {
-                const x = padLeft + (d - 1) * slotW + slotW / 2
-                return (
-                  <text
-                    key={d}
-                    x={x}
-                    y={padTop + plotH + 14}
-                    textAnchor="middle"
-                    className="font-hand text-[9px] fill-ink/70"
-                  >
-                    {d}
-                  </text>
-                )
-              }
-            })}
+            {/* Sparse day labels (Fix 11: pre-memoized) */}
+            {renderedSparseLabels.map((lbl) => (
+              <text
+                key={lbl.d}
+                x={lbl.x}
+                y={lbl.y}
+                textAnchor={lbl.anchor}
+                className="font-hand text-[9px] fill-ink/70"
+              >
+                {lbl.d}
+              </text>
+            ))}
           </svg>
         )}
       </div>
@@ -315,6 +312,9 @@ export function BarChartDesktop({
     </div>
   )
 }
+
+export const BarChartDesktop = React.memo(BarChartDesktopInner)
+BarChartDesktop.displayName = 'BarChartDesktop'
 
 // ── Mobile Render Component (Task 11 placeholder) ─────────────
 export function BarChartMobile(props: WidgetRenderProps<BarChartConfig>) {

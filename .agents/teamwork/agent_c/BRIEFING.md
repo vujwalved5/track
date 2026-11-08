@@ -1,4 +1,4 @@
-# BRIEFING — 2026-11-08T15:55:00Z
+# BRIEFING — 2026-11-08T16:06:00Z
 
 ## Mission
 Implement Agent C optimizations (Fix 5, 6, 9, 11, 12): PlacementOverlay rect caching & discrete 22px resize, WidgetWrapper React.memo & translate3d, Scatter & Bar chart geometry/wobble useMemo, and partitioned entriesVersion store.
@@ -45,19 +45,22 @@ Implement Agent C optimizations (Fix 5, 6, 9, 11, 12): PlacementOverlay rect cac
 
 ## Task Summary
 - **What to build**:
-  1. Cache bounding rect on pointer enter/down in `PlacementOverlay` (stop calling `getBoundingClientRect()` on pointer move).
-  2. Resize previews in discrete 22px steps only, with NO CSS scale transforms.
-  3. `WidgetWrapper`: Wrap in `React.memo` (custom comparison on `id`, `x`, `y`, `w`, `h`, arrange flag, `config`). Remove `@dnd-kit/utilities`, use inline `translate3d`.
-  4. Scatter & Bar charts: Move wobble and geometry into `useMemo`, ensuring deterministic jitter and identical drawings.
-  5. Partition entriesVersion counter by widget ID in `store/entriesVersion.ts` and update `lib/offlineSync.ts` / subscribers.
+  1. Cache bounding rect on pointer enter/down in `PlacementOverlay` (stop calling `getBoundingClientRect()` on pointer move). [DONE]
+  2. Resize previews in discrete 22px steps only, with NO CSS scale transforms. [DONE]
+  3. `WidgetWrapper`: Wrap in `React.memo` (custom comparison on `id`, `x`, `y`, `w`, `h`, arrange flag, `config`). Remove `@dnd-kit/utilities`, use inline `translate3d`. [DONE]
+  4. Scatter & Bar charts: Move wobble and geometry into `useMemo`, ensuring deterministic jitter and identical drawings. [DONE]
+  5. Partition entriesVersion counter by widget ID in `store/entriesVersion.ts` and update `lib/offlineSync.ts` / subscribers. [DONE]
 - **Success criteria**:
-  - `npm run build` succeeds cleanly with 0 errors.
-  - One clean git commit on `optimise`.
-  - Comprehensive handoff.md in `.agents/teamwork/agent_c/`.
-  - Notification sent to orchestrator.
+  - `npm run build` succeeds cleanly with 0 errors. [PASS]
+  - One clean git commit on `optimise`. [IN PROGRESS]
+  - Comprehensive handoff.md in `.agents/teamwork/agent_c/`. [IN PROGRESS]
+  - Notification sent to orchestrator. [PENDING]
 
 ## Key Decisions Made
-- [TBD]
+- `PlacementOverlay`: Cached bounding rect via `rectRef` on pointerenter and pointerdown, stopping per-frame `getBoundingClientRect()` calls during cursor movement.
+- `WidgetWrapper`: Removed `@dnd-kit/utilities` phantom import, converted transform style to inline `translate3d(${transform.x}px, ${transform.y}px, 0)`, and wrapped in `React.memo` with a custom comparison function checking `id`, `x`, `y`, `w`, `h`, `isArrangeMode`, and `config`.
+- `ScatterPlotWidget` & `BarChartWidget`: Wrapped dot/bar coordinate math, `wobbleCircle`, and sparse labels in `useMemo`. Wrapped desktop renderers in `React.memo`. Subscribed specifically to configured source widget IDs.
+- `store/entriesVersion.ts` & `lib/offlineSync.ts`: Partitioned version counter by `widgetId` in `versions: Record<string, number>`, allowing targeted bumps when entries change.
 
 ## Artifact Index
 - `PLAN_C.md` — Project root plan
@@ -67,14 +70,20 @@ Implement Agent C optimizations (Fix 5, 6, 9, 11, 12): PlacementOverlay rect cac
 - `.agents/teamwork/agent_c/handoff.md` — Final handoff report
 
 ## Change Tracker
-- **Files modified**: None yet
-- **Build status**: Untested
-- **Pending issues**: None
+- **Files modified**:
+  - `components/widgets/PlacementOverlay.tsx`: Cached bounding client rect on enter/down; removed getBoundingClientRect on pointer move.
+  - `components/widgets/WidgetWrapper.tsx`: Removed @dnd-kit/utilities import, inline translate3d, wrapped in React.memo with custom comparison.
+  - `components/widgets/scatter-plot/ScatterPlotWidget.tsx`: Memoized wobbleCircle and dot coordinate geometry; subscribed to source widget IDs; wrapped in React.memo.
+  - `components/widgets/bar-chart/BarChartWidget.tsx`: Memoized bar geometry and sparse labels; subscribed to sourceWidgetId; wrapped in React.memo.
+  - `store/entriesVersion.ts`: Partitioned entriesVersionStore by widget ID.
+  - `lib/offlineSync.ts`: Recorded mutated widget ID on local cache updates and queue drains.
+- **Build status**: `npm run build` passed with exit code 0.
+- **Pending issues**: None.
 
 ## Quality Status
-- **Build/test result**: Untested
-- **Lint status**: 0
-- **Tests added/modified**: 0
+- **Build/test result**: Pass (0 errors).
+- **Lint status**: 0 violations.
+- **Tests added/modified**: Verified through TypeScript compiler and Next.js production build.
 
 ## Loaded Skills
 - None

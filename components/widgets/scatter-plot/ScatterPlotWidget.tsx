@@ -78,7 +78,7 @@ export function ScatterPlotIcon({ className = 'w-5 h-5' }: { className?: string 
 }
 
 // ── Desktop / Main Component ──────────────────────────────────
-export function ScatterPlotDesktop({
+function ScatterPlotDesktopInner({
   id,
   config,
   w,
@@ -89,7 +89,12 @@ export function ScatterPlotDesktop({
   const source2Id = config?.sourceWidgetId2 || config?.ySourceWidgetId || ''
   const isDown = config?.orientation === 'down'
 
-  const version = useEntriesVersionStore((s) => s.version)
+  // Subscribe only to source widgets' versions plus global fallback (Fix 11, Fix 12)
+  const version = useEntriesVersionStore((s) => {
+    const v1 = source1Id ? (s.versions[source1Id] ?? 0) : 0
+    const v2 = source2Id ? (s.versions[source2Id] ?? 0) : 0
+    return v1 + v2 + s.version
+  })
   const [entries1, setEntries1] = useState<Array<{ day: number; value: unknown }>>([])
   const [entries2, setEntries2] = useState<Array<{ day: number; value: unknown }>>([])
   const [loading, setLoading] = useState(false)
@@ -174,6 +179,24 @@ export function ScatterPlotDesktop({
   const maxY = yValues.length > 0 ? Math.max(...yValues) : 1
   const yRange = maxY === minY ? 1 : maxY - minY
 
+  // Memoize trigonometric jitter and dot coordinates (Fix 11)
+  const renderedDots = useMemo(() => {
+    return matchedPoints.map((pt, i) => {
+      const xFrac = (pt.x - minX) / xRange
+      const yFrac = (pt.y - minY) / yRange
+
+      const cx = padLeft + xFrac * plotW
+      const cy = padTop + plotH - yFrac * plotH
+
+      const dotPath = wobbleCircle(cx, cy, 2.8, seed + i * 7)
+
+      return {
+        day: pt.day,
+        d: dotPath,
+      }
+    })
+  }, [matchedPoints, minX, xRange, minY, yRange, padLeft, padTop, plotW, plotH, seed])
+
   return (
     <div className="relative w-full h-full flex flex-col bg-transparent select-none overflow-hidden p-2">
       {/* Title Header */}
@@ -209,27 +232,17 @@ export function ScatterPlotDesktop({
             role="img"
             aria-label={`Scatter plot of ${title}, ${matchedPoints.length} matched days`}
           >
-            {/* Hand-drawn scatter dots */}
-            {matchedPoints.map((pt, i) => {
-              const xFrac = (pt.x - minX) / xRange
-              const yFrac = (pt.y - minY) / yRange
-
-              const cx = padLeft + xFrac * plotW
-              const cy = padTop + plotH - yFrac * plotH
-
-              const dotPath = wobbleCircle(cx, cy, 2.8, seed + i * 7)
-
-              return (
-                <path
-                  key={pt.day}
-                  d={dotPath}
-                  fill="#1c2433"
-                  stroke="#1c2433"
-                  strokeWidth="0.5"
-                  className="transition-all"
-                />
-              )
-            })}
+            {/* Hand-drawn scatter dots (Fix 11: pre-memoized) */}
+            {renderedDots.map((dot) => (
+              <path
+                key={dot.day}
+                d={dot.d}
+                fill="#1c2433"
+                stroke="#1c2433"
+                strokeWidth="0.5"
+                className="transition-all"
+              />
+            ))}
           </svg>
         )}
       </div>
@@ -259,6 +272,9 @@ export function ScatterPlotDesktop({
     </div>
   )
 }
+
+export const ScatterPlotDesktop = React.memo(ScatterPlotDesktopInner)
+ScatterPlotDesktop.displayName = 'ScatterPlotDesktop'
 
 // ── Mobile Render Component (Task 11 placeholder) ─────────────
 export function ScatterPlotMobile(props: WidgetRenderProps<ScatterPlotConfig>) {

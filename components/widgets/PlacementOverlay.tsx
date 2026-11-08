@@ -14,7 +14,7 @@
  * - Strictly L6 palette
  */
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useRef } from 'react'
 import type { WidgetData, WidgetDefinition, PageSide, WidgetRect } from './types'
 import {
   GRID_PX,
@@ -52,6 +52,9 @@ export function PlacementOverlay({
   const defaultSize = meta?.defaultSize ?? pickedWidgetDef.defaultSize
   const minSize = meta?.minSize ?? pickedWidgetDef.minSize
 
+  // Cached bounding rect to avoid layout thrashing on pointer move (Fix 6)
+  const rectRef = useRef<DOMRect | null>(null)
+
   const otherRects: WidgetRect[] = useMemo(
     () =>
       existingWidgets.map((item) => ({
@@ -77,9 +80,17 @@ export function PlacementOverlay({
     )
   }, [cursor, defaultSize, minSize, otherRects])
 
+  const handlePointerEnter = (e: React.PointerEvent<HTMLDivElement>) => {
+    rectRef.current = e.currentTarget.getBoundingClientRect()
+  }
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    rectRef.current = e.currentTarget.getBoundingClientRect()
+  }
+
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     onDismissNoRoom()
-    const rect = e.currentTarget.getBoundingClientRect()
+    const rect = rectRef.current ?? (rectRef.current = e.currentTarget.getBoundingClientRect())
     const offsetX = e.clientX - rect.left
     const offsetY = e.clientY - rect.top
 
@@ -94,7 +105,7 @@ export function PlacementOverlay({
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation()
     onDismissNoRoom()
-    const rect = e.currentTarget.getBoundingClientRect()
+    const rect = rectRef.current ?? (rectRef.current = e.currentTarget.getBoundingClientRect())
     const offsetX = e.clientX - rect.left
     const offsetY = e.clientY - rect.top
 
@@ -120,6 +131,8 @@ export function PlacementOverlay({
 
   return (
     <div
+      onPointerEnter={handlePointerEnter}
+      onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onClick={handleClick}
       className="absolute inset-0 z-30 cursor-crosshair select-none focus:outline-none"

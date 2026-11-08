@@ -17,7 +17,6 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { useDraggable } from '@dnd-kit/core'
-import { CSS } from '@dnd-kit/utilities'
 import type { WidgetData, WidgetRect } from './types'
 import {
   GRID_PX,
@@ -46,7 +45,7 @@ interface WidgetWrapperProps {
   onOpenConfig: (widgetId: string) => void
 }
 
-export function WidgetWrapper({
+function WidgetWrapperInner({
   widget,
   year,
   month,
@@ -276,10 +275,10 @@ export function WidgetWrapper({
   const widthPx = liveW * GRID_PX
   const heightPx = liveH * GRID_PX
 
-  // DnD transform style
+  // DnD transform style (Fix 12: inline translate3d without @dnd-kit/utilities)
   const dndStyle = transform
     ? {
-        transform: CSS.Translate.toString(transform),
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
         zIndex: 50,
       }
     : undefined
@@ -509,3 +508,35 @@ export function WidgetWrapper({
     </div>
   )
 }
+
+function areWidgetWrapperPropsEqual(
+  prevProps: WidgetWrapperProps,
+  nextProps: WidgetWrapperProps,
+): boolean {
+  if (prevProps.widget.id !== nextProps.widget.id) return false
+  if (prevProps.widget.x !== nextProps.widget.x) return false
+  if (prevProps.widget.y !== nextProps.widget.y) return false
+  if (prevProps.widget.w !== nextProps.widget.w) return false
+  if (prevProps.widget.h !== nextProps.widget.h) return false
+  if (prevProps.isArrangeMode !== nextProps.isArrangeMode) return false
+  if (prevProps.year !== nextProps.year || prevProps.month !== nextProps.month) return false
+
+  // Compare config (Fix 6, Fix 9)
+  const prevConfig = prevProps.widget.config
+  const nextConfig = nextProps.widget.config
+  if (prevConfig !== nextConfig) {
+    if (!prevConfig || !nextConfig) return false
+    const prevKeys = Object.keys(prevConfig)
+    const nextKeys = Object.keys(nextConfig)
+    if (prevKeys.length !== nextKeys.length) return false
+    for (const key of prevKeys) {
+      if (prevConfig[key] !== nextConfig[key]) return false
+    }
+  }
+
+  return true
+}
+
+export const WidgetWrapper = React.memo(WidgetWrapperInner, areWidgetWrapperPropsEqual)
+WidgetWrapper.displayName = 'WidgetWrapper'
+
