@@ -378,16 +378,9 @@ export function OpenBook({
   const renderFoldedCorner = (onClickCorner: () => void) => {
     if (!isSetupDone) return null
     return (
-      <div
+      <button
+        type="button"
         onClick={onClickCorner}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            onClickCorner()
-          }
-        }}
         aria-label="Turn forward to next month"
         title="Turn forward to next month"
         className="absolute bottom-0 right-0 w-9 h-9 cursor-pointer z-20 group select-none"
@@ -407,7 +400,7 @@ export function OpenBook({
         >
           <div className="w-full h-full bg-kraft/20" />
         </div>
-      </div>
+      </button>
     )
   }
 

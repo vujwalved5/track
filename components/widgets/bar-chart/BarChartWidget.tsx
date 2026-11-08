@@ -160,21 +160,22 @@ export function BarChartDesktop({
       <div className="flex-1 w-full relative">
         {!sourceWidgetId ? (
           <div className="w-full h-full flex items-center justify-center text-center p-3">
-            <p className="font-hand text-xs text-ink/45 italic leading-snug">
+            <p className="font-hand text-xs text-ink/70 italic leading-snug">
               Pick a source in settings
             </p>
           </div>
         ) : series.length === 0 ? (
           <div className="w-full h-full flex items-center justify-center text-center p-3">
-            <p className="font-hand text-xs text-ink/40 italic">
-              {loading ? 'Reading...' : 'No data yet'}
+            <p className="font-hand text-xs text-ink/70 italic">
+              {loading ? 'turning the page...' : 'No data yet'}
             </p>
           </div>
         ) : (
           <svg
             viewBox={`0 0 ${widthPx} ${heightPx - 24}`}
             className="w-full h-full overflow-visible"
-            aria-hidden="true"
+            role="img"
+            aria-label={`Bar chart of ${title}, ${series.length} entries, max value ${maxVal}`}
           >
             <defs>
               {/* Pen-stroke diagonal hatching pattern */}
@@ -232,7 +233,7 @@ export function BarChartDesktop({
                   x={x}
                   y={padTop + plotH + 14}
                   textAnchor="middle"
-                  className="font-hand text-[9px] fill-ink/50"
+                  className="font-hand text-[9px] fill-ink/70"
                 >
                   {d}
                 </text>

@@ -173,7 +173,7 @@ export function ScatterPlotDesktop({
           {title}
         </span>
         {matchedPoints.length > 0 && (
-          <span className="font-hand text-[9px] text-ink/40">
+          <span className="font-hand text-[9px] text-ink/70">
             {matchedPoints.length} {matchedPoints.length === 1 ? 'day' : 'days'}
           </span>
         )}
@@ -183,21 +183,22 @@ export function ScatterPlotDesktop({
       <div className="flex-1 w-full relative">
         {!source1Id || !source2Id ? (
           <div className="w-full h-full flex items-center justify-center text-center p-3">
-            <p className="font-hand text-xs text-ink/45 italic leading-snug">
+            <p className="font-hand text-xs text-ink/70 italic leading-snug">
               Pick two sources in settings
             </p>
           </div>
         ) : matchedPoints.length === 0 ? (
           <div className="w-full h-full flex items-center justify-center text-center p-3">
-            <p className="font-hand text-xs text-ink/40 italic">
-              {loading ? 'Reading...' : 'No matching days yet'}
+            <p className="font-hand text-xs text-ink/70 italic">
+              {loading ? 'turning the page...' : 'No matching days yet'}
             </p>
           </div>
         ) : (
           <svg
             viewBox={`0 0 ${widthPx} ${heightPx - 24}`}
             className="w-full h-full overflow-visible"
-            aria-hidden="true"
+            role="img"
+            aria-label={`Scatter plot of ${title}, ${matchedPoints.length} matched days`}
           >
             {/* Hand-drawn scatter dots */}
             {matchedPoints.map((pt, i) => {

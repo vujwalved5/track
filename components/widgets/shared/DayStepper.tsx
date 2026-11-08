@@ -74,7 +74,7 @@ export function DayStepper({
         className={`w-4 h-4 flex items-center justify-center rounded-xs transition-opacity ${
           canGoPrev
             ? 'text-ink hover:text-redpen cursor-pointer'
-            : 'text-ink/30 cursor-not-allowed'
+            : 'text-ink/70 opacity-40 cursor-not-allowed'
         }`}
       >
         <svg
@@ -107,7 +107,7 @@ export function DayStepper({
         className={`w-4 h-4 flex items-center justify-center rounded-xs transition-opacity ${
           canGoNext
             ? 'text-ink hover:text-redpen cursor-pointer'
-            : 'text-ink/30 cursor-not-allowed'
+            : 'text-ink/70 opacity-40 cursor-not-allowed'
         }`}
       >
         <svg

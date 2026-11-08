@@ -321,7 +321,7 @@ export function PollDesktop({
                   fill="none"
                   stroke="currentColor"
                   aria-hidden="true"
-                  className="shrink-0 text-ink/60"
+                  className="shrink-0 text-ink/70"
                 >
                   <path
                     d="M 5 1.5 C 7.5 1.5, 8.5 3, 8.5 5 C 8.5 7, 7 8.5, 5 8.5 C 3 8.5, 1.5 7, 1.5 5 C 1.5 3, 2.5 1.5, 5 1.5"
@@ -341,7 +341,7 @@ export function PollDesktop({
 
       {/* Tally results across month */}
       <div className="flex-1 flex flex-col justify-end gap-0.5 pt-1 border-t border-ink/15 overflow-hidden">
-        <span className="font-hand text-[9px] text-ink/50 uppercase tracking-wider">
+        <span className="font-hand text-[9px] text-ink/70 uppercase tracking-wider">
           Month totals
         </span>
         {options.map((opt) => {
@@ -355,10 +355,10 @@ export function PollDesktop({
                 {count > 0 ? (
                   <TallyMarks count={count} />
                 ) : (
-                  <span className="font-hand text-[10px] text-ink/25 italic">—</span>
+                  <span className="font-hand text-[10px] text-ink/70 opacity-40 italic">—</span>
                 )}
                 {count > 0 && (
-                  <span className="font-hand text-[9px] text-ink/45 ml-0.5">
+                  <span className="font-hand text-[9px] text-ink/70 ml-0.5">
                     {count}
                   </span>
                 )}

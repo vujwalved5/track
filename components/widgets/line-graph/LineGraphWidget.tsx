@@ -172,7 +172,7 @@ export function LineGraphDesktop({
           {title}
         </span>
         {vertical && (
-          <span className="font-hand text-[9px] text-ink/40 italic">
+          <span className="font-hand text-[9px] text-ink/70 italic">
             vertical
           </span>
         )}
@@ -182,21 +182,24 @@ export function LineGraphDesktop({
       <div className="flex-1 w-full relative">
         {!sourceWidgetId ? (
           <div className="w-full h-full flex items-center justify-center text-center p-3">
-            <p className="font-hand text-xs text-ink/45 italic leading-snug">
+            <p className="font-hand text-xs text-ink/70 italic leading-snug">
               Pick a source in settings
             </p>
           </div>
         ) : series.length === 0 ? (
           <div className="w-full h-full flex items-center justify-center text-center p-3">
-            <p className="font-hand text-xs text-ink/40 italic">
-              {loading ? 'Reading...' : 'No data yet'}
+            <p className="font-hand text-xs text-ink/70 italic">
+              {loading ? 'turning the page...' : 'No data yet'}
             </p>
           </div>
         ) : (
           <svg
             viewBox={`0 0 ${widthPx} ${heightPx - 24}`}
             className="w-full h-full overflow-visible"
-            aria-hidden="true"
+            role="img"
+            aria-label={`Line graph of ${title}, ${series.length} entries${
+              series.length > 0 ? `, latest ${series[series.length - 1].value}` : ''
+            }`}
           >
             {/* Connecting line */}
             <path
@@ -231,7 +234,7 @@ export function LineGraphDesktop({
                     x={padLeft - 6}
                     y={y + 3}
                     textAnchor="end"
-                    className="font-hand text-[9px] fill-ink/50"
+                    className="font-hand text-[9px] fill-ink/70"
                   >
                     {d}
                   </text>
@@ -244,7 +247,7 @@ export function LineGraphDesktop({
                     x={x}
                     y={padTop + plotH + 14}
                     textAnchor="middle"
-                    className="font-hand text-[9px] fill-ink/50"
+                    className="font-hand text-[9px] fill-ink/70"
                   >
                     {d}
                   </text>

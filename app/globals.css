@@ -7,6 +7,13 @@
   perspective: 2400px;
 }
 
+/* ── Focus style: inner ink outline + highlighter yellow ring (Correction 2) ── */
+:focus-visible {
+  outline: 2px solid #1c2433 !important;
+  outline-offset: 0px !important;
+  box-shadow: 0 0 0 2px #1c2433, 0 0 0 4px #ffd84a !important;
+}
+
 .preserve-3d {
   transform-style: preserve-3d;
 }
@@ -116,6 +123,47 @@
 
 .animate-leaf-shadow-backward {
   animation: leafShadowBackward 600ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ── Widget-Catalogue Drawer Slide (Task 13 — reduced motion) ── */
+.drawer-slide {
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── prefers-reduced-motion: disable all book animations ── */
+@media (prefers-reduced-motion: reduce) {
+  /* Page-flip keyframe animations → instant */
+  .animate-page-flip-forward,
+  .animate-page-flip-backward,
+  .animate-shadow-under-left,
+  .animate-shadow-under-right,
+  .animate-leaf-shadow-forward,
+  .animate-leaf-shadow-backward {
+    animation: none;
+    opacity: 1;
+  }
+
+  /* Month setup sheet slide → instant */
+  .animate-sheet-slide-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Drawer slide transition → instant */
+  .drawer-slide {
+    transition: none;
+  }
+
+  /* Any residual CSS transition on interactive elements */
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ── Month Setup Loose Sheet Animation (Phase 3 / Task 6) ── */

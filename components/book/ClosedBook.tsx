@@ -187,7 +187,7 @@ export function ClosedBook() {
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="bg-transparent border-0 border-b-2 border-dotted border-ink/60 font-hand text-ink text-sm sm:text-base px-1 py-0.5 focus:border-ink focus:outline-none placeholder:text-ink/35"
+                      className="bg-transparent border-0 border-b-2 border-dotted border-ink/60 font-hand text-ink text-sm sm:text-base px-1 py-0.5 focus:border-ink focus:outline-none placeholder:text-ink/70"
                     />
                   </div>
 
@@ -206,7 +206,7 @@ export function ClosedBook() {
                       autoComplete="current-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="bg-transparent border-0 border-b-2 border-dotted border-ink/60 font-hand text-ink text-sm sm:text-base px-1 py-0.5 focus:border-ink focus:outline-none placeholder:text-ink/35"
+                      className="bg-transparent border-0 border-b-2 border-dotted border-ink/60 font-hand text-ink text-sm sm:text-base px-1 py-0.5 focus:border-ink focus:outline-none placeholder:text-ink/70"
                     />
                   </div>
 
@@ -225,7 +225,7 @@ export function ClosedBook() {
                     disabled={isSubmitting || isOpening}
                     className="mt-1 bg-gold hover:bg-kraft text-desk font-cover font-bold text-[11px] sm:text-xs tracking-[0.2em] uppercase py-2 sm:py-2.5 px-4 rounded-sm shadow-sm active:translate-y-px transition-colors duration-150 disabled:opacity-60 cursor-pointer text-center"
                   >
-                    OPEN THE BOOK
+                    {isSubmitting || isOpening ? 'turning the page...' : 'OPEN THE BOOK'}
                   </button>
                 </form>
               </div>

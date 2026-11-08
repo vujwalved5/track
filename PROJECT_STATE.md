@@ -215,6 +215,38 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - **Offline Non-Entry Safeguards (Correction 3)**:
   - Moving, resizing, and removing widgets in `PageWidgetLayer.tsx`, configuring in `WidgetConfigCard.tsx`, placing from drawer in `OpenBook.tsx`, and Month Setup submission in `MonthSetupWizard.tsx` check `navigator.onLine`. When offline, they display handwritten red-pen text (`"needs a connection"`) and change nothing.
 
+### Phase 6 / Task 13 (Batch A) — Quality Pass: Palette, Symbols, Loading States, Reduced Motion, Contrast
+- **Palette violations fixed**: Replaced `#fbf6e9` in `StickyNoteWidget.tsx` with `bg-paper` (`#f4eddc`). Confirmed zero black/white/gray Tailwind utility classes and zero off-palette colors in application styling.
+- **Symbols audit**: Replaced `✕` (U+2715) character in `WidgetConfigCard.tsx` with a hand-drawn SVG icon. Confirmed zero emoji or non-hand-drawn symbol characters.
+- **Loading states**: Replaced bare "Reading...", "Saving...", and "Opening..." with faint handwritten "turning the page...". Created `app/book/[year]/[month]/loading.tsx` rendering paper spread background with handwritten "turning the page...". Zero spinners, `animate-spin`, or `animate-pulse`.
+- **prefers-reduced-motion**: Added global `@media (prefers-reduced-motion: reduce)` in `app/globals.css` disabling all 3D page flip keyframes, leaf shadows, sheet slide-in, and drawer animations. Verified JS timer gating in `ClosedBook.tsx` (cover swing) and `OpenBook.tsx` (page turn fade). Added `.drawer-slide` class in `WidgetDrawer.tsx`.
+- **Contrast**: Full relative luminance calculation of every text/background pair. Raised all readable text below 4.5:1 (ink/60, ink/50, ink/40, ink/35) to minimum `text-ink/70` (4.9:1) across widgets, month setup, book folios, and mobile book. Fixed drawer tabs to satisfy contrast (desk on kraft = 4.63:1, paper on desk = 13.6:1). Tested and verified via Next.js production build (`npm run build`).
+
+### Phase 6 / Task 13 (Batch B) — Quality Pass: Keyboard, Screen Readers, Measured Scrollbars
+- **Focus Styles**: Global `:focus-visible` rule added to `app/globals.css` with 2px ink outline (`#1c2433`) + 2px highlighter yellow ring (`#ffd84a`), visible on paper, desk, and kraft. Removed competing `focus:outline-none` overrides from buttons in `HabitTrackerWidget.tsx`, `MobileBook.tsx`, `WidgetDrawer.tsx`, and `ChecklistWidget.tsx`.
+- **Keyboard Navigation & Real Interactive Elements**:
+  - Folded dog-ear corner in `OpenBook.tsx` converted from `role="button" div` to real `<button>`.
+  - Option cards in `MonthSetupWizard.tsx` (Step 1 "Same as last" / "Fresh", Step 6 "Journal" / "Empty") converted to `<button>` with proper ARIA radio states.
+  - Step 5 tracker rows (Weight, Sleep Score, Mood Rating) in `MonthSetupWizard.tsx` converted from clickable divs to accessible `<button type="button" role="checkbox">` elements.
+  - `PlacementOverlay.tsx` received `onKeyDown` (Enter and Space) handler for keyboard widget placement.
+  - Number Log row clicking in `NumberLogWidget.tsx` converted from clickable div rows to real `<button type="button">` with dynamic aria-labels (`Day X: value unit` / `unrecorded`).
+  - Memorable Moments received keyboard highlight toggle shortcut (Alt+H) and dedicated highlight toggle buttons (with `>=44px` touch targets on mobile) alongside the cross-out buttons.
+  - Hover-only cross-out and highlight controls configured with `group-focus-within:opacity-...` so they show on keyboard focus as well as hover.
+  - Habit tracker daily cells and mood faces confirmed as real `<button>` elements.
+  - **Known Gap**: Drag and resize in Arrange mode by keyboard is a KNOWN GAP (listed, not built).
+- **Screen Reader Support**:
+  - All 5 chart widgets (`BarChartWidget.tsx`, `LineGraphWidget.tsx`, `DonutWidget.tsx`, `GoalBarWidget.tsx`, `ScatterPlotWidget.tsx`) updated: removed `aria-hidden`, added `role="img"` and dynamic data-based `aria-label` summaries (e.g. `"Line graph of Sleep Score, 12 entries, latest 7"`).
+  - Codebase audit: 100% of buttons without visible text have an explicit `aria-label` or `aria-labelledby`.
+  - Every `<input>` throughout the app audit: day-based inputs name their day and state (e.g. `"Day 3: memorable moment (highlighted)"`, `"Day 3: Sleep Score"`); wizard inputs have clear labels (`"Habit 1 name"`, `"Custom number 1 name"`).
+  - Confirmed `<html lang="en">` and metadata title `"Memorable Moments"` in `app/layout.tsx`.
+- **Measured Scrollbars (No inner scrollbars)**:
+  - Automated measurement with headless browser CDP at 1440x900 and 390x844:
+    - Login Cover (`/`): 1440x900 (scroll 1440x900, 0 overflow); 390x844 (scroll 390x844, 0 overflow).
+    - Month Setup Wizard: 1440x900 (scroll 1440x900, 0 overflow); sheet card client 518x588 vs scroll 518x588 (0 overflow across all 7 steps); 390x844 (scroll 390x844, 0 overflow).
+    - Open Book Spread: 1440x900 (scroll 1440x900, 0 overflow); 390x844 (scroll 390x844, 0 overflow).
+    - Drawer Open (1440x900): page scroll 1440x900 (0 overflow); card tray horizontal scroll 800px > 648px (allowed drawer tray horizontal scrolling works via touch & keyboard).
+    - Zero widget content overflow beyond its bounding box.
+
 ## Next
 - Task 11 (Batch B) — Mobile Arrange mode (long-press on top ribbon, move up/down), WidgetDrawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets' mobile render.
 

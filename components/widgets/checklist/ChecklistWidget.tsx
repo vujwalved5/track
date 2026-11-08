@@ -82,7 +82,7 @@ function HandDrawnCheckbox({
         onClick()
       }}
       aria-label={ticked ? 'Mark incomplete' : 'Mark complete'}
-      className="w-4 h-4 shrink-0 flex items-center justify-center cursor-pointer focus:outline-none"
+      className="w-4 h-4 shrink-0 flex items-center justify-center cursor-pointer"
     >
       <svg
         viewBox="0 0 16 16"
@@ -223,7 +223,7 @@ export function ChecklistDesktop({
           {title}
         </span>
         {items.length > 0 && (
-          <span className="font-hand text-[9px] text-ink/50">
+          <span className="font-hand text-[9px] text-ink/70">
             {items.filter((it) => it.ticked).length}/{items.length}
           </span>
         )}
@@ -264,9 +264,9 @@ export function ChecklistDesktop({
                 aria-label={`Checklist item ${idx + 1}`}
                 className={`w-full bg-transparent font-hand text-[11px] text-ink focus:outline-none ${
                   item.crossed
-                    ? 'opacity-40 line-through text-ink/50'
+                    ? 'opacity-40 line-through text-ink/70'
                     : item.ticked
-                      ? 'text-ink/60'
+                      ? 'text-ink/70'
                       : 'text-ink'
                 }`}
               />
@@ -300,7 +300,7 @@ export function ChecklistDesktop({
               className={`shrink-0 w-4 h-4 flex items-center justify-center transition-opacity cursor-pointer ${
                 item.crossed
                   ? 'opacity-80 text-redpen'
-                  : 'opacity-0 group-hover:opacity-70 group-focus-within:opacity-70 md:opacity-0 active:opacity-100 text-ink/40 hover:text-redpen'
+                  : 'opacity-0 group-hover:opacity-70 group-focus-within:opacity-70 md:opacity-0 active:opacity-100 text-ink/70 hover:text-redpen'
               }`}
             >
               <svg
@@ -322,7 +322,7 @@ export function ChecklistDesktop({
 
         {/* Blank line at bottom to add a new item (Correction 4) */}
         <div className="flex items-center gap-1.5 h-[22px] px-1 border-b border-dotted border-ink/20 mt-0.5">
-          <span className="w-4 text-center font-hand text-xs text-ink/35 pointer-events-none">
+          <span className="w-4 text-center font-hand text-xs text-ink/70 pointer-events-none">
             +
           </span>
           <input
@@ -335,7 +335,7 @@ export function ChecklistDesktop({
             onBlur={handleAddNewItem}
             placeholder="Write an item..."
             aria-label="Add new checklist item"
-            className="flex-1 bg-transparent font-hand text-[11px] text-ink placeholder:text-ink/30 focus:outline-none"
+            className="flex-1 bg-transparent font-hand text-[11px] text-ink placeholder:text-ink/70 focus:outline-none"
           />
         </div>
       </div>

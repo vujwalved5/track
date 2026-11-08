@@ -93,6 +93,31 @@ export function PlacementOverlay({
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      const targetX = hoverGrid?.x ?? 0
+      const targetY = hoverGrid?.y ?? 0
+      const candidate: WidgetRect = { x: targetX, y: targetY, w, h }
+      const otherRects: WidgetRect[] = existingWidgets.map((item) => ({
+        x: item.x,
+        y: item.y,
+        w: item.w,
+        h: item.h,
+      }))
+      const valid = isValidPlacement(
+        candidate,
+        pickedWidgetDef.minSize,
+        otherRects,
+        PAGE_COLS,
+        PAGE_ROWS,
+      )
+      if (valid) {
+        onPlace(page, targetX, targetY)
+      }
+    }
+  }
+
   // Calculate validity of current hover candidate
   let isValid = false
   if (hoverGrid) {
@@ -122,6 +147,7 @@ export function PlacementOverlay({
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
       className="absolute inset-0 z-30 cursor-crosshair select-none"
       style={{
         // Visual cue that paper is awaiting placement

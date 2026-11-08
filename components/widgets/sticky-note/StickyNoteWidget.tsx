@@ -73,7 +73,7 @@ export function StickyNoteDesktop({
   const noteText = config?.text?.trim() ? config.text : 'Click the pen icon in arrange mode to write a note...'
 
   return (
-    <div className="relative w-full h-full p-3 flex flex-col justify-between bg-[#fbf6e9] border border-ink/15 rounded shadow-[1px_2px_6px_rgba(28,36,51,0.08)] select-none overflow-hidden">
+    <div className="relative w-full h-full p-3 flex flex-col justify-between bg-paper border border-ink/15 rounded shadow-[1px_2px_6px_rgba(28,36,51,0.08)] select-none overflow-hidden">
       {/* Washi tape strip at top edge */}
       <div
         className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-16 h-3.5 bg-kraft/35 border-t border-b border-ink/10 rotate-[-1deg] pointer-events-none"
@@ -101,7 +101,7 @@ export function StickyNoteMobile({
   config,
 }: WidgetRenderProps<StickyNoteConfig>) {
   return (
-    <div className="w-full p-3 bg-[#fbf6e9] border border-ink/20 rounded shadow-sm select-none">
+    <div className="w-full p-3 bg-paper border border-ink/20 rounded shadow-sm select-none">
       <p className="font-hand text-xs text-ink leading-normal break-words whitespace-pre-wrap">
         {config?.text || 'Sticky note'}
       </p>

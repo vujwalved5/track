@@ -26,29 +26,17 @@ const PAPER_OPTIONS: Array<{ type: PaperStyle; label: string }> = [
   { type: 'blank', label: 'Blank' },
 ]
 
-// Hand-drawn SVG tick box component (L13, correction 4: SVG not switches)
-function HandDrawnCheckbox({
+function HandDrawnCheckboxVisual({
   checked,
-  onChange,
   color = 'ink',
-  ariaLabel,
 }: {
   checked: boolean
-  onChange: () => void
   color?: 'ink' | 'redpen'
-  ariaLabel?: string
 }) {
   const strokeColor = color === 'redpen' ? '#b3261e' : '#1c2433'
 
   return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={checked}
-      aria-label={ariaLabel}
-      onClick={onChange}
-      className="relative w-5 h-5 flex items-center justify-center cursor-pointer select-none focus:outline-none"
-    >
+    <span className="relative w-5 h-5 flex items-center justify-center select-none pointer-events-none" aria-hidden="true">
       <svg
         viewBox="0 0 20 20"
         className="w-5 h-5 overflow-visible"
@@ -75,6 +63,32 @@ function HandDrawnCheckbox({
           />
         )}
       </svg>
+    </span>
+  )
+}
+
+// Hand-drawn SVG tick box component (L13, correction 4: SVG not switches)
+function HandDrawnCheckbox({
+  checked,
+  onChange,
+  color = 'ink',
+  ariaLabel,
+}: {
+  checked: boolean
+  onChange: () => void
+  color?: 'ink' | 'redpen'
+  ariaLabel?: string
+}) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      onClick={onChange}
+      className="relative w-5 h-5 flex items-center justify-center cursor-pointer select-none"
+    >
+      <HandDrawnCheckboxVisual checked={checked} color={color} />
     </button>
   )
 }
@@ -352,6 +366,8 @@ export function MonthSetupWizard({
     >
       {/* Loose card tucked into the book: paper colour, slight tilt, handwritten Kalam text */}
       <div
+        role="region"
+        aria-label="Month Setup Wizard"
         className="w-[520px] h-[590px] bg-paper text-ink rounded-[2px] p-7 flex flex-col justify-between shadow-[0_16px_40px_rgba(28,36,51,0.5),0_2px_8px_rgba(28,36,51,0.3)] border border-kraft/50 -rotate-1 animate-sheet-slide-in overflow-hidden select-none"
         style={{
           backgroundImage:
@@ -364,7 +380,7 @@ export function MonthSetupWizard({
           <span className="font-hand text-xs tracking-widest uppercase text-ink/70">
             {monthName} {year} — Setup Sheet
           </span>
-          <span className="font-hand text-xs tracking-widest text-ink/60">
+          <span className="font-hand text-xs tracking-widest text-ink/70">
             Sheet {step} of 7
           </span>
         </div>
@@ -383,20 +399,15 @@ export function MonthSetupWizard({
 
             <div className="space-y-4 max-w-sm mx-auto w-full">
               {/* Option A: Use the same as last month */}
-              <div
-                className={`p-4 rounded border transition-all text-left ${
+              <button
+                type="button"
+                disabled={!prevMonthData.exists}
+                onClick={prevMonthData.exists ? handleChooseSameAsLast : undefined}
+                className={`w-full p-4 rounded border transition-all text-left ${
                   prevMonthData.exists
                     ? 'border-ink bg-paper/80 hover:bg-kraft/10 cursor-pointer shadow-[1px_1px_4px_rgba(28,36,51,0.15)]'
                     : 'border-ink/25 bg-paper/40 opacity-60 cursor-not-allowed'
                 }`}
-                onClick={prevMonthData.exists ? handleChooseSameAsLast : undefined}
-                role="button"
-                tabIndex={prevMonthData.exists ? 0 : -1}
-                onKeyDown={(e) => {
-                  if (prevMonthData.exists && (e.key === 'Enter' || e.key === ' ')) {
-                    handleChooseSameAsLast()
-                  }
-                }}
               >
                 <div className="font-hand font-bold text-base text-ink">
                   Use the same as last month
@@ -408,23 +419,17 @@ export function MonthSetupWizard({
                     widgets.
                   </p>
                 ) : (
-                  <p className="font-hand text-xs text-ink/60 mt-1 italic">
+                  <p className="font-hand text-xs text-ink/70 mt-1 italic">
                     No earlier month yet. Guide to &quot;Set up fresh&quot;.
                   </p>
                 )}
-              </div>
+              </button>
 
               {/* Option B: Set up fresh */}
-              <div
-                className="p-4 rounded border border-ink bg-paper/80 hover:bg-kraft/10 cursor-pointer shadow-[1px_1px_4px_rgba(28,36,51,0.15)] transition-all text-left"
+              <button
+                type="button"
                 onClick={handleChooseFresh}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    handleChooseFresh()
-                  }
-                }}
+                className="w-full p-4 rounded border border-ink bg-paper/80 hover:bg-kraft/10 cursor-pointer shadow-[1px_1px_4px_rgba(28,36,51,0.15)] transition-all text-left"
               >
                 <div className="font-hand font-bold text-base text-ink">
                   Set up fresh
@@ -432,7 +437,7 @@ export function MonthSetupWizard({
                 <p className="font-hand text-xs text-ink/75 mt-1">
                   Start with fresh paper choices, intentions, and habit selections.
                 </p>
-              </div>
+              </button>
             </div>
           </div>
         )}
@@ -461,7 +466,9 @@ export function MonthSetupWizard({
                       key={`left-${opt.type}`}
                       type="button"
                       onClick={() => setPaperLeft(opt.type)}
-                      className="cursor-pointer focus:outline-none"
+                      aria-label={`Left page: ${opt.type} paper${paperLeft === opt.type ? ' (selected)' : ''}`}
+                      aria-pressed={paperLeft === opt.type}
+                      className="cursor-pointer"
                     >
                       <MiniPaperPreview type={opt.type} selected={paperLeft === opt.type} />
                     </button>
@@ -480,7 +487,9 @@ export function MonthSetupWizard({
                       key={`right-${opt.type}`}
                       type="button"
                       onClick={() => setPaperRight(opt.type)}
-                      className="cursor-pointer focus:outline-none"
+                      aria-label={`Right page: ${opt.type} paper${paperRight === opt.type ? ' (selected)' : ''}`}
+                      aria-pressed={paperRight === opt.type}
+                      className="cursor-pointer"
                     >
                       <MiniPaperPreview type={opt.type} selected={paperRight === opt.type} />
                     </button>
@@ -529,7 +538,7 @@ export function MonthSetupWizard({
                 onChange={(e) => setNextMonthNote(e.target.value)}
                 placeholder="What will you carry forward or remember?"
                 rows={4}
-                className="w-full bg-paper/80 border-b border-ink/40 focus:border-ink font-hand text-sm text-ink p-2 resize-none outline-none leading-relaxed placeholder:text-ink/40"
+                className="w-full bg-paper/80 border-b border-ink/40 focus:border-ink font-hand text-sm text-ink p-2 resize-none outline-none leading-relaxed placeholder:text-ink/70"
               />
             </div>
           </div>
@@ -557,7 +566,7 @@ export function MonthSetupWizard({
                   key={`habit-slot-${idx}`}
                   className="flex items-center gap-1.5 h-7 border-b border-ink/15 pb-0.5"
                 >
-                  <span className="font-hand text-[11px] text-ink/50 w-4 text-right">
+                  <span className="font-hand text-[11px] text-ink/70 w-4 text-right">
                     {idx + 1}.
                   </span>
                   <input
@@ -566,7 +575,8 @@ export function MonthSetupWizard({
                     onChange={(e) => updateHabitName(idx, e.target.value)}
                     placeholder="Habit name..."
                     maxLength={24}
-                    className="flex-1 bg-transparent font-hand text-xs text-ink placeholder:text-ink/35 outline-none px-1"
+                    aria-label={`Habit ${idx + 1} name`}
+                    className="flex-1 bg-transparent font-hand text-xs text-ink placeholder:text-ink/70 outline-none px-1"
                   />
                   <div className="flex items-center gap-1" title="Mark indulgence (red pen)">
                     <HandDrawnCheckbox
@@ -577,7 +587,7 @@ export function MonthSetupWizard({
                     />
                     <span
                       className={`text-[10px] font-hand select-none ${
-                        habit.isRed ? 'text-redpen font-bold' : 'text-ink/40'
+                        habit.isRed ? 'text-redpen font-bold' : 'text-ink/70'
                       }`}
                     >
                       red
@@ -604,53 +614,53 @@ export function MonthSetupWizard({
             <div className="space-y-2 max-w-sm mx-auto w-full">
               {/* Standard Trackers */}
               <div className="space-y-1.5 border-b border-ink/20 pb-3">
-                <div
-                  className="flex items-center justify-between py-1 cursor-pointer"
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={trackedNumbers.weight}
                   onClick={() =>
                     setTrackedNumbers((prev) => ({ ...prev, weight: !prev.weight }))
                   }
+                  className="w-full flex items-center justify-between py-1 cursor-pointer text-left"
                 >
                   <span className="font-hand text-sm text-ink">Weight (kg / lbs)</span>
-                  <HandDrawnCheckbox
+                  <HandDrawnCheckboxVisual
                     checked={trackedNumbers.weight}
-                    onChange={() =>
-                      setTrackedNumbers((prev) => ({ ...prev, weight: !prev.weight }))
-                    }
-                    ariaLabel="Track weight"
+                    color="ink"
                   />
-                </div>
+                </button>
 
-                <div
-                  className="flex items-center justify-between py-1 cursor-pointer"
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={trackedNumbers.sleepScore}
                   onClick={() =>
                     setTrackedNumbers((prev) => ({ ...prev, sleepScore: !prev.sleepScore }))
                   }
+                  className="w-full flex items-center justify-between py-1 cursor-pointer text-left"
                 >
                   <span className="font-hand text-sm text-ink">Sleep Score / Hours</span>
-                  <HandDrawnCheckbox
+                  <HandDrawnCheckboxVisual
                     checked={trackedNumbers.sleepScore}
-                    onChange={() =>
-                      setTrackedNumbers((prev) => ({ ...prev, sleepScore: !prev.sleepScore }))
-                    }
-                    ariaLabel="Track sleep score"
+                    color="ink"
                   />
-                </div>
+                </button>
 
-                <div
-                  className="flex items-center justify-between py-1 cursor-pointer"
+                <button
+                  type="button"
+                  role="checkbox"
+                  aria-checked={trackedNumbers.mood}
                   onClick={() =>
                     setTrackedNumbers((prev) => ({ ...prev, mood: !prev.mood }))
                   }
+                  className="w-full flex items-center justify-between py-1 cursor-pointer text-left"
                 >
                   <span className="font-hand text-sm text-ink">Mood Rating (1–5)</span>
-                  <HandDrawnCheckbox
+                  <HandDrawnCheckboxVisual
                     checked={trackedNumbers.mood}
-                    onChange={() =>
-                      setTrackedNumbers((prev) => ({ ...prev, mood: !prev.mood }))
-                    }
-                    ariaLabel="Track mood"
+                    color="ink"
                   />
-                </div>
+                </button>
               </div>
 
               {/* 3 Custom Numbers */}
@@ -671,7 +681,8 @@ export function MonthSetupWizard({
                       onChange={(e) => updateCustomNumberName(cIdx, e.target.value)}
                       placeholder={`Custom ${cIdx + 1} (e.g. Steps, Pages, Water)`}
                       maxLength={20}
-                      className="flex-1 bg-transparent border-b border-ink/20 focus:border-ink font-hand text-xs text-ink p-1 outline-none placeholder:text-ink/35"
+                      aria-label={`Custom number ${cIdx + 1} name`}
+                      className="flex-1 bg-transparent border-b border-ink/20 focus:border-ink font-hand text-xs text-ink p-1 outline-none placeholder:text-ink/70"
                     />
                   </div>
                 ))}
@@ -694,58 +705,50 @@ export function MonthSetupWizard({
 
             <div className="space-y-4 max-w-sm mx-auto w-full">
               {/* Choice: Journal */}
-              <div
-                className={`p-4 rounded border cursor-pointer transition-all text-left ${
+              <button
+                type="button"
+                role="radio"
+                aria-checked={startingLayout === 'journal'}
+                onClick={() => setStartingLayout('journal')}
+                className={`w-full p-4 rounded border cursor-pointer transition-all text-left ${
                   startingLayout === 'journal'
                     ? 'border-ink bg-kraft/15 shadow-[0_2px_6px_rgba(28,36,51,0.2)] ring-1 ring-gold'
                     : 'border-ink/30 bg-paper/70 hover:border-ink/60'
                 }`}
-                onClick={() => setStartingLayout('journal')}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') setStartingLayout('journal')
-                }}
               >
                 <div className="flex items-center justify-between">
                   <span className="font-hand font-bold text-base text-ink">Journal Layout</span>
-                  <HandDrawnCheckbox
+                  <HandDrawnCheckboxVisual
                     checked={startingLayout === 'journal'}
-                    onChange={() => setStartingLayout('journal')}
-                    ariaLabel="Journal Layout"
                   />
                 </div>
                 <p className="font-hand text-xs text-ink/75 mt-1.5 leading-relaxed">
                   Moments list on the left page; habits and sleep graph on the right page.
                 </p>
-              </div>
+              </button>
 
               {/* Choice: Empty */}
-              <div
-                className={`p-4 rounded border cursor-pointer transition-all text-left ${
+              <button
+                type="button"
+                role="radio"
+                aria-checked={startingLayout === 'empty'}
+                onClick={() => setStartingLayout('empty')}
+                className={`w-full p-4 rounded border cursor-pointer transition-all text-left ${
                   startingLayout === 'empty'
                     ? 'border-ink bg-kraft/15 shadow-[0_2px_6px_rgba(28,36,51,0.2)] ring-1 ring-gold'
                     : 'border-ink/30 bg-paper/70 hover:border-ink/60'
                 }`}
-                onClick={() => setStartingLayout('empty')}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') setStartingLayout('empty')
-                }}
               >
                 <div className="flex items-center justify-between">
                   <span className="font-hand font-bold text-base text-ink">Empty Layout</span>
-                  <HandDrawnCheckbox
+                  <HandDrawnCheckboxVisual
                     checked={startingLayout === 'empty'}
-                    onChange={() => setStartingLayout('empty')}
-                    ariaLabel="Empty Layout"
                   />
                 </div>
                 <p className="font-hand text-xs text-ink/75 mt-1.5 leading-relaxed">
                   Start with clean blank sheets. Add widgets freely later.
                 </p>
-              </div>
+              </button>
             </div>
           </div>
         )}
@@ -820,11 +823,11 @@ export function MonthSetupWizard({
                 onClick={handleOpenMonth}
                 className={`w-full py-2.5 px-4 rounded border border-gold font-hand text-sm font-bold tracking-wider uppercase transition-all select-none ${
                   isSubmitting
-                    ? 'bg-kraft/50 text-ink/60 cursor-wait'
+                    ? 'bg-kraft/50 text-ink/70 cursor-wait'
                     : 'bg-gold text-ink hover:bg-gold/90 shadow-[0_2px_6px_rgba(28,36,51,0.25)] cursor-pointer'
                 }`}
               >
-                {isSubmitting ? 'Opening Pages...' : 'Open the month'}
+                {isSubmitting ? 'turning the page...' : 'Open the month'}
               </button>
             </div>
           </div>

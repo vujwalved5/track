@@ -198,7 +198,7 @@ export function NumberLogDesktop({
           {label}
         </span>
         {unit && (
-          <span className="font-hand text-[10px] text-ink/55 italic shrink-0 ml-1">
+          <span className="font-hand text-[10px] text-ink/70 italic shrink-0 ml-1">
             {unit}
           </span>
         )}
@@ -212,23 +212,16 @@ export function NumberLogDesktop({
           const hasValue = value !== null && value !== undefined
           const isEditing = editingDay === day
 
-          return (
-            <div
-              key={day}
-              className={`flex-1 min-h-[14px] flex items-center border-b border-ink/10 px-1.5 group cursor-pointer ${
-                isArrangeMode ? 'pointer-events-none' : 'hover:bg-ink/[0.025]'
-              }`}
-              onClick={() => handleRowClick(day)}
-              role="row"
-              aria-label={`Day ${day}${hasValue ? `: ${value} ${unit}` : ''}`}
-            >
-              {/* Day number */}
-              <span className="w-[18px] shrink-0 font-hand text-[10px] text-ink/55 text-right pr-1 pointer-events-none">
-                {day}
-              </span>
-
-              {/* Value or inline input */}
-              {isEditing ? (
+          if (isEditing) {
+            return (
+              <div
+                key={day}
+                className="flex-1 min-h-[14px] flex items-center border-b border-ink/10 px-1.5"
+              >
+                {/* Day number */}
+                <span className="w-[18px] shrink-0 font-hand text-[10px] text-ink/70 text-right pr-1 pointer-events-none">
+                  {day}
+                </span>
                 <input
                   ref={inputRef}
                   type="number"
@@ -236,27 +229,45 @@ export function NumberLogDesktop({
                   onChange={(e) => setEditingText(e.target.value)}
                   onBlur={() => commitEdit(day, editingText)}
                   onKeyDown={(e) => handleInputKeyDown(e, day)}
-                  aria-label={`Enter value for day ${day}`}
+                  aria-label={`Day ${day}: ${label}`}
                   className="flex-1 h-full bg-transparent font-hand text-[11px] text-ink focus:outline-none border-b border-ink/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   onClick={(e) => e.stopPropagation()}
                 />
-              ) : (
-                <span
-                  className={`flex-1 font-hand text-[11px] ${
-                    hasValue ? 'text-ink' : 'text-ink/15 italic group-hover:text-ink/30'
-                  }`}
-                >
-                  {hasValue ? value : '—'}
-                </span>
-              )}
+              </div>
+            )
+          }
+
+          return (
+            <button
+              key={day}
+              type="button"
+              disabled={isArrangeMode}
+              className={`w-full flex-1 min-h-[14px] flex items-center border-b border-ink/10 px-1.5 group cursor-pointer text-left ${
+                isArrangeMode ? 'pointer-events-none' : 'hover:bg-ink/[0.025]'
+              }`}
+              onClick={() => handleRowClick(day)}
+              aria-label={`Day ${day}${hasValue ? `: ${value} ${unit}` : ': unrecorded'}`}
+            >
+              {/* Day number */}
+              <span className="w-[18px] shrink-0 font-hand text-[10px] text-ink/70 text-right pr-1 pointer-events-none">
+                {day}
+              </span>
+
+              <span
+                className={`flex-1 font-hand text-[11px] ${
+                  hasValue ? 'text-ink' : 'text-ink/70 opacity-40 italic group-hover:opacity-70'
+                }`}
+              >
+                {hasValue ? value : '—'}
+              </span>
 
               {/* Unit label beside value */}
-              {!isEditing && hasValue && unit && (
-                <span className="font-hand text-[9px] text-ink/40 shrink-0 ml-0.5">
+              {hasValue && unit && (
+                <span className="font-hand text-[9px] text-ink/70 shrink-0 ml-0.5">
                   {unit}
                 </span>
               )}
-            </div>
+            </button>
           )
         })}
       </div>
@@ -322,13 +333,13 @@ export function NumberLogMobile({
           <div className="flex items-baseline gap-2">
             <h2 className="font-hand text-base font-bold text-ink">{label}</h2>
             {unit && (
-              <span className="font-hand text-xs text-ink/60">({unit})</span>
+              <span className="font-hand text-xs text-ink/70">({unit})</span>
             )}
           </div>
         ) : (
           <span className="font-hand text-sm text-ink/70 italic">(cont.)</span>
         )}
-        <span className="font-hand text-xs text-ink/50">
+        <span className="font-hand text-xs text-ink/70">
           Days {startDay}–{endDay}
         </span>
       </div>
@@ -340,52 +351,64 @@ export function NumberLogMobile({
           const isEditing = editingDay === day
           const hasValue = value !== null && value !== undefined
 
+          if (isEditing) {
+            return (
+              <div
+                key={day}
+                className="flex items-center min-h-[44px] h-[44px] px-1 border-b border-ink/10"
+              >
+                {/* Day label */}
+                <span className="w-8 shrink-0 font-hand text-xs text-ink/70 text-right pr-2 select-none pointer-events-none">
+                  {day}.
+                </span>
+                <input
+                  ref={inputRef}
+                  type="number"
+                  step="any"
+                  value={editingText}
+                  onChange={(e) => setEditingText(e.target.value)}
+                  onBlur={() => commitEdit(day, editingText)}
+                  onKeyDown={(e) => handleInputKeyDown(e, day)}
+                  aria-label={`Day ${day}: ${label}`}
+                  className="flex-1 h-[36px] bg-transparent font-hand text-sm text-ink focus:outline-none border-b border-ink/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+            )
+          }
+
           return (
-            <div
+            <button
               key={day}
+              type="button"
+              disabled={isArrangeMode}
               onClick={() => handleRowClick(day)}
-              className="flex items-center min-h-[44px] h-[44px] px-1 hover:bg-ink/[0.03] transition-colors cursor-pointer select-none"
+              aria-label={`Day ${day}${hasValue ? `: ${value} ${unit}` : ': unrecorded'}`}
+              className="w-full flex items-center min-h-[44px] h-[44px] px-1 hover:bg-ink/[0.03] transition-colors cursor-pointer select-none text-left"
             >
               {/* Day label */}
-              <span className="w-8 shrink-0 font-hand text-xs text-ink/65 text-right pr-2 select-none pointer-events-none">
+              <span className="w-8 shrink-0 font-hand text-xs text-ink/70 text-right pr-2 select-none pointer-events-none">
                 {day}.
               </span>
 
-              {/* Value or Inline Input (>= 44px tap target) */}
-              <div className="flex-1 h-full flex items-center">
-                {isEditing ? (
-                  <input
-                    ref={inputRef}
-                    type="number"
-                    step="any"
-                    value={editingText}
-                    onChange={(e) => setEditingText(e.target.value)}
-                    onBlur={() => commitEdit(day, editingText)}
-                    onKeyDown={(e) => handleInputKeyDown(e, day)}
-                    aria-label={`Enter value for day ${day}`}
-                    className="w-full h-[36px] bg-transparent font-hand text-sm text-ink focus:outline-none border-b border-ink/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                ) : (
-                  <div className="flex items-baseline gap-1.5 w-full h-full flex items-center">
-                    <span
-                      className={`font-hand text-sm ${
-                        hasValue
-                          ? 'text-ink font-bold'
-                          : 'text-ink/20 italic'
-                      }`}
-                    >
-                      {hasValue ? value : '—'}
-                    </span>
-                    {hasValue && unit && (
-                      <span className="font-hand text-xs text-ink/50">
-                        {unit}
-                      </span>
-                    )}
-                  </div>
+              {/* Value display */}
+              <div className="flex items-baseline gap-1.5 w-full h-full flex items-center">
+                <span
+                  className={`font-hand text-sm ${
+                    hasValue
+                      ? 'text-ink font-bold'
+                      : 'text-ink/70 opacity-40 italic'
+                  }`}
+                >
+                  {hasValue ? value : '—'}
+                </span>
+                {hasValue && unit && (
+                  <span className="font-hand text-xs text-ink/70">
+                    {unit}
+                  </span>
                 )}
               </div>
-            </div>
+            </button>
           )
         })}
       </div>

@@ -171,7 +171,7 @@ function HandwrittenRadioList({
       </span>
 
       {options.length === 0 && emptyMessage ? (
-        <p className="text-[10px] text-ink/50 font-hand italic leading-tight">
+        <p className="text-[10px] text-ink/70 font-hand italic leading-tight">
           {emptyMessage}
         </p>
       ) : (
@@ -290,16 +290,28 @@ export function WidgetConfigCard({
           <h2 className="text-base font-bold text-ink tracking-wide">
             {definition?.displayName || 'Widget'} Settings
           </h2>
-          <span className="text-[11px] text-ink/60">Tucked note</span>
+          <span className="text-[11px] text-ink/70">Tucked note</span>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="text-ink/60 hover:text-redpen text-lg font-bold px-1.5 py-0.5 cursor-pointer transition-colors"
+          className="text-ink/70 hover:text-redpen p-1 cursor-pointer transition-colors"
           aria-label="Close configuration card"
           title="Close card"
         >
-          ✕
+          <svg
+            className="w-4 h-4"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M 3.5 3.5 L 12.5 12.5 M 12.5 3.5 L 3.5 12.5"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
         </button>
       </div>
 
@@ -439,7 +451,7 @@ export function WidgetConfigCard({
             disabled={isSaving}
             className="bg-gold/90 hover:bg-gold text-ink font-bold text-xs px-4 py-1.5 rounded-sm border border-kraft/60 shadow-[1px_2px_4px_rgba(28,36,51,0.2)] transition-colors cursor-pointer disabled:opacity-50"
           >
-            {isSaving ? 'Saving...' : 'Save card'}
+            {isSaving ? 'turning the page...' : 'Save card'}
           </button>
         </div>
       </form>

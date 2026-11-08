@@ -298,7 +298,7 @@ export function MobileBook({
                       {curMonthName} {year}
                     </h1>
                     <svg
-                      className="w-28 h-2 text-ink/40 mt-0.5"
+                      className="w-28 h-2 text-ink/70 mt-0.5"
                       viewBox="0 0 120 8"
                       fill="none"
                       aria-hidden="true"
@@ -319,7 +319,7 @@ export function MobileBook({
                   const def = getWidgetDefinition(widget.type)
                   if (!def) {
                     return (
-                      <div className="flex-1 flex items-center justify-center font-hand text-xs text-ink/40">
+                      <div className="flex-1 flex items-center justify-center font-hand text-xs text-ink/70">
                         Unknown widget
                       </div>
                     )
@@ -349,7 +349,7 @@ export function MobileBook({
                 <h1 className="font-hand text-2xl font-bold text-ink mb-2">
                   {curMonthName} {year}
                 </h1>
-                <p className="font-hand text-sm text-ink/60">
+                <p className="font-hand text-sm text-ink/70">
                   A fresh, quiet month.
                 </p>
               </div>
@@ -369,7 +369,7 @@ export function MobileBook({
             </button>
 
             {/* Handwritten Folio in Center */}
-            <div className="font-hand text-xs text-ink/50 select-none pointer-events-none">
+            <div className="font-hand text-xs text-ink/70 select-none pointer-events-none">
               p. {clampedPage + 1} of {totalPages}
             </div>
 
@@ -379,7 +379,7 @@ export function MobileBook({
               onClick={handleTurnNext}
               aria-label="Next page"
               title="Next page"
-              className="relative w-12 h-12 min-w-[44px] min-h-[44px] cursor-pointer group select-none focus:outline-none"
+              className="relative w-12 h-12 min-w-[44px] min-h-[44px] cursor-pointer group select-none"
             >
               {/* Dark casing exposed underneath cut corner */}
               <div

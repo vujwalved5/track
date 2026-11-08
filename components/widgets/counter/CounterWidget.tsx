@@ -184,7 +184,7 @@ export function CounterDesktop({
         {target !== undefined && (
           <span
             className={`font-hand text-[10px] ${
-              isTargetReached ? 'text-redpen font-bold' : 'text-ink/60'
+              isTargetReached ? 'text-redpen font-bold' : 'text-ink/70'
             }`}
           >
             /{target}
@@ -203,7 +203,7 @@ export function CounterDesktop({
           className={`w-7 h-7 rounded-full border border-ink/40 flex items-center justify-center transition-all ${
             currentCount > 0 && !isArrangeMode
               ? 'hover:border-ink hover:bg-ink/5 active:scale-95 text-ink cursor-pointer'
-              : 'opacity-30 text-ink/30 cursor-not-allowed'
+              : 'opacity-40 text-ink/70 cursor-not-allowed'
           }`}
         >
           <svg
@@ -235,7 +235,7 @@ export function CounterDesktop({
           className={`w-7 h-7 rounded-full border border-ink/40 flex items-center justify-center transition-all ${
             !isArrangeMode
               ? 'hover:border-ink hover:bg-ink/5 active:scale-95 text-ink cursor-pointer'
-              : 'opacity-40 text-ink/40 cursor-not-allowed'
+              : 'opacity-40 text-ink/70 cursor-not-allowed'
           }`}
         >
           <svg
@@ -269,7 +269,7 @@ export function CounterDesktop({
             className="scale-90"
           />
         ) : (
-          <span className="font-hand text-[9px] text-ink/40 tracking-wider uppercase">
+          <span className="font-hand text-[9px] text-ink/70 tracking-wider uppercase">
             {target !== undefined && isTargetReached ? (
               <span className="text-redpen font-bold">Goal Met!</span>
             ) : (

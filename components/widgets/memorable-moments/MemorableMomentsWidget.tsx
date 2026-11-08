@@ -207,6 +207,7 @@ function useMemorableMomentsEntries(id: string, isArrangeMode?: boolean) {
     handleTextChange,
     handleTextBlur,
     toggleCrossOut,
+    toggleHighlight,
     handlePointerDown,
     handlePointerUpOrLeave,
   }
@@ -225,6 +226,7 @@ export function MemorableMomentsDesktop({
     handleTextChange,
     handleTextBlur,
     toggleCrossOut,
+    toggleHighlight,
     handlePointerDown,
     handlePointerUpOrLeave,
   } = useMemorableMomentsEntries(id, isArrangeMode)
@@ -246,7 +248,7 @@ export function MemorableMomentsDesktop({
         onPointerLeave={() => handlePointerUpOrLeave(day)}
       >
         {/* Day number (1..31) */}
-        <span className="w-5 shrink-0 font-hand text-[11px] text-ink/65 text-right pr-1 select-none pointer-events-none">
+        <span className="w-5 shrink-0 font-hand text-[11px] text-ink/70 text-right pr-1 select-none pointer-events-none">
           {day}.
         </span>
 
@@ -262,10 +264,16 @@ export function MemorableMomentsDesktop({
             disabled={isArrangeMode}
             onChange={(e) => handleTextChange(day, e.target.value)}
             onBlur={() => handleTextBlur(day)}
+            onKeyDown={(e) => {
+              if ((e.altKey || e.ctrlKey || e.metaKey) && (e.key === 'h' || e.key === 'H')) {
+                e.preventDefault()
+                toggleHighlight(day)
+              }
+            }}
             placeholder="..."
-            aria-label={`Memorable moment day ${day}`}
+            aria-label={`Day ${day}: memorable moment${entry.highlighted ? ' (highlighted)' : ''}`}
             className={`w-full bg-transparent font-hand text-[12px] text-ink focus:outline-none focus:border-b focus:border-ink/40 transition-opacity ${
-              entry.crossedOut ? 'opacity-40 line-through text-ink/50' : ''
+              entry.crossedOut ? 'opacity-40 line-through text-ink/70' : ''
             }`}
           />
 
@@ -288,6 +296,41 @@ export function MemorableMomentsDesktop({
           )}
         </div>
 
+        {/* Highlight toggle button: visible on hover/focus and on touch (Correction 3) */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            toggleHighlight(day)
+          }}
+          disabled={isArrangeMode}
+          title={entry.highlighted ? 'Remove highlight (Alt+H)' : 'Highlight line (Alt+H)'}
+          aria-label={`Toggle highlight for day ${day}`}
+          aria-pressed={entry.highlighted}
+          className={`shrink-0 w-4 h-4 ml-0.5 flex items-center justify-center transition-opacity cursor-pointer ${
+            entry.highlighted
+              ? 'opacity-90 text-[#d8b45a]'
+              : 'opacity-0 group-hover:opacity-75 group-focus-within:opacity-75 active:opacity-100 text-ink/70 hover:text-[#d8b45a]'
+          }`}
+        >
+          <svg
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            className="w-3 h-3"
+            aria-hidden="true"
+          >
+            <path
+              d="M 3 13 L 5 13 L 13 5 L 11 3 L 3 11 Z"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill={entry.highlighted ? '#ffd84a' : 'none'}
+            />
+            <path d="M 2 14 L 4 14" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
+
         {/* Cross-out button at line end: visible on hover/focus and always on touch (Correction 4) */}
         <button
           type="button"
@@ -298,10 +341,10 @@ export function MemorableMomentsDesktop({
           disabled={isArrangeMode}
           title={entry.crossedOut ? 'Restore line' : 'Cross out line'}
           aria-label={`Cross out day ${day}`}
-          className={`shrink-0 w-4 h-4 ml-1 flex items-center justify-center transition-opacity cursor-pointer ${
+          className={`shrink-0 w-4 h-4 ml-0.5 flex items-center justify-center transition-opacity cursor-pointer ${
             entry.crossedOut
               ? 'opacity-85 text-redpen'
-              : 'opacity-0 group-hover:opacity-75 group-focus-within:opacity-75 md:opacity-0 active:opacity-100 text-ink/45 hover:text-redpen'
+              : 'opacity-0 group-hover:opacity-75 group-focus-within:opacity-75 md:opacity-0 active:opacity-100 text-ink/70 hover:text-redpen'
           }`}
         >
           <svg
@@ -329,7 +372,7 @@ export function MemorableMomentsDesktop({
         <h3 className="font-hand text-xs font-bold text-ink tracking-wide">
           {title}
         </h3>
-        <span className="font-hand text-[10px] text-ink/50 italic">
+        <span className="font-hand text-[10px] text-ink/70 italic">
           tap to write · hold to highlight
         </span>
       </div>
@@ -376,6 +419,7 @@ export function MemorableMomentsMobile({
     handleTextChange,
     handleTextBlur,
     toggleCrossOut,
+    toggleHighlight,
     handlePointerDown,
     handlePointerUpOrLeave,
   } = useMemorableMomentsEntries(id, isArrangeMode)
@@ -419,7 +463,7 @@ export function MemorableMomentsMobile({
         ) : (
           <span className="font-hand text-sm text-ink/70 italic">(cont.)</span>
         )}
-        <span className="font-hand text-xs text-ink/50">
+        <span className="font-hand text-xs text-ink/70">
           Days {startDay}–{endDay}
         </span>
       </div>
@@ -442,7 +486,7 @@ export function MemorableMomentsMobile({
               onPointerLeave={() => handlePointerUpOrLeave(day)}
             >
               {/* Day Number */}
-              <span className="w-7 shrink-0 font-hand text-xs text-ink/65 text-right pr-1 select-none pointer-events-none">
+              <span className="w-7 shrink-0 font-hand text-xs text-ink/70 text-right pr-1 select-none pointer-events-none">
                 {day}.
               </span>
 
@@ -458,10 +502,16 @@ export function MemorableMomentsMobile({
                   disabled={isArrangeMode}
                   onChange={(e) => handleTextChange(day, e.target.value)}
                   onBlur={() => handleTextBlur(day)}
+                  onKeyDown={(e) => {
+                    if ((e.altKey || e.ctrlKey || e.metaKey) && (e.key === 'h' || e.key === 'H')) {
+                      e.preventDefault()
+                      toggleHighlight(day)
+                    }
+                  }}
                   placeholder="..."
-                  aria-label={`Memorable moment day ${day}`}
+                  aria-label={`Day ${day}: memorable moment${entry.highlighted ? ' (highlighted)' : ''}`}
                   className={`w-full h-full bg-transparent font-hand text-xs text-ink focus:outline-none transition-opacity ${
-                    entry.crossedOut ? 'opacity-40 line-through text-ink/50' : ''
+                    entry.crossedOut ? 'opacity-40 line-through text-ink/70' : ''
                   }`}
                 />
 
@@ -484,6 +534,39 @@ export function MemorableMomentsMobile({
                 )}
               </div>
 
+              {/* Highlight toggle button: >= 44px tap target (Correction 3) */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleHighlight(day)
+                }}
+                disabled={isArrangeMode}
+                title={entry.highlighted ? 'Remove highlight (Alt+H)' : 'Highlight line (Alt+H)'}
+                aria-label={`Toggle highlight for day ${day}`}
+                aria-pressed={entry.highlighted}
+                className={`shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer transition-colors ${
+                  entry.highlighted ? 'text-gold' : 'text-ink/70 hover:text-gold active:text-gold'
+                }`}
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  className="w-4 h-4 pointer-events-none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M 3 13 L 5 13 L 13 5 L 11 3 L 3 11 Z"
+                    strokeWidth="1.3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill={entry.highlighted ? '#ffd84a' : 'none'}
+                  />
+                  <path d="M 2 14 L 4 14" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
+
               {/* Cross-out button: >= 44px tap target */}
               <button
                 type="button"
@@ -497,7 +580,7 @@ export function MemorableMomentsMobile({
                 className={`shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer transition-colors ${
                   entry.crossedOut
                     ? 'text-redpen'
-                    : 'text-ink/35 hover:text-redpen active:text-redpen'
+                    : 'text-ink/70 hover:text-redpen active:text-redpen'
                 }`}
               >
                 <svg

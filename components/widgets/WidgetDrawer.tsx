@@ -76,16 +76,15 @@ export function WidgetDrawer({
     <>
       {/* ── Brass Drawer Pull Handle under the book ── */}
       <div
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 z-30 select-none pointer-events-auto"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 z-30 select-none pointer-events-auto drawer-slide"
         style={{
           transform: isOpen ? 'translate(-50%, -200px)' : 'translate(-50%, 0)',
-          transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         <button
           type="button"
           onClick={handlePullClick}
-          className="group relative flex flex-col items-center justify-center cursor-pointer focus:outline-none"
+          className="group relative flex flex-col items-center justify-center cursor-pointer"
           aria-label={isOpen ? 'Close card catalogue drawer' : 'Open card catalogue drawer'}
           title={isOpen ? 'Push drawer back' : 'Pull widget catalogue drawer'}
         >
@@ -109,10 +108,9 @@ export function WidgetDrawer({
       {/* ── Wooden Card-Catalogue Drawer Box (L6 palette only) ── */}
       <section
         aria-label="Widget card catalogue drawer"
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 z-40 w-[680px] h-[190px] select-none pointer-events-auto shadow-[0_-12px_32px_rgba(28,36,51,0.6)]"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 z-40 w-[680px] h-[190px] select-none pointer-events-auto shadow-[0_-12px_32px_rgba(28,36,51,0.6)] drawer-slide"
         style={{
           transform: isOpen ? 'translate(-50%, 0)' : 'translate(-50%, 100%)',
-          transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)',
           // Dark desk wood with layered kraft grain
           backgroundColor: '#211b16',
           backgroundImage:
@@ -141,8 +139,8 @@ export function WidgetDrawer({
                   onClick={() => setActiveGroup(group)}
                   className={`relative px-4 py-1 font-hand text-xs transition-all cursor-pointer rounded-t-sm select-none ${
                     isActive
-                      ? 'bg-kraft text-paper font-bold shadow-[0_-2px_4px_rgba(28,36,51,0.3)] -translate-y-0.5 border-t border-x border-paper/30'
-                      : 'bg-kraft/40 text-paper/70 hover:text-paper hover:bg-kraft/60 border-t border-x border-kraft/30'
+                      ? 'bg-kraft text-desk font-bold shadow-[0_-2px_4px_rgba(28,36,51,0.3)] -translate-y-0.5 border-t border-x border-paper/30'
+                      : 'bg-desk text-paper hover:bg-desk/80 border-t border-x border-kraft/30'
                   }`}
                   style={{
                     clipPath: 'polygon(6% 0, 94% 0, 100% 100%, 0 100%)',
@@ -162,7 +160,7 @@ export function WidgetDrawer({
                 <button
                   type="button"
                   onClick={onCancelPick}
-                  className="font-hand text-[10px] text-paper/70 hover:text-redpen cursor-pointer underline"
+                  className="font-hand text-[10px] text-paper hover:text-redpen cursor-pointer underline"
                 >
                   Cancel (Esc)
                 </button>

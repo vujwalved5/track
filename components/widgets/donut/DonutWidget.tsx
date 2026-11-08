@@ -235,7 +235,7 @@ export function DonutDesktop({
           {title}
         </span>
         {totalCount > 0 && (
-          <span className="font-hand text-[9px] text-ink/40">
+          <span className="font-hand text-[9px] text-ink/70">
             {totalCount} total
           </span>
         )}
@@ -245,14 +245,14 @@ export function DonutDesktop({
       <div className="flex-1 w-full relative">
         {!sourceWidgetId ? (
           <div className="w-full h-full flex items-center justify-center text-center p-3">
-            <p className="font-hand text-xs text-ink/45 italic leading-snug">
+            <p className="font-hand text-xs text-ink/70 italic leading-snug">
               Pick a source in settings
             </p>
           </div>
         ) : slices.length === 0 ? (
           <div className="w-full h-full flex items-center justify-center text-center p-3">
-            <p className="font-hand text-xs text-ink/40 italic">
-              {loading ? 'Reading...' : 'No entries yet'}
+            <p className="font-hand text-xs text-ink/70 italic">
+              {loading ? 'turning the page...' : 'No entries yet'}
             </p>
           </div>
         ) : (
@@ -260,7 +260,8 @@ export function DonutDesktop({
             <svg
               viewBox={`0 0 ${widthPx} ${heightPx - 50}`}
               className="flex-1 w-full overflow-visible"
-              aria-hidden="true"
+              role="img"
+              aria-label={`Donut chart of ${title}, ${slices.length} categories, ${totalCount} total entries`}
             >
               {arcSegments.map((seg, i) => (
                 <path
@@ -296,7 +297,7 @@ export function DonutDesktop({
                   <span className="font-hand text-[9px] text-ink/75 truncate max-w-[80px]">
                     {seg.label}
                   </span>
-                  <span className="font-hand text-[9px] text-ink/40">
+                  <span className="font-hand text-[9px] text-ink/70">
                     {seg.percentage}%
                   </span>
                 </div>

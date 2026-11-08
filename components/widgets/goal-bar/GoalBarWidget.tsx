@@ -151,14 +151,14 @@ export function GoalBarDesktop({
         <div className="flex items-center gap-1.5 shrink-0">
           <span className="font-hand text-[11px] text-ink font-bold">
             {currentTotal}
-            <span className="text-ink/50 font-normal"> / {target}</span>
-            {unit && <span className="text-ink/60 font-normal ml-0.5">{unit}</span>}
+            <span className="text-ink/70 font-normal"> / {target}</span>
+            {unit && <span className="text-ink/70 font-normal ml-0.5">{unit}</span>}
           </span>
           <span
             className={`font-hand text-[10px] font-bold px-1 rounded-xs ${
               isReached
                 ? 'bg-redpen/15 text-redpen'
-                : 'text-ink/60'
+                : 'text-ink/70'
             }`}
           >
             {percent}%
@@ -168,15 +168,20 @@ export function GoalBarDesktop({
 
       {/* Center: Hand-Drawn SVG Progress Bar */}
       <div className="flex-1 flex items-center justify-center py-1">
-        {!sourceWidgetId ? (
-          <p className="font-hand text-xs text-ink/45 italic">
+        {loading ? (
+          <p className="font-hand text-xs text-ink/70 italic">
+            turning the page...
+          </p>
+        ) : !sourceWidgetId ? (
+          <p className="font-hand text-xs text-ink/70 italic">
             Pick a Counter or Number Log in settings
           </p>
         ) : (
           <svg
             viewBox={`0 0 ${widthPx} 28`}
             className="w-full h-7 overflow-visible"
-            aria-hidden="true"
+            role="img"
+            aria-label={`Goal bar for ${title}, ${currentTotal} of ${target}${unit ? ' ' + unit : ''}, ${percent}%`}
           >
             <defs>
               {/* Pen-stroke diagonal hatching pattern */}
@@ -239,7 +244,7 @@ export function GoalBarDesktop({
       </div>
 
       {/* Footer Subtitle */}
-      <div className="flex items-center justify-between text-[9px] font-hand text-ink/45 pt-0.5">
+      <div className="flex items-center justify-between text-[9px] font-hand text-ink/70 pt-0.5">
         <span>0</span>
         {isReached ? (
           <span className="text-redpen font-bold">Goal achieved!</span>

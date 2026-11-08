@@ -139,7 +139,7 @@ export function FreeNoteDesktop({
           fontSize: `${fontSize}px`,
           lineHeight: paper === 'lined' ? '22px' : '1.4',
         }}
-        className="w-full h-full bg-transparent font-hand text-ink focus:outline-none resize-none overflow-hidden placeholder:text-ink/30 select-text"
+        className="w-full h-full bg-transparent font-hand text-ink focus:outline-none resize-none overflow-hidden placeholder:text-ink/70 select-text"
       />
 
       {/* Hand-Drawn "More" Folded Corner (shown when text overflows beyond 12px floor, Correction 5) */}

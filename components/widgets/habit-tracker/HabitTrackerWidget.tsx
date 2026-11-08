@@ -202,7 +202,7 @@ export function HabitTrackerDesktop({
         {/* Table Header Row (64px) with Rotated Names */}
         <div className="h-[64px] flex border-b border-ink/30 bg-paper/30 shrink-0">
           {/* Top-left corner: Day header */}
-          <div className="w-6 shrink-0 flex items-end justify-center pb-1 border-r border-ink/20 font-hand text-[10px] text-ink/60">
+          <div className="w-6 shrink-0 flex items-end justify-center pb-1 border-r border-ink/20 font-hand text-[10px] text-ink/70">
             d.
           </div>
 
@@ -225,7 +225,7 @@ export function HabitTrackerDesktop({
 
           {/* If no habits configured, show an empty space (Correction 1) */}
           {habits.length === 0 && (
-            <div className="flex-1 flex items-center justify-center p-1 text-center font-hand text-[10px] text-ink/40 italic">
+            <div className="flex-1 flex items-center justify-center p-1 text-center font-hand text-[10px] text-ink/70 italic">
               No habits set
             </div>
           )}
@@ -243,7 +243,7 @@ export function HabitTrackerDesktop({
                 className="flex-1 min-h-[14px] flex items-center hover:bg-ink/[0.02] transition-colors"
               >
                 {/* Day label */}
-                <div className="w-6 shrink-0 h-full flex items-center justify-center border-r border-ink/20 font-hand text-[10px] text-ink/65 select-none pointer-events-none">
+                <div className="w-6 shrink-0 h-full flex items-center justify-center border-r border-ink/20 font-hand text-[10px] text-ink/70 select-none pointer-events-none">
                   {day}
                 </div>
 
@@ -257,7 +257,7 @@ export function HabitTrackerDesktop({
                       disabled={isArrangeMode}
                       onClick={() => toggleCell(day, habitIdx)}
                       aria-label={`Day ${day} ${habit.name} ${isChecked ? 'completed' : 'not completed'}`}
-                      className="flex-1 h-full flex items-center justify-center border-r border-ink/10 last:border-r-0 cursor-pointer active:bg-ink/5 focus:outline-none"
+                      className="flex-1 h-full flex items-center justify-center border-r border-ink/10 last:border-r-0 cursor-pointer active:bg-ink/5"
                     >
                       {isChecked && <HandDrawnX isRed={habit.isRed} />}
                     </button>
@@ -339,7 +339,7 @@ export function HabitTrackerMobile({
       <div className="flex-1 flex flex-col border border-ink/25 rounded-xs overflow-hidden">
         {/* Table Header with column names / rotated labels */}
         <div className="h-[60px] flex border-b border-ink/30 bg-paper/30 shrink-0">
-          <div className="w-8 shrink-0 flex items-end justify-center pb-1 border-r border-ink/20 font-hand text-[11px] text-ink/60">
+          <div className="w-8 shrink-0 flex items-end justify-center pb-1 border-r border-ink/20 font-hand text-[11px] text-ink/70">
             d.
           </div>
           {habits.map((habit, idx) => (
@@ -358,7 +358,7 @@ export function HabitTrackerMobile({
             </div>
           ))}
           {habits.length === 0 && (
-            <div className="flex-1 flex items-center justify-center p-1 text-center font-hand text-xs text-ink/40 italic">
+            <div className="flex-1 flex items-center justify-center p-1 text-center font-hand text-xs text-ink/70 italic">
               No habits set
             </div>
           )}
@@ -375,7 +375,7 @@ export function HabitTrackerMobile({
                 className="min-h-[44px] h-[44px] flex items-center hover:bg-ink/[0.02] transition-colors"
               >
                 {/* Day label */}
-                <div className="w-8 shrink-0 h-full flex items-center justify-center border-r border-ink/20 font-hand text-xs text-ink/65 select-none pointer-events-none">
+                <div className="w-8 shrink-0 h-full flex items-center justify-center border-r border-ink/20 font-hand text-xs text-ink/70 select-none pointer-events-none">
                   {day}
                 </div>
 
@@ -389,7 +389,7 @@ export function HabitTrackerMobile({
                       disabled={isArrangeMode}
                       onClick={() => toggleCell(day, habitIdx)}
                       aria-label={`Day ${day} ${habit.name} ${isChecked ? 'completed' : 'not completed'}`}
-                      className="flex-1 h-full min-h-[44px] flex items-center justify-center border-r border-ink/10 last:border-r-0 cursor-pointer active:bg-ink/5 focus:outline-none"
+                      className="flex-1 h-full min-h-[44px] flex items-center justify-center border-r border-ink/10 last:border-r-0 cursor-pointer active:bg-ink/5"
                     >
                       {isChecked && <HandDrawnX isRed={habit.isRed} />}
                     </button>

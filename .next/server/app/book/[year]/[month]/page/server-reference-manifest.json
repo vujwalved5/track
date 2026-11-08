@@ -1,6 +1,6 @@
 {
   "node": {
-    "70a8036ff0e605e691ad828d23b5780bb4bc5f23a1": {
+    "70b984a511717a0723bad4075aaac79808c2410709": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -10,7 +10,7 @@
       "exportedName": "saveWidgetEntry",
       "filename": "components/widgets/entryActions.ts"
     },
-    "40c4e51303f4da1bc9227d93b087cd1eed72af5f93": {
+    "40ffa68ac1eafff9fcb26253ad4c8864e60cd3391c": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -20,7 +20,7 @@
       "exportedName": "completeMonthSetup",
       "filename": "components/setup/setupActions.ts"
     },
-    "7f5505a12b4bbb02accadbcc6209e697ed45f2fdab": {
+    "7ff0d7e6b891a43184c6eb30afb3b07fd655d1b779": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -30,7 +30,7 @@
       "exportedName": "memorableMomentsEntrySchema",
       "filename": "components/widgets/entryActions.ts"
     },
-    "406e722ef642c33d4cbc3b0af3b726dca2add7f1a3": {
+    "40cadc5cb9bd4f0d6ebf856fc9d7c70dd193b4ba82": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -40,7 +40,7 @@
       "exportedName": "getWidgetEntries",
       "filename": "components/widgets/entryActions.ts"
     },
-    "7faa69d9a34a31014c37ebdd222a2bb7b2b1b2071f": {
+    "7f4158892bf5ba37a42af5794b038c1c596cb2e00a": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -50,7 +50,7 @@
       "exportedName": "habitTrackerEntrySchema",
       "filename": "components/widgets/entryActions.ts"
     },
-    "7f8925e0d0aa980defa5d76dda8c80a69e0e081661": {
+    "7f183892b35df5cf598389650b99ff1d2f560f3b14": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -60,7 +60,7 @@
       "exportedName": "counterEntrySchema",
       "filename": "components/widgets/entryActions.ts"
     },
-    "7f9993d7c054c2a9fbee4de077c2b0a57ceac79322": {
+    "7f6a7858641a8a1c9f8f2058925e33c15a08f14b59": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -70,7 +70,7 @@
       "exportedName": "pollEntrySchema",
       "filename": "components/widgets/entryActions.ts"
     },
-    "7feeb762c5ebfb6da31b85d9c87a1058f8a9388bfb": {
+    "7fae948bc31c5ccf36eb5dfa4a52db9655cb5dbeae": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -80,7 +80,7 @@
       "exportedName": "numberLogEntrySchema",
       "filename": "components/widgets/entryActions.ts"
     },
-    "7f544b09dce15c41782a942321d30ca6ded7b7b225": {
+    "7fa319fb3c8d1e5fdd1f712b4b2f8bba97e2e8eeed": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -90,7 +90,7 @@
       "exportedName": "moodTrackerEntrySchema",
       "filename": "components/widgets/entryActions.ts"
     },
-    "7fdca8dc029f98e1526853d0f4c374b31bff6e86b8": {
+    "7f5ba423dca10cf8e406e55096831a28903b3ca3aa": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -100,7 +100,7 @@
       "exportedName": "checklistEntrySchema",
       "filename": "components/widgets/entryActions.ts"
     },
-    "605f7299666e8e65efd3823b8d14e67d33e7890974": {
+    "603fe733a782c6a7478d97c688b75c1a8758087461": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -110,7 +110,7 @@
       "exportedName": "updateWidgetConfig",
       "filename": "components/widgets/widgetActions.ts"
     },
-    "6037589a52602256cb89ba862c5017a9688af5e024": {
+    "60364c63e246967471153da7408f0d15f49e10f55d": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -120,7 +120,7 @@
       "exportedName": "updateWidgetPosition",
       "filename": "components/widgets/widgetActions.ts"
     },
-    "404c0b437e8b7e53bca4046b8e93ca105a80d539aa": {
+    "40c0268691df769292f3df25292edc96f849f7070f": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -130,7 +130,7 @@
       "exportedName": "deleteWidget",
       "filename": "components/widgets/widgetActions.ts"
     },
-    "7c8042ec01b8d3349d0b3853630dbe412884789ffe": {
+    "7c3dcfa02918f95bc06f2d96dd2b1876b0656bd7e1": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
@@ -140,7 +140,7 @@
       "exportedName": "createWidget",
       "filename": "components/widgets/widgetActions.ts"
     },
-    "605f1a74b29722bfe2cc48f657c97c358ca90e38a5": {
+    "6089de7e41237b703a9ae53b1bf30817f54436e6d6": {
       "workers": {
         "app/book/[year]/[month]/page": {
           "moduleId": 98617,
