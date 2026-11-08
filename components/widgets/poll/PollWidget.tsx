@@ -26,7 +26,12 @@ import {
   getDaysInMonth,
 } from '../shared/DayStepper'
 import { pollEntrySchema } from '../entrySchemas'
-import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
+import {
+  saveWidgetEntryAndBump,
+  getWidgetEntriesWithCache,
+  getInitialWidgetEntries,
+  type WidgetEntryRow,
+} from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const pollConfigSchema = z.object({
@@ -177,6 +182,17 @@ function TallyMarks({ count }: { count: number }) {
 }
 
 // ── Desktop / Main Component ──────────────────────────────────
+function parsePollRows(rows: WidgetEntryRow[]): Record<number, string> {
+  const next: Record<number, string> = {}
+  for (const row of rows) {
+    const parsed = pollEntrySchema.safeParse(row.value)
+    if (parsed.success) {
+      next[row.day] = parsed.data.selectedOption
+    }
+  }
+  return next
+}
+
 export function PollDesktop({
   id,
   config,
@@ -185,7 +201,9 @@ export function PollDesktop({
   isArrangeMode,
   w = 10,
   h = 8,
-}: WidgetRenderProps<PollConfig>) {
+  ...rest
+}: WidgetRenderProps<PollConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   const isCompact = w <= 6 || h <= 6
   const question = config?.question || 'How was today?'
   const options: string[] =
@@ -199,30 +217,16 @@ export function PollDesktop({
   const [activeDay, setActiveDay] = useState(defaultDay)
 
   // Map of day -> selectedOption string
-  const [entriesMap, setEntriesMap] = useState<Record<number, string>>({})
+  const [entriesMap, setEntriesMap] = useState<Record<number, string>>(() => {
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    return parsePollRows(entries)
+  })
   const [saveError, setSaveError] = useState<string | null>(null)
 
-  // Load entries from DB
   useEffect(() => {
-    let cancelled = false
-    async function load() {
-      const res = await getWidgetEntriesWithCache(id)
-      if (!cancelled && res.success && res.data) {
-        const next: Record<number, string> = {}
-        for (const row of res.data) {
-          const parsed = pollEntrySchema.safeParse(row.value)
-          if (parsed.success) {
-            next[row.day] = parsed.data.selectedOption
-          }
-        }
-        setEntriesMap(next)
-      }
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [id])
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    setEntriesMap(parsePollRows(entries))
+  }, [id, initialEntries])
 
   // Select an option for the active day
   const selectOption = useCallback(
@@ -398,7 +402,9 @@ export function PollDesktop({
 }
 
 // ── Mobile Render Component (Task 11 placeholder) ─────────────
-export function PollMobile(props: WidgetRenderProps<PollConfig>) {
+export function PollMobile(
+  props: WidgetRenderProps<PollConfig> & { initialEntries?: WidgetEntryRow[] },
+) {
   return <PollDesktop {...props} />
 }
 

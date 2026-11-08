@@ -27,7 +27,12 @@ import {
 import {
   counterEntrySchema,
 } from '../entrySchemas'
-import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
+import {
+  saveWidgetEntryAndBump,
+  getWidgetEntriesWithCache,
+  getInitialWidgetEntries,
+  type WidgetEntryRow,
+} from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const counterConfigSchema = z.object({
@@ -81,6 +86,17 @@ export function CounterIcon({
   )
 }
 
+function parseCounterRows(rows: WidgetEntryRow[]): Record<number, number> {
+  const next: Record<number, number> = {}
+  for (const row of rows) {
+    const parsed = counterEntrySchema.safeParse(row.value)
+    if (parsed.success) {
+      next[row.day] = parsed.data.count
+    }
+  }
+  return next
+}
+
 // ── Desktop / Main Component ──────────────────────────────────
 export function CounterDesktop({
   id,
@@ -90,7 +106,9 @@ export function CounterDesktop({
   isArrangeMode,
   w = 6,
   h = 6,
-}: WidgetRenderProps<CounterConfig>) {
+  ...rest
+}: WidgetRenderProps<CounterConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   const label = config?.label || 'Counter'
   const target = config?.target
   const perDay = !!config?.perDay
@@ -101,30 +119,16 @@ export function CounterDesktop({
   const [activeDay, setActiveDay] = useState(defaultDay)
 
   // Map of day -> count
-  const [countsMap, setCountsMap] = useState<Record<number, number>>({})
+  const [countsMap, setCountsMap] = useState<Record<number, number>>(() => {
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    return parseCounterRows(entries)
+  })
   const [saveError, setSaveError] = useState<string | null>(null)
 
-  // Load entries from DB
   useEffect(() => {
-    let cancelled = false
-    async function load() {
-      const res = await getWidgetEntriesWithCache(id)
-      if (!cancelled && res.success && res.data) {
-        const next: Record<number, number> = {}
-        for (const row of res.data) {
-          const parsed = counterEntrySchema.safeParse(row.value)
-          if (parsed.success) {
-            next[row.day] = parsed.data.count
-          }
-        }
-        setCountsMap(next)
-      }
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [id])
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    setCountsMap(parseCounterRows(entries))
+  }, [id, initialEntries])
 
   // Current day key: in non-perDay mode, strictly store at day = 1 (Correction 3)
   const currentDayKey = perDay ? activeDay : 1
@@ -319,7 +323,9 @@ export function CounterDesktop({
 }
 
 // ── Mobile Render Component (Task 11 placeholder per Correction 7) ────
-export function CounterMobile(props: WidgetRenderProps<CounterConfig>) {
+export function CounterMobile(
+  props: WidgetRenderProps<CounterConfig> & { initialEntries?: WidgetEntryRow[] },
+) {
   return <CounterDesktop {...props} />
 }
 

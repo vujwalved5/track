@@ -59,38 +59,50 @@ export async function getPreviousMonthData(
     const prevMonth = month === 1 ? 12 : month - 1
     const prevMonthName = MONTH_NAMES[prevMonth - 1]
 
-    // Find previous year's book
+    // Fetch previous month's book, month, and widgets in ONE nested query
     const { data: prevBook } = await supabase
       .from('books')
-      .select('id')
+      .select(`
+        id,
+        months (
+          id,
+          setup_done,
+          paper_left,
+          paper_right,
+          next_month_note,
+          setup_config,
+          widgets (id)
+        )
+      `)
       .eq('user_id', effectiveUserId)
       .eq('year', prevYear)
+      .eq('months.month', prevMonth)
       .maybeSingle()
 
-    if (!prevBook) {
-      return { exists: false, year: prevYear, month: prevMonth, monthName: prevMonthName }
+    interface PrevBookQueryResult {
+      id: string
+      months?: Array<{
+        id: string
+        setup_done: boolean
+        paper_left: string
+        paper_right: string
+        next_month_note: string | null
+        setup_config: Record<string, unknown>
+        widgets?: Array<{ id: string }>
+      }>
     }
 
-    // Find previous month record
-    const { data: prevMonthRow } = await supabase
-      .from('months')
-      .select('id, setup_done, paper_left, paper_right, next_month_note, setup_config')
-      .eq('book_id', prevBook.id)
-      .eq('month', prevMonth)
-      .maybeSingle()
+    const rawPrevBook = prevBook as unknown as PrevBookQueryResult | null
+    const prevMonthRows = Array.isArray(rawPrevBook?.months) ? rawPrevBook.months : []
+    const prevMonthRow = prevMonthRows[0] || null
 
     if (!prevMonthRow || !prevMonthRow.setup_done) {
       return { exists: false, year: prevYear, month: prevMonth, monthName: prevMonthName }
     }
 
-    // Count widgets to verify if any exist
-    const { count } = await supabase
-      .from('widgets')
-      .select('id', { count: 'exact', head: true })
-      .eq('month_id', prevMonthRow.id)
-
     const rawConfig = (prevMonthRow.setup_config || {}) as MonthSetupConfig
     const habits: HabitConfig[] = Array.isArray(rawConfig.habits) ? rawConfig.habits : []
+    const widgetCount = Array.isArray(prevMonthRow.widgets) ? prevMonthRow.widgets.length : 0
 
     return {
       exists: true,
@@ -101,7 +113,7 @@ export async function getPreviousMonthData(
       paperRight: prevMonthRow.paper_right as PaperStyle,
       nextMonthNote: prevMonthRow.next_month_note,
       habits,
-      widgetCount: count ?? 0,
+      widgetCount,
     }
   } catch (err) {
     console.error('Failed to load previous month data:', err)

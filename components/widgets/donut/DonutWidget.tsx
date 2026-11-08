@@ -15,11 +15,15 @@
  * - Palette L6 only, fonts L5 only, no emoji, hand-drawn SVG icon (L13)
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
 import { pollEntrySchema, habitTrackerEntrySchema } from '../entrySchemas'
-import { getWidgetEntriesWithCache } from '../entryHelpers'
+import {
+  getWidgetEntriesWithCache,
+  getInitialWidgetEntries,
+  type WidgetEntryRow,
+} from '../entryHelpers'
 import { useEntriesVersionStore } from '@/store/entriesVersion'
 import { seedFromString, jitter } from '../charts/chartUtils'
 import type { HabitConfig } from '@/types/db'
@@ -77,12 +81,19 @@ export function DonutDesktop({
   setupConfig,
   w,
   h,
-}: WidgetRenderProps<DonutConfig>) {
+  ...rest
+}: WidgetRenderProps<DonutConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   const title = config?.title || 'Donut'
   const sourceWidgetId = config?.sourceWidgetId || ''
 
   const version = useEntriesVersionStore((s) => s.version)
-  const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>([])
+  const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>(() => {
+    if (!sourceWidgetId) return []
+    const sourceInitial = initialEntries?.filter((e) => e.widget_id === sourceWidgetId)
+    if (sourceInitial && sourceInitial.length > 0) return sourceInitial
+    return getInitialWidgetEntries(sourceWidgetId)
+  })
   const [loading, setLoading] = useState(false)
 
   const seed = useMemo(() => seedFromString(id || 'donut'), [id])
@@ -94,7 +105,12 @@ export function DonutDesktop({
   }, [setupConfig])
 
   // Fetch source data
+  const isFirstMount = useRef(true)
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+      return
+    }
     let cancelled = false
     async function fetchSource() {
       if (!sourceWidgetId) {
@@ -335,7 +351,9 @@ export function DonutDesktop({
 }
 
 // ── Mobile Render Component (Task 11 placeholder) ─────────────
-export function DonutMobile(props: WidgetRenderProps<DonutConfig>) {
+export function DonutMobile(
+  props: WidgetRenderProps<DonutConfig> & { initialEntries?: WidgetEntryRow[] },
+) {
   return <DonutDesktop {...props} />
 }
 

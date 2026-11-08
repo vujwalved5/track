@@ -17,10 +17,14 @@
  * - Palette L6 only, fonts L5 only, no emoji, hand-drawn SVG icon (L13)
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
-import { getWidgetEntriesWithCache } from '../entryHelpers'
+import {
+  getWidgetEntriesWithCache,
+  getInitialWidgetEntries,
+  type WidgetEntryRow,
+} from '../entryHelpers'
 import { useEntriesVersionStore } from '@/store/entriesVersion'
 import {
   wobblePath,
@@ -87,7 +91,9 @@ export function LineGraphDesktop({
   config,
   w,
   h,
-}: WidgetRenderProps<LineGraphConfig>) {
+  ...rest
+}: WidgetRenderProps<LineGraphConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   const title = config?.title || 'Line Graph'
   const sourceWidgetId = config?.sourceWidgetId || ''
   const isDown =
@@ -96,13 +102,23 @@ export function LineGraphDesktop({
       : !!config?.vertical
 
   const version = useEntriesVersionStore((s) => s.version)
-  const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>([])
+  const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>(() => {
+    if (!sourceWidgetId) return []
+    const sourceInitial = initialEntries?.filter((e) => e.widget_id === sourceWidgetId)
+    if (sourceInitial && sourceInitial.length > 0) return sourceInitial
+    return getInitialWidgetEntries(sourceWidgetId)
+  })
   const [loading, setLoading] = useState(false)
 
   // Seed for deterministic wobble
   const seed = useMemo(() => seedFromString(id || 'line-graph'), [id])
 
+  const isFirstMount = useRef(true)
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+      return
+    }
     let cancelled = false
     async function fetchSourceData() {
       if (!sourceWidgetId) {
@@ -286,7 +302,9 @@ export function LineGraphDesktop({
 }
 
 // ── Mobile Render Component (Task 11 placeholder) ─────────────
-export function LineGraphMobile(props: WidgetRenderProps<LineGraphConfig>) {
+export function LineGraphMobile(
+  props: WidgetRenderProps<LineGraphConfig> & { initialEntries?: WidgetEntryRow[] },
+) {
   return <LineGraphDesktop {...props} />
 }
 

@@ -24,7 +24,12 @@ import type { HabitConfig } from '@/types/db'
 import {
   habitTrackerEntrySchema,
 } from '../entrySchemas'
-import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
+import {
+  saveWidgetEntryAndBump,
+  getWidgetEntriesWithCache,
+  getInitialWidgetEntries,
+  type WidgetEntryRow,
+} from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const habitTrackerConfigSchema = z.object({
@@ -103,33 +108,37 @@ function HandDrawnX({ isRed = false }: { isRed?: boolean }) {
   )
 }
 
+function parseHabitTrackerRows(
+  rows: WidgetEntryRow[],
+): Record<number, Record<string, boolean>> {
+  const next: Record<number, Record<string, boolean>> = {}
+  for (const row of rows) {
+    const parsed = habitTrackerEntrySchema.safeParse(row.value)
+    if (parsed.success) {
+      next[row.day] = parsed.data.marks
+    }
+  }
+  return next
+}
+
 // ── Custom Hook for shared entry management ────────────────────
-function useHabitTrackerEntries(id: string, isArrangeMode?: boolean) {
+function useHabitTrackerEntries(
+  id: string,
+  isArrangeMode?: boolean,
+  initialEntries?: WidgetEntryRow[],
+) {
   const [entriesMap, setEntriesMap] = useState<
     Record<number, Record<string, boolean>>
-  >({})
+  >(() => {
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    return parseHabitTrackerRows(entries)
+  })
   const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
-    let cancelled = false
-    async function load() {
-      const res = await getWidgetEntriesWithCache(id)
-      if (!cancelled && res.success && res.data) {
-        const next: Record<number, Record<string, boolean>> = {}
-        for (const row of res.data) {
-          const parsed = habitTrackerEntrySchema.safeParse(row.value)
-          if (parsed.success) {
-            next[row.day] = parsed.data.marks
-          }
-        }
-        setEntriesMap(next)
-      }
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [id])
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    setEntriesMap(parseHabitTrackerRows(entries))
+  }, [id, initialEntries])
 
   const toggleCell = useCallback(
     async (day: number, habitIdx: number) => {
@@ -173,7 +182,9 @@ export function HabitTrackerDesktop({
   isArrangeMode,
   w = 14,
   h = 24,
-}: WidgetRenderProps<HabitTrackerConfig>) {
+  ...rest
+}: WidgetRenderProps<HabitTrackerConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   // Read habits strictly from setupConfig (Correction 1: no invented habits)
   const habits: HabitConfig[] = useMemo(() => {
     if (!setupConfig || !Array.isArray(setupConfig.habits)) {
@@ -185,6 +196,7 @@ export function HabitTrackerDesktop({
   const { entriesMap, saveError, toggleCell } = useHabitTrackerEntries(
     id,
     isArrangeMode,
+    initialEntries,
   )
 
   const isCompactHeight = h < 18
@@ -314,7 +326,9 @@ export function HabitTrackerMobile({
   year,
   month,
   mobileSubPage = 0,
-}: WidgetRenderProps<HabitTrackerConfig>) {
+  ...rest
+}: WidgetRenderProps<HabitTrackerConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   const habits: HabitConfig[] = useMemo(() => {
     if (!setupConfig || !Array.isArray(setupConfig.habits)) {
       return []
@@ -325,6 +339,7 @@ export function HabitTrackerMobile({
   const { entriesMap, saveError, toggleCell } = useHabitTrackerEntries(
     id,
     isArrangeMode,
+    initialEntries,
   )
 
   const daysInMonth =

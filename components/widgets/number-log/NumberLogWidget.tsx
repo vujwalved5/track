@@ -19,7 +19,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
 import { numberLogEntrySchema } from '../entrySchemas'
-import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
+import {
+  saveWidgetEntryAndBump,
+  getWidgetEntriesWithCache,
+  getInitialWidgetEntries,
+  type WidgetEntryRow,
+} from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const numberLogConfigSchema = z.object({
@@ -68,34 +73,36 @@ export function NumberLogIcon({ className = 'w-5 h-5' }: { className?: string })
   )
 }
 
+function parseNumberLogRows(rows: WidgetEntryRow[]): Record<number, number | null> {
+  const next: Record<number, number | null> = {}
+  for (const row of rows) {
+    const parsed = numberLogEntrySchema.safeParse(row.value)
+    if (parsed.success) {
+      next[row.day] = parsed.data.value
+    }
+  }
+  return next
+}
+
 // ── Custom Hook for shared entry management ────────────────────
-function useNumberLogEntries(id: string, isArrangeMode?: boolean) {
-  const [valuesMap, setValuesMap] = useState<Record<number, number | null>>({})
+function useNumberLogEntries(
+  id: string,
+  isArrangeMode?: boolean,
+  initialEntries?: WidgetEntryRow[],
+) {
+  const [valuesMap, setValuesMap] = useState<Record<number, number | null>>(() => {
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    return parseNumberLogRows(entries)
+  })
   const [saveError, setSaveError] = useState<string | null>(null)
   const [editingDay, setEditingDay] = useState<number | null>(null)
   const [editingText, setEditingText] = useState<string>('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    let cancelled = false
-    async function load() {
-      const res = await getWidgetEntriesWithCache(id)
-      if (!cancelled && res.success && res.data) {
-        const next: Record<number, number | null> = {}
-        for (const row of res.data) {
-          const parsed = numberLogEntrySchema.safeParse(row.value)
-          if (parsed.success) {
-            next[row.day] = parsed.data.value
-          }
-        }
-        setValuesMap(next)
-      }
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [id])
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    setValuesMap(parseNumberLogRows(entries))
+  }, [id, initialEntries])
 
   useEffect(() => {
     if (editingDay !== null && inputRef.current) {
@@ -167,7 +174,9 @@ export function NumberLogDesktop({
   isArrangeMode,
   w = 6,
   h = 24,
-}: WidgetRenderProps<NumberLogConfig>) {
+  ...rest
+}: WidgetRenderProps<NumberLogConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   const label = config?.label || 'Number Log'
   const unit = config?.unit || ''
   const isCompactHeight = h < 18
@@ -184,7 +193,7 @@ export function NumberLogDesktop({
     commitEdit,
     handleRowClick,
     handleInputKeyDown,
-  } = useNumberLogEntries(id, isArrangeMode)
+  } = useNumberLogEntries(id, isArrangeMode, initialEntries)
 
   return (
     <div className="relative w-full h-full flex flex-col bg-transparent select-none overflow-hidden">
@@ -312,7 +321,9 @@ export function NumberLogMobile({
   year,
   month,
   mobileSubPage = 0,
-}: WidgetRenderProps<NumberLogConfig>) {
+  ...rest
+}: WidgetRenderProps<NumberLogConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   const label = config?.label || 'Number Log'
   const unit = config?.unit || ''
   const {
@@ -326,7 +337,7 @@ export function NumberLogMobile({
     handleRowClick,
     handleInputKeyDown,
     setEditingDay,
-  } = useNumberLogEntries(id, isArrangeMode)
+  } = useNumberLogEntries(id, isArrangeMode, initialEntries)
 
   const daysInMonth =
     year && month ? new Date(year, month, 0).getDate() : 31

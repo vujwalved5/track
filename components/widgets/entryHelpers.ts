@@ -60,6 +60,17 @@ export function registerWidgetInCache(widgetId: string) {
 }
 
 /**
+ * Synchronously retrieves initial entries for a given widget ID from memory cache.
+ * Returns an empty array if not cached or if the widget has 0 entries.
+ */
+export function getInitialWidgetEntries(widgetId: string): WidgetEntryRow[] {
+  if (initialEntriesCache && initialEntriesCache.has(widgetId)) {
+    return initialEntriesCache.get(widgetId) || []
+  }
+  return []
+}
+
+/**
  * Retrieves widget entries with transparent offline fallback.
  * - When primed with initial SSR entries: returns immediately from memory.
  * - When online: fetches from Supabase and populates local user cache.

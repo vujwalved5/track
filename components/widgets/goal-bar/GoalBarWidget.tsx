@@ -16,11 +16,15 @@
  * - Palette L6 only, fonts L5 only, no emoji, hand-drawn SVG icon (L13)
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
 import { counterEntrySchema, numberLogEntrySchema } from '../entrySchemas'
-import { getWidgetEntriesWithCache } from '../entryHelpers'
+import {
+  getWidgetEntriesWithCache,
+  getInitialWidgetEntries,
+  type WidgetEntryRow,
+} from '../entryHelpers'
 import { useEntriesVersionStore } from '@/store/entriesVersion'
 import { seedFromString } from '../charts/chartUtils'
 
@@ -80,7 +84,9 @@ export function GoalBarDesktop({
   config,
   w = 14,
   h = 4,
-}: WidgetRenderProps<GoalBarConfig>) {
+  ...rest
+}: WidgetRenderProps<GoalBarConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   const title = config?.title || 'Goal'
   const sourceWidgetId = config?.sourceWidgetId || ''
   const target = config?.target && config.target > 0 ? config.target : 100
@@ -89,13 +95,23 @@ export function GoalBarDesktop({
   const isDown = orientation === 'down'
 
   const version = useEntriesVersionStore((s) => s.version)
-  const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>([])
+  const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>(() => {
+    if (!sourceWidgetId) return []
+    const sourceInitial = initialEntries?.filter((e) => e.widget_id === sourceWidgetId)
+    if (sourceInitial && sourceInitial.length > 0) return sourceInitial
+    return getInitialWidgetEntries(sourceWidgetId)
+  })
   const [loading, setLoading] = useState(false)
 
   const patternId = useMemo(() => `goal-hatch-${id || 'goal'}`, [id])
   const seed = useMemo(() => seedFromString(id || 'goal-bar'), [id])
 
+  const isFirstMount = useRef(true)
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+      return
+    }
     let cancelled = false
     async function fetchSource() {
       if (!sourceWidgetId) {
@@ -365,7 +381,9 @@ export function GoalBarDesktop({
 }
 
 // ── Mobile Render Component (Task 11 placeholder) ─────────────
-export function GoalBarMobile(props: WidgetRenderProps<GoalBarConfig>) {
+export function GoalBarMobile(
+  props: WidgetRenderProps<GoalBarConfig> & { initialEntries?: WidgetEntryRow[] },
+) {
   return <GoalBarDesktop {...props} />
 }
 

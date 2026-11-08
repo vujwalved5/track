@@ -20,7 +20,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
 import { checklistEntrySchema } from '../entrySchemas'
-import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
+import {
+  saveWidgetEntryAndBump,
+  getWidgetEntriesWithCache,
+  getInitialWidgetEntries,
+  type WidgetEntryRow,
+} from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const checklistConfigSchema = z.object({
@@ -115,39 +120,39 @@ function HandDrawnCheckbox({
   )
 }
 
+function parseChecklistRows(rows: WidgetEntryRow[]): ChecklistItem[] {
+  const day1Row = rows.find((e) => e.day === 1)
+  if (day1Row) {
+    const parsed = checklistEntrySchema.safeParse(day1Row.value)
+    if (parsed.success) {
+      return parsed.data.items
+    }
+  }
+  return []
+}
+
 // ── Desktop / Main Component ──────────────────────────────────
 export function ChecklistDesktop({
   id,
   config,
   isArrangeMode,
-}: WidgetRenderProps<ChecklistConfig>) {
+  ...rest
+}: WidgetRenderProps<ChecklistConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   const title = config?.title || 'Checklist'
 
-  const [items, setItems] = useState<ChecklistItem[]>([])
+  const [items, setItems] = useState<ChecklistItem[]>(() => {
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    return parseChecklistRows(entries)
+  })
   const [newItemText, setNewItemText] = useState('')
   const [saveError, setSaveError] = useState<string | null>(null)
   const newRef = useRef<HTMLInputElement>(null)
 
-  // Load items from DB at day = 1 (Correction 4)
   useEffect(() => {
-    let cancelled = false
-    async function load() {
-      const res = await getWidgetEntriesWithCache(id)
-      if (!cancelled && res.success && res.data) {
-        const day1Row = res.data.find((e) => e.day === 1)
-        if (day1Row) {
-          const parsed = checklistEntrySchema.safeParse(day1Row.value)
-          if (parsed.success) {
-            setItems(parsed.data.items)
-          }
-        }
-      }
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [id])
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    setItems(parseChecklistRows(entries))
+  }, [id, initialEntries])
 
   // Commit items array to entries at day = 1
   const commitItems = useCallback(
@@ -344,7 +349,9 @@ export function ChecklistDesktop({
 }
 
 // ── Mobile Render Component (Task 11 placeholder) ─────────────
-export function ChecklistMobile(props: WidgetRenderProps<ChecklistConfig>) {
+export function ChecklistMobile(
+  props: WidgetRenderProps<ChecklistConfig> & { initialEntries?: WidgetEntryRow[] },
+) {
   return <ChecklistDesktop {...props} />
 }
 

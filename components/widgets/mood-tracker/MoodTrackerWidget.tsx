@@ -27,7 +27,12 @@ import {
   getDaysInMonth,
 } from '../shared/DayStepper'
 import { moodTrackerEntrySchema } from '../entrySchemas'
-import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
+import {
+  saveWidgetEntryAndBump,
+  getWidgetEntriesWithCache,
+  getInitialWidgetEntries,
+  type WidgetEntryRow,
+} from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const moodTrackerConfigSchema = z.object({
@@ -212,6 +217,17 @@ const MOOD_LABELS: Record<MoodValue, string> = {
   5: 'Very happy',
 }
 
+function parseMoodTrackerRows(rows: WidgetEntryRow[]): Record<number, MoodValue> {
+  const next: Record<number, MoodValue> = {}
+  for (const row of rows) {
+    const parsed = moodTrackerEntrySchema.safeParse(row.value)
+    if (parsed.success) {
+      next[row.day] = parsed.data.mood as MoodValue
+    }
+  }
+  return next
+}
+
 // ── Desktop / Main Component ──────────────────────────────────
 export function MoodTrackerDesktop({
   id,
@@ -219,7 +235,9 @@ export function MoodTrackerDesktop({
   year,
   month,
   isArrangeMode,
-}: WidgetRenderProps<MoodTrackerConfig>) {
+  ...rest
+}: WidgetRenderProps<MoodTrackerConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   const title = config?.title || 'Mood'
 
   const defaultDay = useMemo(() => getDefaultActiveDay(year, month), [year, month])
@@ -227,30 +245,16 @@ export function MoodTrackerDesktop({
   const [activeDay, setActiveDay] = useState(defaultDay)
 
   // Map of day -> mood (1..5)
-  const [moodsMap, setMoodsMap] = useState<Record<number, MoodValue>>({})
+  const [moodsMap, setMoodsMap] = useState<Record<number, MoodValue>>(() => {
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    return parseMoodTrackerRows(entries)
+  })
   const [saveError, setSaveError] = useState<string | null>(null)
 
-  // Load entries from DB
   useEffect(() => {
-    let cancelled = false
-    async function load() {
-      const res = await getWidgetEntriesWithCache(id)
-      if (!cancelled && res.success && res.data) {
-        const next: Record<number, MoodValue> = {}
-        for (const row of res.data) {
-          const parsed = moodTrackerEntrySchema.safeParse(row.value)
-          if (parsed.success) {
-            next[row.day] = parsed.data.mood as MoodValue
-          }
-        }
-        setMoodsMap(next)
-      }
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [id])
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    setMoodsMap(parseMoodTrackerRows(entries))
+  }, [id, initialEntries])
 
   // Record mood for active day
   const selectMood = useCallback(
@@ -388,7 +392,9 @@ export function MoodTrackerDesktop({
 }
 
 // ── Mobile Render Component (Task 11 placeholder) ─────────────
-export function MoodTrackerMobile(props: WidgetRenderProps<MoodTrackerConfig>) {
+export function MoodTrackerMobile(
+  props: WidgetRenderProps<MoodTrackerConfig> & { initialEntries?: WidgetEntryRow[] },
+) {
   return <MoodTrackerDesktop {...props} />
 }
 

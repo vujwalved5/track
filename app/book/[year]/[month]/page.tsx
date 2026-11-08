@@ -103,9 +103,11 @@ export default async function BookMonthPage({ params }: PageProps) {
       setupConfig = (monthData.setup_config as Record<string, unknown>) || {}
 
       const rawWidgets = (monthData.widgets as WidgetData[]) || []
-      // Deterministically sort widgets by created_at ascending
+      // Deterministically sort widgets by created_at ascending (with id tie-breaker)
       rawWidgets.sort(
-        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime() ||
+          a.id.localeCompare(b.id),
       )
       initialWidgets = rawWidgets
 
@@ -144,26 +146,23 @@ export default async function BookMonthPage({ params }: PageProps) {
       today.getDate() <= daysInViewedMonth
 
     if (isLast3DaysOfViewedMonth) {
-      const nextBookRes = await supabase
+      const { data: nextBook } = await supabase
         .from('books')
-        .select('id')
+        .select(`
+          id,
+          months (
+            setup_done
+          )
+        `)
         .eq('user_id', user.id)
         .eq('year', nextYear)
+        .eq('months.month', nextMonth)
         .maybeSingle()
 
-      if (!nextBookRes.data) {
+      const rawNextBook = nextBook as unknown as { months?: Array<{ setup_done: boolean }> } | null
+      const nextMonthRow = rawNextBook?.months?.[0]
+      if (!nextMonthRow || !nextMonthRow.setup_done) {
         showNextMonthPrompt = true
-      } else {
-        const nextMonthRes = await supabase
-          .from('months')
-          .select('setup_done')
-          .eq('book_id', nextBookRes.data.id)
-          .eq('month', nextMonth)
-          .maybeSingle()
-
-        if (!nextMonthRes.data || !nextMonthRes.data.setup_done) {
-          showNextMonthPrompt = true
-        }
       }
     }
 

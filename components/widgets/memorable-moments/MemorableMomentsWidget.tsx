@@ -23,7 +23,12 @@ import type { WidgetDefinition, WidgetRenderProps } from '../types'
 import {
   memorableMomentsEntrySchema,
 } from '../entrySchemas'
-import { saveWidgetEntryAndBump, getWidgetEntriesWithCache } from '../entryHelpers'
+import {
+  saveWidgetEntryAndBump,
+  getWidgetEntriesWithCache,
+  getInitialWidgetEntries,
+  type WidgetEntryRow,
+} from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const memorableMomentsConfigSchema = z.object({
@@ -87,33 +92,35 @@ export function MemorableMomentsIcon({
   )
 }
 
+function parseMemorableMomentsRows(rows: WidgetEntryRow[]): Record<number, DayEntryState> {
+  const next: Record<number, DayEntryState> = {}
+  for (const row of rows) {
+    const parsed = memorableMomentsEntrySchema.safeParse(row.value)
+    if (parsed.success) {
+      next[row.day] = parsed.data
+    }
+  }
+  return next
+}
+
 // ── Custom Hook for shared entry management ────────────────────
-function useMemorableMomentsEntries(id: string, isArrangeMode?: boolean) {
-  const [entriesMap, setEntriesMap] = useState<Record<number, DayEntryState>>({})
+function useMemorableMomentsEntries(
+  id: string,
+  isArrangeMode?: boolean,
+  initialEntries?: WidgetEntryRow[],
+) {
+  const [entriesMap, setEntriesMap] = useState<Record<number, DayEntryState>>(() => {
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    return parseMemorableMomentsRows(entries)
+  })
   const [saveError, setSaveError] = useState<string | null>(null)
   const longPressTimerRef = useRef<{ [day: number]: NodeJS.Timeout }>({})
   const longPressFiredRef = useRef<{ [day: number]: boolean }>({})
 
   useEffect(() => {
-    let cancelled = false
-    async function load() {
-      const res = await getWidgetEntriesWithCache(id)
-      if (!cancelled && res.success && res.data) {
-        const next: Record<number, DayEntryState> = {}
-        for (const row of res.data) {
-          const parsed = memorableMomentsEntrySchema.safeParse(row.value)
-          if (parsed.success) {
-            next[row.day] = parsed.data
-          }
-        }
-        setEntriesMap(next)
-      }
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [id])
+    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    setEntriesMap(parseMemorableMomentsRows(entries))
+  }, [id, initialEntries])
 
   const commitDayState = useCallback(
     async (day: number, nextState: DayEntryState) => {
@@ -218,7 +225,9 @@ export function MemorableMomentsDesktop({
   id,
   config,
   isArrangeMode,
-}: WidgetRenderProps<MemorableMomentsConfig>) {
+  ...rest
+}: WidgetRenderProps<MemorableMomentsConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   const title = config?.title || 'Memorable Moments'
   const {
     entriesMap,
@@ -229,7 +238,7 @@ export function MemorableMomentsDesktop({
     toggleHighlight,
     handlePointerDown,
     handlePointerUpOrLeave,
-  } = useMemorableMomentsEntries(id, isArrangeMode)
+  } = useMemorableMomentsEntries(id, isArrangeMode, initialEntries)
 
   // Render a single day row on 22px rule
   const renderDayRow = (day: number) => {
@@ -411,7 +420,9 @@ export function MemorableMomentsMobile({
   year,
   month,
   mobileSubPage = 0,
-}: WidgetRenderProps<MemorableMomentsConfig>) {
+  ...rest
+}: WidgetRenderProps<MemorableMomentsConfig> & { initialEntries?: WidgetEntryRow[] }) {
+  const initialEntries = rest.initialEntries
   const title = config?.title || 'Memorable Moments'
   const {
     entriesMap,
@@ -422,7 +433,7 @@ export function MemorableMomentsMobile({
     toggleHighlight,
     handlePointerDown,
     handlePointerUpOrLeave,
-  } = useMemorableMomentsEntries(id, isArrangeMode)
+  } = useMemorableMomentsEntries(id, isArrangeMode, initialEntries)
 
   const daysInMonth =
     year && month ? new Date(year, month, 0).getDate() : 31
