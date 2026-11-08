@@ -33,6 +33,7 @@ export const goalBarConfigSchema = z.object({
     .describe('counter, number-log'),
   target: z.number().positive().default(100),
   unit: z.string().default(''),
+  orientation: z.enum(['across', 'down']).default('across'),
 })
 
 export type GoalBarConfig = z.infer<typeof goalBarConfigSchema>
@@ -84,6 +85,8 @@ export function GoalBarDesktop({
   const sourceWidgetId = config?.sourceWidgetId || ''
   const target = config?.target && config.target > 0 ? config.target : 100
   const unit = config?.unit || ''
+  const orientation = config?.orientation || 'across'
+  const isDown = orientation === 'down'
 
   const version = useEntriesVersionStore((s) => s.version)
   const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>([])
@@ -138,12 +141,25 @@ export function GoalBarDesktop({
 
   // Bar SVG dimensions
   const widthPx = w * 22
+  const heightPx = h * 22
   const isCompact = w <= 5 || h <= 2
   const isUltraCompact = h <= 2
+
+  // Horizontal "across" dimensions
   const sidePad = isCompact ? 8 : 16
   const barWidth = Math.max(20, widthPx - sidePad * 2)
   const barHeight = isCompact ? 16 : 22
   const filledWidth = Math.max(0, barWidth * progressFrac)
+
+  // Vertical "down" dimensions (fills upward from bottom)
+  const vBarW = isCompact ? 14 : 18
+  const vBarH = Math.max(20, heightPx - (isUltraCompact ? 26 : 48))
+  const barX = Math.round((widthPx - vBarW) / 2)
+  const barY = 4
+  const filledHeight = progressFrac > 0 ? Math.max(1, (vBarH - 2) * progressFrac) : 0
+  const fillY = barY + 1 + (vBarH - 2 - filledHeight)
+  const fillX = barX + 1
+  const fillW = vBarW - 2
 
   return (
     <div className={`relative w-full h-full flex flex-col justify-between bg-transparent select-none overflow-hidden ${isCompact ? 'p-1' : 'p-2.5'}`}>
@@ -182,8 +198,8 @@ export function GoalBarDesktop({
           </p>
         ) : (
           <svg
-            viewBox={`0 0 ${widthPx} ${barHeight + 6}`}
-            className="w-full h-full max-h-[28px] overflow-visible"
+            viewBox={`0 0 ${widthPx} ${isDown ? vBarH + 8 : barHeight + 6}`}
+            className={`w-full h-full ${isDown ? '' : 'max-h-[28px]'} overflow-visible`}
             role="img"
             aria-label={`Goal bar for ${title}, ${currentTotal} of ${target}${unit ? ' ' + unit : ''}, ${percent}%`}
           >
@@ -207,41 +223,104 @@ export function GoalBarDesktop({
               </pattern>
             </defs>
 
-            {/* Outer wobbly capsule frame */}
-            <rect
-              x={sidePad}
-              y="3"
-              width={barWidth}
-              height={barHeight}
-              rx="3"
-              fill="none"
-              stroke="#1c2433"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-            />
+            {isDown ? (
+              <>
+                {/* Outer vertical capsule frame */}
+                <rect
+                  x={barX}
+                  y={barY}
+                  width={vBarW}
+                  height={vBarH}
+                  rx="3"
+                  fill="none"
+                  stroke="#1c2433"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
 
-            {/* Filled progress section */}
-            {filledWidth > 0 && (
-              <rect
-                x={sidePad + 1}
-                y="4"
-                width={Math.max(1, filledWidth - 2)}
-                height={barHeight - 2}
-                rx="2"
-                fill={`url(#${patternId})`}
-                stroke={isReached ? '#b3261e' : '#1c2433'}
-                strokeWidth="1"
-              />
-            )}
+                {/* Filled progress section filling upward from bottom */}
+                {filledHeight > 0 && (
+                  <rect
+                    x={fillX}
+                    y={fillY}
+                    width={fillW}
+                    height={filledHeight}
+                    rx="2"
+                    fill={`url(#${patternId})`}
+                    stroke={isReached ? '#b3261e' : '#1c2433'}
+                    strokeWidth="1"
+                  />
+                )}
 
-            {/* Goal achieved marker */}
-            {isReached && (
-              <path
-                d={`M ${sidePad + barWidth - 1} 1 L ${sidePad + barWidth + 3} 3 L ${sidePad + barWidth - 1} 5`}
-                stroke="#b3261e"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
+                {/* Goal achieved marker at top of vertical bar */}
+                {isReached && (
+                  <path
+                    d={`M ${barX - 2} ${barY} L ${barX + vBarW / 2} ${barY - 3} L ${barX + vBarW + 2} ${barY}`}
+                    stroke="#b3261e"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                )}
+
+                {/* Side guide labels if width permits */}
+                {widthPx >= 88 && (
+                  <>
+                    <text
+                      x={barX + vBarW + 5}
+                      y={barY + 9}
+                      className="font-hand text-[9px] fill-ink/70 select-none"
+                    >
+                      {target}
+                    </text>
+                    <text
+                      x={barX + vBarW + 5}
+                      y={barY + vBarH - 1}
+                      className="font-hand text-[9px] fill-ink/70 select-none"
+                    >
+                      0
+                    </text>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Outer wobbly capsule frame */}
+                <rect
+                  x={sidePad}
+                  y="3"
+                  width={barWidth}
+                  height={barHeight}
+                  rx="3"
+                  fill="none"
+                  stroke="#1c2433"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+
+                {/* Filled progress section */}
+                {filledWidth > 0 && (
+                  <rect
+                    x={sidePad + 1}
+                    y="4"
+                    width={Math.max(1, filledWidth - 2)}
+                    height={barHeight - 2}
+                    rx="2"
+                    fill={`url(#${patternId})`}
+                    stroke={isReached ? '#b3261e' : '#1c2433'}
+                    strokeWidth="1"
+                  />
+                )}
+
+                {/* Goal achieved marker */}
+                {isReached && (
+                  <path
+                    d={`M ${sidePad + barWidth - 1} 1 L ${sidePad + barWidth + 3} 3 L ${sidePad + barWidth - 1} 5`}
+                    stroke="#b3261e"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                )}
+              </>
             )}
           </svg>
         )}

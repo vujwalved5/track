@@ -44,23 +44,29 @@ export const goalBarConfigSchema = z.object({
   target: z.number().default(100),
   sourceWidgetId: z.string().default(''),
   unit: z.string().default(''),
+  orientation: z.enum(['across', 'down']).default('across'),
 })
 
 export const lineGraphConfigSchema = z.object({
   title: z.string().default('Line Graph'),
   sourceWidgetId: z.string().default(''),
-  vertical: z.boolean().default(false),
+  orientation: z.enum(['across', 'down']).default('across'),
+  vertical: z.boolean().optional(),
 })
 
 export const barChartConfigSchema = z.object({
   title: z.string().default('Daily Bars'),
   sourceWidgetId: z.string().default(''),
+  orientation: z.enum(['across', 'down']).default('across'),
 })
 
 export const scatterPlotConfigSchema = z.object({
   title: z.string().default('Scatter Plot'),
+  sourceWidgetId: z.string().default(''),
+  sourceWidgetId2: z.string().default(''),
   xSourceWidgetId: z.string().default(''),
   ySourceWidgetId: z.string().default(''),
+  orientation: z.enum(['across', 'down']).default('across'),
 })
 
 export const donutConfigSchema = z.object({

@@ -348,6 +348,22 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - Stored config keys strictly unchanged (`sourceWidgetId` and `sourceWidgetId2`).
 - `components/widgets/scatter-plot/ScatterPlotWidget.tsx` — Maintained dual-key compatibility for `sourceWidgetId` / `xSourceWidgetId` and `sourceWidgetId2` / `ySourceWidgetId` to preserve schema contracts without breaking client state.
 
+### Phase 8 / Task 17 — Chart Rotate / Direction Option (Orientation: across | down)
+- **Orientation Config Field**: Added `orientation: z.enum(['across', 'down']).default('across')` to Zod schemas and `widgetMetadata.ts` for all 4 directional charts: Bar Chart, Line Graph, Goal Bar, Scatter Plot. Donut widget has no direction and remains unchanged.
+- **Direction Dropdown in Settings**: In `components/widgets/WidgetConfigCard.tsx`, added a plain `<select>` labelled "Direction" styled identically to the "Data from" dropdown (`bg-paper/60 border-b border-dotted border-ink/50 text-ink font-hand`). Options in handwriting: "Across the page" (`value="across"`) and "Down the page" (`value="down"`).
+- **Line Graph Vertical Migration**:
+  - Reads `orientation` first (`'across' | 'down'`); if missing, treats legacy `vertical === true` as `'down'`, otherwise `'across'`.
+  - Removed `vertical` from `WidgetConfigCard.tsx` settings fields so reader sees only the Direction dropdown.
+  - On save, writes `orientation` only and deletes `vertical`.
+  - Zero database migration needed; legacy entries with `vertical` continue functioning seamlessly.
+  - Removed "vertical" badge from title header for consistent look across all charts.
+- **Visual Implementations**:
+  1. **Bar Chart**: "down" mode renders horizontal hatched bars with days running top to bottom; sparse day numbers (1, 5, 10, 15, 20, 25, 30) along the left edge right-aligned at `padLeft - 6`.
+  2. **Line Graph**: "down" mode plots points with days running top to bottom (values left to right) and sparse day numbers along the left edge.
+  3. **Goal Bar**: "down" mode renders a vertical capsule filling upward from bottom (`fillY = barY + 1 + (vBarH - 2 - filledHeight)`), with a top goal marker and guide numbers (0 bottom, target top).
+  4. **Scatter Plot**: "down" mode swaps the X and Y axes (`x = source2, y = source1`), dynamically recalculating extents and plotting swapped dots.
+- **Responsive & Dynamic**: Desktop and mobile renders respect the setting; charts redraw immediately upon saving config without requiring page refresh; setting persists to Supabase and survives page reloads.
+
 ## Next
 - Task 11 (Batch B) — Mobile Arrange mode (long-press on top ribbon, move up/down), WidgetDrawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets' mobile render.
 

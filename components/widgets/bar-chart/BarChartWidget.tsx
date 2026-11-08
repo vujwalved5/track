@@ -34,6 +34,7 @@ export const barChartConfigSchema = z.object({
     .string()
     .default('')
     .describe('number-log, counter, mood-tracker'),
+  orientation: z.enum(['across', 'down']).default('across'),
 })
 
 export type BarChartConfig = z.infer<typeof barChartConfigSchema>
@@ -83,6 +84,8 @@ export function BarChartDesktop({
 }: WidgetRenderProps<BarChartConfig>) {
   const title = config?.title || 'Bar Chart'
   const sourceWidgetId = config?.sourceWidgetId || ''
+  const orientation = config?.orientation || 'across'
+  const isDown = orientation === 'down'
 
   const version = useEntriesVersionStore((s) => s.version)
   const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>([])
@@ -130,15 +133,16 @@ export function BarChartDesktop({
   const widthPx = w * 22
   const heightPx = h * 22
   const isCompact = w <= 8 || h <= 8
+  const svgH = Math.max(40, heightPx - 24)
 
   // Plot area
-  const padLeft = isCompact ? 10 : 14
+  const padLeft = isCompact ? (isDown ? 22 : 10) : (isDown ? 28 : 14)
   const padRight = isCompact ? 8 : 14
-  const padTop = isCompact ? 22 : 30
-  const padBottom = isCompact ? 16 : 22
+  const padTop = isCompact ? (isDown ? 14 : 18) : (isDown ? 18 : 24)
+  const padBottom = isCompact ? (isDown ? 8 : 18) : (isDown ? 12 : 22)
 
   const plotW = Math.max(30, widthPx - padLeft - padRight)
-  const plotH = Math.max(30, heightPx - padTop - padBottom)
+  const plotH = Math.max(30, svgH - padTop - padBottom)
 
   // Value extents: start at 0 so bars represent heights from base
   const values = series.map((s) => s.value)
@@ -147,6 +151,9 @@ export function BarChartDesktop({
   // 31 slots
   const slotW = plotW / 31
   const barW = Math.max(2, slotW * 0.72)
+
+  const slotH = plotH / 31
+  const barH = Math.max(2, slotH * 0.72)
 
   return (
     <div className="relative w-full h-full flex flex-col bg-transparent select-none overflow-hidden p-2">
@@ -173,7 +180,7 @@ export function BarChartDesktop({
           </div>
         ) : (
           <svg
-            viewBox={`0 0 ${widthPx} ${heightPx - 24}`}
+            viewBox={`0 0 ${widthPx} ${svgH}`}
             className="w-full h-full overflow-visible"
             role="img"
             aria-label={`Bar chart of ${title}, ${series.length} entries, max value ${maxVal}`}
@@ -204,41 +211,80 @@ export function BarChartDesktop({
               const val = dayValueMap[day]
               if (val === undefined || val === null || val <= 0) return null
 
-              const barHeight = Math.max(2, (val / maxVal) * plotH)
-              const bx = padLeft + (day - 1) * slotW + (slotW - barW) / 2
-              const by = padTop + plotH - barHeight
+              if (isDown) {
+                // "down" draws horizontal bars with days running top to bottom
+                const barWidth = Math.max(2, (val / maxVal) * plotW)
+                const bx = padLeft
+                const by = padTop + (day - 1) * slotH + (slotH - barH) / 2
 
-              return (
-                <g key={day}>
-                  {/* Hatched fill bar */}
-                  <rect
-                    x={bx}
-                    y={by}
-                    width={barW}
-                    height={barHeight}
-                    fill={`url(#${patternId})`}
-                    stroke="#1c2433"
-                    strokeWidth="1.1"
-                    strokeLinecap="round"
-                  />
-                </g>
-              )
+                return (
+                  <g key={day}>
+                    {/* Hatched fill bar */}
+                    <rect
+                      x={bx}
+                      y={by}
+                      width={barWidth}
+                      height={barH}
+                      fill={`url(#${patternId})`}
+                      stroke="#1c2433"
+                      strokeWidth="1.1"
+                      strokeLinecap="round"
+                    />
+                  </g>
+                )
+              } else {
+                // "across" draws vertical bars with days running left to right
+                const barHeight = Math.max(2, (val / maxVal) * plotH)
+                const bx = padLeft + (day - 1) * slotW + (slotW - barW) / 2
+                const by = padTop + plotH - barHeight
+
+                return (
+                  <g key={day}>
+                    {/* Hatched fill bar */}
+                    <rect
+                      x={bx}
+                      y={by}
+                      width={barW}
+                      height={barHeight}
+                      fill={`url(#${patternId})`}
+                      stroke="#1c2433"
+                      strokeWidth="1.1"
+                      strokeLinecap="round"
+                    />
+                  </g>
+                )
+              }
             })}
 
-            {/* Sparse day labels along the bottom */}
+            {/* Sparse day labels */}
             {SPARSE_DAYS.map((d) => {
-              const x = padLeft + (d - 1) * slotW + slotW / 2
-              return (
-                <text
-                  key={d}
-                  x={x}
-                  y={padTop + plotH + 14}
-                  textAnchor="middle"
-                  className="font-hand text-[9px] fill-ink/70"
-                >
-                  {d}
-                </text>
-              )
+              if (isDown) {
+                const y = padTop + (d - 1) * slotH + slotH / 2
+                return (
+                  <text
+                    key={d}
+                    x={padLeft - 6}
+                    y={y + 3}
+                    textAnchor="end"
+                    className="font-hand text-[9px] fill-ink/70"
+                  >
+                    {d}
+                  </text>
+                )
+              } else {
+                const x = padLeft + (d - 1) * slotW + slotW / 2
+                return (
+                  <text
+                    key={d}
+                    x={x}
+                    y={padTop + plotH + 14}
+                    textAnchor="middle"
+                    className="font-hand text-[9px] fill-ink/70"
+                  >
+                    {d}
+                  </text>
+                )
+              }
             })}
           </svg>
         )}

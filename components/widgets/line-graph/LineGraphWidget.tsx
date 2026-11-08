@@ -35,7 +35,8 @@ export const lineGraphConfigSchema = z.object({
     .string()
     .default('')
     .describe('number-log, counter, mood-tracker'),
-  vertical: z.boolean().default(false),
+  orientation: z.enum(['across', 'down']).default('across'),
+  vertical: z.boolean().optional(),
 })
 
 export type LineGraphConfig = z.infer<typeof lineGraphConfigSchema>
@@ -89,7 +90,10 @@ export function LineGraphDesktop({
 }: WidgetRenderProps<LineGraphConfig>) {
   const title = config?.title || 'Line Graph'
   const sourceWidgetId = config?.sourceWidgetId || ''
-  const vertical = !!config?.vertical
+  const isDown =
+    config?.orientation === 'down' || config?.orientation === 'across'
+      ? config.orientation === 'down'
+      : !!config?.vertical
 
   const version = useEntriesVersionStore((s) => s.version)
   const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>([])
@@ -128,15 +132,16 @@ export function LineGraphDesktop({
   const widthPx = w * 22
   const heightPx = h * 22
   const isCompact = w <= 8 || h <= 8
+  const svgH = Math.max(40, heightPx - 24)
 
   // Chart plotting area
-  const padLeft = isCompact ? (vertical ? 18 : 14) : (vertical ? 28 : 22)
+  const padLeft = isCompact ? (isDown ? 22 : 14) : (isDown ? 28 : 22)
   const padRight = isCompact ? 8 : 14
-  const padTop = isCompact ? 22 : 32 // below title
-  const padBottom = isCompact ? (vertical ? 12 : 16) : (vertical ? 16 : 24)
+  const padTop = isCompact ? 18 : 24 // below title
+  const padBottom = isCompact ? (isDown ? 10 : 18) : (isDown ? 14 : 22)
 
   const plotW = Math.max(30, widthPx - padLeft - padRight)
-  const plotH = Math.max(30, heightPx - padTop - padBottom)
+  const plotH = Math.max(30, svgH - padTop - padBottom)
 
   // Value extents
   const values = series.map((s) => s.value)
@@ -149,7 +154,7 @@ export function LineGraphDesktop({
     return series.map((s) => {
       const dayFrac = Math.max(0, Math.min(1, (s.day - 1) / 30))
       const valFrac = (s.value - minVal) / valRange
-      if (vertical) {
+      if (isDown) {
         // Days running top to bottom, values left to right
         const y = padTop + dayFrac * plotH
         const x = padLeft + valFrac * plotW
@@ -161,7 +166,7 @@ export function LineGraphDesktop({
         return [x, y]
       }
     })
-  }, [series, minVal, valRange, vertical, padTop, padLeft, plotW, plotH])
+  }, [series, minVal, valRange, isDown, padTop, padLeft, plotW, plotH])
 
   const pathD = useMemo(() => wobblePath(points, seed), [points, seed])
 
@@ -172,11 +177,6 @@ export function LineGraphDesktop({
         <span className="font-hand text-xs font-bold text-ink truncate">
           {title}
         </span>
-        {vertical && (
-          <span className="font-hand text-[9px] text-ink/70 italic">
-            vertical
-          </span>
-        )}
       </div>
 
       {/* SVG Canvas */}
@@ -195,7 +195,7 @@ export function LineGraphDesktop({
           </div>
         ) : (
           <svg
-            viewBox={`0 0 ${widthPx} ${heightPx - 24}`}
+            viewBox={`0 0 ${widthPx} ${svgH}`}
             className="w-full h-full overflow-visible"
             role="img"
             aria-label={`Line graph of ${title}, ${series.length} entries${
@@ -227,7 +227,7 @@ export function LineGraphDesktop({
             {/* Sparse day labels (no axis lines or tick marks) */}
             {SPARSE_DAYS.map((d) => {
               const frac = (d - 1) / 30
-              if (vertical) {
+              if (isDown) {
                 const y = padTop + frac * plotH
                 return (
                   <text

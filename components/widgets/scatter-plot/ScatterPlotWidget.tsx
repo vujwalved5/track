@@ -41,6 +41,7 @@ export const scatterPlotConfigSchema = z.object({
     .describe('number-log, counter, mood-tracker'),
   xSourceWidgetId: z.string().optional(),
   ySourceWidgetId: z.string().optional(),
+  orientation: z.enum(['across', 'down']).default('across'),
 })
 
 export type ScatterPlotConfig = z.infer<typeof scatterPlotConfigSchema>
@@ -86,6 +87,7 @@ export function ScatterPlotDesktop({
   const title = config?.title || 'Scatter Plot'
   const source1Id = config?.sourceWidgetId || config?.xSourceWidgetId || ''
   const source2Id = config?.sourceWidgetId2 || config?.ySourceWidgetId || ''
+  const isDown = config?.orientation === 'down'
 
   const version = useEntriesVersionStore((s) => s.version)
   const [entries1, setEntries1] = useState<Array<{ day: number; value: unknown }>>([])
@@ -137,24 +139,28 @@ export function ScatterPlotDesktop({
       const v1 = map1.get(day)
       const v2 = map2.get(day)
       if (v1 !== undefined && v2 !== undefined) {
-        matched.push({ day, x: v1, y: v2 })
+        // "down" swaps the X and Y axes
+        const x = isDown ? v2 : v1
+        const y = isDown ? v1 : v2
+        matched.push({ day, x, y })
       }
     }
     return matched
-  }, [entries1, entries2])
+  }, [entries1, entries2, isDown])
 
   // Dimensions
   const widthPx = w * 22
   const heightPx = h * 22
   const isCompact = w <= 8 || h <= 8
+  const svgH = Math.max(40, heightPx - 24)
 
   const padLeft = isCompact ? 14 : 20
   const padRight = isCompact ? 10 : 20
-  const padTop = isCompact ? 22 : 32
-  const padBottom = isCompact ? 14 : 20
+  const padTop = isCompact ? 18 : 24
+  const padBottom = isCompact ? 12 : 16
 
   const plotW = Math.max(30, widthPx - padLeft - padRight)
-  const plotH = Math.max(30, heightPx - padTop - padBottom)
+  const plotH = Math.max(30, svgH - padTop - padBottom)
 
   // Extents
   const xValues = matchedPoints.map((p) => p.x)
@@ -198,7 +204,7 @@ export function ScatterPlotDesktop({
           </div>
         ) : (
           <svg
-            viewBox={`0 0 ${widthPx} ${heightPx - 24}`}
+            viewBox={`0 0 ${widthPx} ${svgH}`}
             className="w-full h-full overflow-visible"
             role="img"
             aria-label={`Scatter plot of ${title}, ${matchedPoints.length} matched days`}

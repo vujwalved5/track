@@ -62,8 +62,8 @@ function extractSchemaFields(
   const shape = schema.shape as Record<string, z.ZodTypeAny>
 
   for (const [key, rawType] of Object.entries(shape)) {
-    // Skip internal mirror fields
-    if (key === 'xSourceWidgetId' || key === 'ySourceWidgetId') {
+    // Skip internal mirror fields and deprecated fields
+    if (key === 'xSourceWidgetId' || key === 'ySourceWidgetId' || key === 'vertical') {
       continue
     }
 
@@ -250,6 +250,14 @@ export function WidgetConfigCard({
         initial[key] = desc.defaultValue
       }
     }
+    if (widget.type === 'line-graph') {
+      // Read orientation first. Only if orientation is missing, treat vertical === true as "down", otherwise "across".
+      const hasExplicitOrientation =
+        widget.config?.orientation === 'down' || widget.config?.orientation === 'across'
+      if (!hasExplicitOrientation) {
+        initial['orientation'] = widget.config?.vertical === true ? 'down' : 'across'
+      }
+    }
     if (widget.type === 'scatter-plot') {
       if (!initial['sourceWidgetId'] && widget.config?.['xSourceWidgetId']) {
         initial['sourceWidgetId'] = widget.config['xSourceWidgetId']
@@ -292,6 +300,9 @@ export function WidgetConfigCard({
     }
 
     const payload = { ...formData }
+    // Line graph: write orientation only, do not write vertical any more
+    delete payload.vertical
+
     if (widget.type === 'scatter-plot') {
       if (payload.sourceWidgetId !== undefined) {
         payload.xSourceWidgetId = payload.sourceWidgetId
@@ -387,6 +398,32 @@ export function WidgetConfigCard({
       <form onSubmit={handleSubmit} className="pt-4 flex flex-col gap-4">
         {Object.entries(schemaFields).map(([key, field]) => {
           const value = formData[key]
+
+          if (key === 'orientation') {
+            return (
+              <div key={key} className="flex flex-col gap-1">
+                <label
+                  htmlFor={`field-${key}`}
+                  className="text-xs font-bold text-ink/80"
+                >
+                  Direction
+                </label>
+                <select
+                  id={`field-${key}`}
+                  value={typeof value === 'string' ? value : 'across'}
+                  onChange={(e) => handleChange(key, e.target.value)}
+                  className="w-full bg-paper/60 border-b border-dotted border-ink/50 focus:border-ink focus:outline-none text-sm text-ink font-hand p-1 cursor-pointer"
+                >
+                  <option value="across" className="bg-paper text-ink font-hand">
+                    Across the page
+                  </option>
+                  <option value="down" className="bg-paper text-ink font-hand">
+                    Down the page
+                  </option>
+                </select>
+              </div>
+            )
+          }
 
           switch (field.kind) {
             case 'string':
