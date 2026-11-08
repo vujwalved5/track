@@ -409,6 +409,17 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - **Partitioned Zustand Store**: Partitioned `useEntriesVersionStore` by `widgetId` (`versions: Record<string, number>`) so modifying an entry in one widget only invalidates and re-renders that widget and subscribing charts.
 - **Phantom Import Removal**: Removed undeclared `@dnd-kit/utilities` phantom import in `WidgetWrapper.tsx` and replaced with inline `translate3d` style string. Verified zero packages outside Rule L3 (`zod`, `zustand`, `@dnd-kit/core`, `serwist`).
 
+### Repository Cleanup (Phase 2)
+- Completed repository cleanup on branch `cleanup`.
+- Removed legacy agent plan files (`HANDOFF.md`, `PLAN_A.md`–`PLAN_D.md`).
+- Removed obsolete test and audit scripts (`scripts/audit-imports.js`, `scripts/verify-complete.mjs`).
+- Removed stray screenshot (`opened_month_spread.png`).
+- Removed redundant `.gitkeep` files from components, lib, store, supabase, and types.
+- Untracked build artifacts (`public/sw.js`, `tsconfig.tsbuildinfo`) and added both to `.gitignore`; confirmed `npm run build` regenerates `public/sw.js`.
+- Removed dev preview route (`app/dev/paper/page.tsx`).
+- Removed legacy `.agents/teamwork` files.
+- Verified `npm run build` and `npx tsc --noEmit` pass cleanly after each change.
+
 ## Next
 - Complete Optimization Roadmap (Phase 1 through Phase 4) fully implemented and independently verified.
 - Production build passing cleanly with exit code 0 (`npm run build`).
