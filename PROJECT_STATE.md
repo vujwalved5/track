@@ -328,6 +328,26 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - Check 9 (Locked Decisions Audit): PASS. L3 (0 forbidden packages), L6 (palette strictly followed), L13 (100% hand-drawn SVG icons, 0 emoji).
   - TypeScript & Turbopack build: `npm run build` passes with exit code 0; verified 0 import leaks between `'use server'` and `'use client'`.
 
+### Phase 6 / Task 13 — Dev Demo Seed & Chart Source Dropdown
+- `supabase/seed/demo_nov_2026.sql` — Idempotent dev demo seed for `newuser@gmail.com`:
+  - Ensures Volume 2026 and Month 11 exist with `setup_done = true`, paper dotted on both pages.
+  - Sets up `setup_config` with 5 habits: Walk, Read, Water (normal), Sugar, Social media (red pen).
+  - Places Number Log on left page at `(x: 0, y: 4, w: 6, h: 24)` titled "Sleep score" with unit "/100".
+  - Places Habit Tracker on left page at `(x: 6, y: 4, w: 14, h: 24)` titled "Habits".
+  - Places Bar Chart on right page at `(x: 2, y: 4, w: 14, h: 12)` titled "Sleep this month", storing Number Log ID in config under key `sourceWidgetId`.
+  - 8 days of realistic entries:
+    - Sleep score: 72, 65, 80, 77, 58, 85, 90, 74.
+    - Habits: Walk on 1, 2, 4, 6, 7, 8; Read on 1, 3, 4, 5, 8; Water on 1 to 8; Sugar on 3, 5; Social media on 2, 3, 5, 6.
+  - Zero overlaps (bounds left `[0..20, 4..28]`, right `[2..16, 4..16]`); converts existing Daily Bars or deletes duplicates; safe to re-run with zero duplicate rows.
+- `components/widgets/WidgetConfigCard.tsx` — Replaced raw source text inputs with styled `<select>` dropdown:
+  - Replaces raw `sourceWidgetId` text input with authentic book-styled `<select>` dropdown (paper background, ink borders, Kalam font, L6 palette).
+  - Labelled "Data from" for Bar Chart, Line Graph, Donut, and Goal Bar.
+  - Scatter Plot sources labelled "X axis data" and "Y axis data".
+  - Options dynamically list compatible same-month widgets by human-readable title (e.g. "Sleep score") with underlying UUID stored in config.
+  - Displays handwritten fallback `<p className="font-hand text-xs text-ink/70 italic">Add a Number Log first.</p>` when no compatible widgets exist on the spread.
+  - Stored config keys strictly unchanged (`sourceWidgetId` and `sourceWidgetId2`).
+- `components/widgets/scatter-plot/ScatterPlotWidget.tsx` — Maintained dual-key compatibility for `sourceWidgetId` / `xSourceWidgetId` and `sourceWidgetId2` / `ySourceWidgetId` to preserve schema contracts without breaking client state.
+
 ## Next
 - Task 11 (Batch B) — Mobile Arrange mode (long-press on top ribbon, move up/down), WidgetDrawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets' mobile render.
 

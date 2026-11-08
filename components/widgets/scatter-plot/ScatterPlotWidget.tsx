@@ -39,6 +39,8 @@ export const scatterPlotConfigSchema = z.object({
     .string()
     .default('')
     .describe('number-log, counter, mood-tracker'),
+  xSourceWidgetId: z.string().optional(),
+  ySourceWidgetId: z.string().optional(),
 })
 
 export type ScatterPlotConfig = z.infer<typeof scatterPlotConfigSchema>
@@ -82,8 +84,8 @@ export function ScatterPlotDesktop({
   h,
 }: WidgetRenderProps<ScatterPlotConfig>) {
   const title = config?.title || 'Scatter Plot'
-  const source1Id = config?.sourceWidgetId || ''
-  const source2Id = config?.sourceWidgetId2 || ''
+  const source1Id = config?.sourceWidgetId || config?.xSourceWidgetId || ''
+  const source2Id = config?.sourceWidgetId2 || config?.ySourceWidgetId || ''
 
   const version = useEntriesVersionStore((s) => s.version)
   const [entries1, setEntries1] = useState<Array<{ day: number; value: unknown }>>([])

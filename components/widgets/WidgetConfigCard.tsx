@@ -51,6 +51,7 @@ function unwrapZodType(type: z.ZodTypeAny): z.ZodTypeAny {
  */
 function extractSchemaFields(
   schema: z.ZodTypeAny,
+  widgetType?: string,
 ): Record<string, SupportedFieldType> {
   const fields: Record<string, SupportedFieldType> = {}
 
@@ -61,27 +62,47 @@ function extractSchemaFields(
   const shape = schema.shape as Record<string, z.ZodTypeAny>
 
   for (const [key, rawType] of Object.entries(shape)) {
+    // Skip internal mirror fields
+    if (key === 'xSourceWidgetId' || key === 'ySourceWidgetId') {
+      continue
+    }
+
     const unwrapped = unwrapZodType(rawType)
 
     if (unwrapped instanceof z.ZodString) {
-      // Detect widgetSource picker: ZodString field whose key ends with 'SourceId'
-      // and whose .describe() lists compatible widget type ids (comma-separated).
+      // Detect widgetSource picker: field for widget data source
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const description =
         rawType.description ||
         unwrapped.description ||
         (rawType as any)._def?.description ||
         (unwrapped as any)._def?.description
-      if (key.endsWith('SourceId') && description) {
-        const compatibleTypes = description
-          .split(',')
-          .map((t: string) => t.trim())
-          .filter(Boolean)
-        if (compatibleTypes.length > 0) {
-          fields[key] = { kind: 'widgetSource', compatibleTypes, defaultValue: '' }
-        } else {
-          fields[key] = { kind: 'string', defaultValue: '' }
+
+      const isSourceKey =
+        key === 'sourceWidgetId' ||
+        key === 'sourceWidgetId2' ||
+        key.endsWith('SourceId') ||
+        key.endsWith('WidgetId') ||
+        key.toLowerCase().includes('source')
+
+      if (isSourceKey) {
+        let compatibleTypes: string[] = []
+        if (description) {
+          compatibleTypes = description
+            .split(',')
+            .map((t: string) => t.trim())
+            .filter(Boolean)
         }
+        if (compatibleTypes.length === 0) {
+          if (widgetType === 'donut') {
+            compatibleTypes = ['poll', 'habit-tracker']
+          } else if (widgetType === 'goal-bar') {
+            compatibleTypes = ['counter', 'number-log']
+          } else {
+            compatibleTypes = ['number-log', 'counter', 'mood-tracker']
+          }
+        }
+        fields[key] = { kind: 'widgetSource', compatibleTypes, defaultValue: '' }
       } else {
         fields[key] = { kind: 'string', defaultValue: '' }
       }
@@ -102,15 +123,19 @@ function extractSchemaFields(
 }
 
 /**
- * Returns a human-readable label for a widget in the source picker dropdown.
- * Format: "Display Name: label/unit/title" if config has a subtitle field.
+ * Returns a human-readable title for a widget in the source picker dropdown.
+ * Format: title, label, or question (e.g. "Sleep score"), falling back to displayName.
  */
-function getWidgetLabel(w: WidgetData): string {
+function getWidgetDisplayTitle(w: WidgetData): string {
+  const cfg = (w.config || {}) as Record<string, unknown>
+  for (const key of ['title', 'label', 'question']) {
+    const candidate = cfg[key]
+    if (typeof candidate === 'string' && candidate.trim().length > 0) {
+      return candidate.trim()
+    }
+  }
   const def = getWidgetDefinition(w.type)
-  const displayName = def?.displayName || w.type
-  const cfg = w.config as Record<string, unknown>
-  const sub = (cfg?.label ?? cfg?.unit ?? cfg?.title ?? '') as string
-  return sub ? `${displayName}: ${sub}` : displayName
+  return def?.displayName || w.type
 }
 
 // ── Hand-Drawn Radio Circle & Tick (L13, no emoji) ────────────
@@ -214,7 +239,7 @@ export function WidgetConfigCard({
 }: WidgetConfigCardProps) {
   const definition = getWidgetDefinition(widget.type)
   const schema = definition?.schema || z.object({})
-  const schemaFields = extractSchemaFields(schema)
+  const schemaFields = extractSchemaFields(schema, widget.type)
 
   const [formData, setFormData] = useState<Record<string, unknown>>(() => {
     const initial: Record<string, unknown> = {}
@@ -225,6 +250,14 @@ export function WidgetConfigCard({
         initial[key] = desc.defaultValue
       }
     }
+    if (widget.type === 'scatter-plot') {
+      if (!initial['sourceWidgetId'] && widget.config?.['xSourceWidgetId']) {
+        initial['sourceWidgetId'] = widget.config['xSourceWidgetId']
+      }
+      if (!initial['sourceWidgetId2'] && widget.config?.['ySourceWidgetId']) {
+        initial['sourceWidgetId2'] = widget.config['ySourceWidgetId']
+      }
+    }
     return initial
   })
 
@@ -232,7 +265,17 @@ export function WidgetConfigCard({
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const handleChange = (key: string, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [key]: value }))
+    setFormData((prev) => {
+      const next = { ...prev, [key]: value }
+      if (widget.type === 'scatter-plot') {
+        if (key === 'sourceWidgetId') {
+          next.xSourceWidgetId = value
+        } else if (key === 'sourceWidgetId2') {
+          next.ySourceWidgetId = value
+        }
+      }
+      return next
+    })
     setErrorMessage(null)
   }
 
@@ -248,8 +291,18 @@ export function WidgetConfigCard({
       return
     }
 
+    const payload = { ...formData }
+    if (widget.type === 'scatter-plot') {
+      if (payload.sourceWidgetId !== undefined) {
+        payload.xSourceWidgetId = payload.sourceWidgetId
+      }
+      if (payload.sourceWidgetId2 !== undefined) {
+        payload.ySourceWidgetId = payload.sourceWidgetId2
+      }
+    }
+
     // Validate using Zod schema
-    const validation = schema.safeParse(formData)
+    const validation = schema.safeParse(payload)
     if (!validation.success) {
       setErrorMessage(validation.error.errors[0]?.message || 'Invalid input')
       setIsSaving(false)
@@ -264,7 +317,22 @@ export function WidgetConfigCard({
       return
     }
 
-    onSaved(res.data)
+    const savedWidget = { ...res.data }
+    if (widget.type === 'scatter-plot' && savedWidget.config) {
+      savedWidget.config = {
+        ...savedWidget.config,
+        sourceWidgetId:
+          (savedWidget.config.sourceWidgetId as string) ||
+          (savedWidget.config.xSourceWidgetId as string) ||
+          '',
+        sourceWidgetId2:
+          (savedWidget.config.sourceWidgetId2 as string) ||
+          (savedWidget.config.ySourceWidgetId as string) ||
+          '',
+      }
+    }
+
+    onSaved(savedWidget)
     onClose()
   }
 
@@ -397,31 +465,51 @@ export function WidgetConfigCard({
               const compatibleWidgets = (allWidgets || []).filter(
                 (w) => field.compatibleTypes.includes(w.type) && w.id !== widget.id,
               )
-              const friendlyLabel =
-                key === 'sourceWidgetId'
-                  ? 'Data source'
-                  : key === 'sourceWidgetId2'
-                    ? 'Second source (Y axis)'
-                    : key
 
-              const options = [
-                { value: '', label: '— none —' },
-                ...compatibleWidgets.map((w) => ({
-                  value: w.id,
-                  label: getWidgetLabel(w),
-                })),
-              ]
+              let friendlyLabel = 'Data from'
+              if (widget.type === 'scatter-plot') {
+                if (key === 'sourceWidgetId') {
+                  friendlyLabel = 'X axis data'
+                } else if (key === 'sourceWidgetId2') {
+                  friendlyLabel = 'Y axis data'
+                }
+              }
 
               return (
-                <HandwrittenRadioList
-                  key={key}
-                  name={`field-${key}`}
-                  label={friendlyLabel}
-                  value={typeof value === 'string' ? value : ''}
-                  options={compatibleWidgets.length > 0 ? options : []}
-                  onChange={(val) => handleChange(key, val)}
-                  emptyMessage="No compatible widgets on this spread yet"
-                />
+                <div key={key} className="flex flex-col gap-1">
+                  <label
+                    htmlFor={compatibleWidgets.length > 0 ? `field-${key}` : undefined}
+                    className="text-xs font-bold text-ink/80"
+                  >
+                    {friendlyLabel}
+                  </label>
+
+                  {compatibleWidgets.length === 0 ? (
+                    <p className="font-hand text-xs text-ink/70 italic py-1">
+                      Add a Number Log first.
+                    </p>
+                  ) : (
+                    <select
+                      id={`field-${key}`}
+                      value={typeof value === 'string' ? value : ''}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      className="w-full bg-paper/60 border-b border-dotted border-ink/50 focus:border-ink focus:outline-none text-sm text-ink font-hand p-1 cursor-pointer"
+                    >
+                      <option value="" className="bg-paper text-ink font-hand">
+                        Select source
+                      </option>
+                      {compatibleWidgets.map((w) => (
+                        <option
+                          key={w.id}
+                          value={w.id}
+                          className="bg-paper text-ink font-hand"
+                        >
+                          {getWidgetDisplayTitle(w)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
               )
             }
 
