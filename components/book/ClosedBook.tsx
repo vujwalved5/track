@@ -2,7 +2,15 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Cormorant_Garamond } from 'next/font/google'
 import { signIn, signUp } from '@/lib/supabase/auth'
+
+const cormorant = Cormorant_Garamond({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  variable: '--font-cormorant',
+  display: 'swap',
+})
 
 export function ClosedBook() {
   const router = useRouter()
@@ -136,7 +144,7 @@ export function ClosedBook() {
   }
 
   return (
-    <div className="relative flex flex-col items-center justify-center p-4">
+    <div className={`relative flex flex-col items-center justify-center p-4 ${cormorant.variable}`}>
       {/* 3D Perspective container */}
       <div
         className="relative w-[min(520px,calc(100vw-32px))] h-[min(700px,calc((100vw-32px)*700/520))] aspect-[520/700] sm:aspect-auto sm:w-[520px] sm:h-[700px]"

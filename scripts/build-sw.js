@@ -18,13 +18,43 @@ const jsCode = ts.transpileModule(tsCode, {
 
 fs.writeFileSync(tmpJs, jsCode, 'utf8')
 
+const terser = require('next/dist/compiled/terser')
+
+class TerserPlugin {
+  apply(compiler) {
+    compiler.hooks.compilation.tap('TerserPlugin', (compilation) => {
+      compilation.hooks.processAssets.tapPromise(
+        {
+          name: 'TerserPlugin',
+          stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_SIZE,
+        },
+        async (assets) => {
+          for (const [name, asset] of Object.entries(assets)) {
+            if (name.endsWith('.js')) {
+              const res = await terser.minify(asset.source().toString(), {
+                compress: true,
+                mangle: true,
+              })
+              compilation.updateAsset(
+                name,
+                new compiler.webpack.sources.RawSource(res.code)
+              )
+            }
+          }
+        }
+      )
+    })
+  }
+}
+
 // 2. Bundle using Next's internal webpack
 webpack(
   {
     mode: 'production',
     entry: tmpJs,
     optimization: {
-      minimize: false,
+      minimize: true,
+      minimizer: [new TerserPlugin()],
     },
     output: {
       path: outDir,

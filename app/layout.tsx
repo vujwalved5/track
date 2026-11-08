@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Kalam, Cormorant_Garamond } from 'next/font/google'
+import { Kalam } from 'next/font/google'
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister'
 import './globals.css'
 
@@ -8,13 +8,8 @@ const kalam = Kalam({
   subsets: ['latin'],
   variable: '--font-kalam',
   display: 'swap',
-})
-
-const cormorant = Cormorant_Garamond({
-  weight: ['300', '400', '500', '600', '700'],
-  subsets: ['latin'],
-  variable: '--font-cormorant',
-  display: 'swap',
+  adjustFontFallback: true,
+  fallback: ['cursive'],
 })
 
 export const viewport: Viewport = {
@@ -48,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${kalam.variable} ${cormorant.variable}`}>
+    <html lang="en" className={kalam.variable}>
       <body className="bg-desk antialiased">
         <ServiceWorkerRegister />
         {children}

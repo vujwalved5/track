@@ -34,7 +34,7 @@ const serwist = new Serwist({
       matcher: ({ url }) => url.pathname.startsWith('/book/'),
       handler: new NetworkFirst({
         cacheName: 'mm-book-month-pages',
-        networkTimeoutSeconds: 3,
+        networkTimeoutSeconds: 5,
         plugins: [
           new ExpirationPlugin({
             maxEntries: 36,
@@ -43,10 +43,10 @@ const serwist = new Serwist({
         ],
       }),
     },
-    // 2. Next.js static scripts and CSS chunks
+    // 2. Next.js static scripts and CSS chunks (CacheFirst for immutable static assets)
     {
       matcher: ({ url }) => url.pathname.startsWith('/_next/static/'),
-      handler: new StaleWhileRevalidate({
+      handler: new CacheFirst({
         cacheName: 'mm-static-chunks',
         plugins: [
           new ExpirationPlugin({
