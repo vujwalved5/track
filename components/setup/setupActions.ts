@@ -37,16 +37,22 @@ const MONTH_NAMES = [
 export async function getPreviousMonthData(
   year: number,
   month: number,
+  userId?: string,
 ): Promise<PreviousMonthData> {
   try {
     const supabase = await createClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    let effectiveUserId = userId
 
-    if (authError || !user) {
-      return { exists: false }
+    if (!effectiveUserId) {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser()
+
+      if (authError || !user) {
+        return { exists: false }
+      }
+      effectiveUserId = user.id
     }
 
     const prevYear = month === 1 ? year - 1 : year
@@ -57,7 +63,7 @@ export async function getPreviousMonthData(
     const { data: prevBook } = await supabase
       .from('books')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', effectiveUserId)
       .eq('year', prevYear)
       .maybeSingle()
 

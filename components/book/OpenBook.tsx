@@ -20,6 +20,10 @@ import {
   findFittingSizeAt,
   findFirstAvailableSpot,
 } from '@/components/widgets/widgetMetadata'
+import {
+  setInitialEntries,
+  type WidgetEntryRow,
+} from '@/components/widgets/entryHelpers'
 
 // ── Month definitions (JAN - DEC) ─────────────────────────────
 export const MONTHS = [
@@ -45,6 +49,7 @@ interface OpenBookProps {
   paperRight?: PaperType
   initialSetupDone?: boolean
   initialWidgets?: WidgetData[]
+  initialEntries?: WidgetEntryRow[]
   setupConfig?: Record<string, unknown>
   prevMonthData?: PreviousMonthData
   showNextMonthPrompt?: boolean
@@ -62,12 +67,16 @@ export function OpenBook({
   paperRight = 'dotted',
   initialSetupDone = false,
   initialWidgets = [],
+  initialEntries = [],
   setupConfig = {},
   prevMonthData = { exists: false },
   showNextMonthPrompt = false,
   nextMonthName,
   nextMonthDate,
 }: OpenBookProps) {
+  // Synchronously prime the entries cache with initial SSR data so child widgets avoid waterfalls
+  setInitialEntries(initialEntries, initialWidgets.map((w) => w.id))
+
   const router = useRouter()
   const [, startTransition] = useTransition()
 
@@ -141,7 +150,8 @@ export function OpenBook({
     setActiveConfigWidgetId(null)
     setIsDrawerOpen(false)
     setPickedWidgetDef(null)
-  }, [year, month, initialSetupDone, paperLeft, paperRight, initialWidgets, monthId, setupConfig])
+    setInitialEntries(initialEntries, initialWidgets.map((w) => w.id))
+  }, [year, month, initialSetupDone, paperLeft, paperRight, initialWidgets, initialEntries, monthId, setupConfig])
 
   const leftWidgets = widgets.filter((w) => w.page === 'left')
   const rightWidgets = widgets.filter((w) => w.page === 'right')

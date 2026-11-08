@@ -364,8 +364,18 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   4. **Scatter Plot**: "down" mode swaps the X and Y axes (`x = source2, y = source1`), dynamically recalculating extents and plotting swapped dots.
 - **Responsive & Dynamic**: Desktop and mobile renders respect the setting; charts redraw immediately upon saving config without requiring page refresh; setting persists to Supabase and survives page reloads.
 
+### Task O1 (Fix 1 & Fix 4) — Server Data Consolidation & Relational Joins
+- **Single Authenticated Session**: Authenticate once via `supabase.auth.getUser()` in `app/book/[year]/[month]/page.tsx`, redirecting to `/` if unauthenticated.
+- **Deduplicated Auth in Setup Actions**: Updated `getPreviousMonthData(year, month, userId?: string)` in `components/setup/setupActions.ts` to accept `userId` parameter directly, eliminating redundant `supabase.auth.getUser()` network round trip.
+- **Concurrent Server Data Retrieval**: Executed `getPreviousMonthData` and current month relational retrieval in parallel via `Promise.all`.
+- **Consolidated Relational Query**: Replaced 3-step sequential query waterfall (`books` -> `months` -> `widgets`) with a single nested relational query (`books` with nested `months` and `widgets`), avoiding `!inner` join.
+- **Safe Unset Month Fallbacks**: Handled un-setup months (e.g. `/book/2026/12`) with default `setup_done = false`, `paper_left = 'dotted'`, `paper_right = 'dotted'`, `setup_config = {}`, and `initialWidgets = []`, guaranteeing that the 7-step Month Setup Wizard launches cleanly without null errors (Rule L9).
+- **Deterministic Widget Ordering**: Sorted child widgets ascending by `created_at` (`created_at ASC`) before partitioning into left and right spreads.
+- **Batched Initial Entries**: Queried all entries for the month's widgets in a single server query (`.in('widget_id', widgetIds)`), passed as `initialEntries` to `OpenBook`, and primed `entryHelpers.ts` in-memory cache so all widgets consume initial entries immediately with zero client HTTP waterfalls, while preserving reactive re-fetches and cache updates on edits.
+- **Database Foreign Key Index**: Created migration `supabase/migrations/0002_add_widgets_month_id_index.sql` and applied `CREATE INDEX IF NOT EXISTS idx_widgets_month_id ON public.widgets (month_id);` in Postgres, eliminating sequential table scans.
+
 ## Next
-- Task 11 (Batch B) — Mobile Arrange mode (long-press on top ribbon, move up/down), WidgetDrawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets' mobile render.
+- Task O2: Fix 2 and Fix 10 from optimisation_plan.md (Page Turn Prefetching & Service Worker Timeout Alignment)
 
 ## Open Questions
 - Password reset not built ("Forgot the key?" remains an inert placeholder).
