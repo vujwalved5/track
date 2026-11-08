@@ -9,3 +9,5 @@ build/
 npm-debug.log*
 .next
 .env.local
+public/sw.js
+tsconfig.tsbuildinfo
