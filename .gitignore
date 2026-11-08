@@ -7,3 +7,5 @@ out/
 dist/
 build/
 npm-debug.log*
+.next
+.env.local
