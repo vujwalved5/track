@@ -247,13 +247,21 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
     - Drawer Open (1440x900): page scroll 1440x900 (0 overflow); card tray horizontal scroll 800px > 648px (allowed drawer tray horizontal scrolling works via touch & keyboard).
     - Zero widget content overflow beyond its bounding box.
 
+### Phase 8 / Task 14 — L11 Route Guard
+- `middleware.ts`: protects all `/book/*` routes using `@supabase/ssr` `createServerClient`.
+  - Refreshes session cookies and checks user authentication with `supabase.auth.getUser()`.
+  - Redirects unauthenticated visitors attempting to access `/book/*` to `/` with `Cache-Control: no-store, no-cache, must-revalidate`.
+  - Matcher configured strictly to `['/book/:path*']` so it never touches `/`, `/_next`, `/sw.js`, `/manifest.webmanifest`, or static assets.
+  - Adds `Cache-Control: no-store, no-cache, must-revalidate` to all book responses so browser history Back navigation after sign-out does not display cached spreads.
+- `app/book/[year]/[month]/page.tsx`:
+  - Enforces server-side authentication with `supabase.auth.getUser()`. If no authenticated user exists, immediately redirects to `/` before loading month setup or widget data.
+
 ## Next
 - Task 11 (Batch B) — Mobile Arrange mode (long-press on top ribbon, move up/down), WidgetDrawer placement on mobile, ClosedBook at 390px, MonthSetupWizard at 390px, and audit of remaining widgets' mobile render.
 
 ## Open Questions
 - Sign-up flow and password reset not built.
-- Auth guard for /book routes (L11) not built.
-
+- UI currently has no sign-out control (user session can only be cleared programmatically / via dev console).
 
 ## Locked Decisions (L1–L14)
 

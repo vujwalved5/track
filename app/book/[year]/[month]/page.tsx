@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { OpenBook, MONTHS } from '@/components/book'
 import type { PaperType } from '@/components/paper'
 import { createClient } from '@/lib/supabase/server'
@@ -42,23 +43,26 @@ export default async function BookMonthPage({ params }: PageProps) {
   const nextMonth = month === 12 ? 1 : month + 1
   const nextMonthName = MONTHS[nextMonth - 1]?.name || 'Next Month'
 
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/')
+  }
+
   // Load previous month data for Month Setup wizard
   const prevMonthData = await getPreviousMonthData(year, month)
 
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (user) {
-      // 1. Check current month setup status. Missing rows are NOT created here (correction 1).
-      const bookRes = await supabase
-        .from('books')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('year', year)
-        .maybeSingle()
+    // 1. Check current month setup status. Missing rows are NOT created here (correction 1).
+    const bookRes = await supabase
+      .from('books')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('year', year)
+      .maybeSingle()
 
       if (bookRes.data) {
         const monthRes = (await supabase
@@ -123,7 +127,6 @@ export default async function BookMonthPage({ params }: PageProps) {
           }
         }
       }
-    }
   } catch (err) {
     console.error('Error loading month setup state:', err)
   }
