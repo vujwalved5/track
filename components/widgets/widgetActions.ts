@@ -254,6 +254,7 @@ export async function createWidget(
   y: number,
   w?: number,
   h?: number,
+  id?: string,
 ): Promise<ActionResult<WidgetData>> {
   try {
     const supabase = await createClient()
@@ -319,9 +320,12 @@ export async function createWidget(
       ? (parsedConfig.data as Record<string, unknown>)
       : {}
 
+    const widgetId = id || crypto.randomUUID()
+
     const { data: inserted, error: insertErr } = await supabase
       .from('widgets')
       .insert({
+        id: widgetId,
         month_id: monthId,
         page,
         type,
@@ -331,7 +335,7 @@ export async function createWidget(
         h: candidate.h,
         config: initialConfig,
         z: 0,
-      })
+      } as any)
       .select()
       .single()
 

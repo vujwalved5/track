@@ -2,18 +2,19 @@
 
 import React, { useState, useEffect, useRef, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import Paper, { PAGE_W, PAGE_H, PAGE_COLS, PAGE_ROWS, type PaperType } from '@/components/paper'
-import { MonthSetupWizard, type PreviousMonthData } from '@/components/setup'
+import type { PreviousMonthData } from '@/components/setup'
 import { MobileBook } from './MobileBook'
 import {
   PageWidgetLayer,
-  WidgetConfigCard,
-  WidgetDrawer,
   PlacementOverlay,
   createWidget,
+  isValidPlacement,
   type WidgetData,
   type WidgetDefinition,
   type PageSide,
+  type WidgetRect,
 } from '@/components/widgets'
 import {
   getWidgetMetadata,
@@ -24,6 +25,19 @@ import {
   setInitialEntries,
   type WidgetEntryRow,
 } from '@/components/widgets/entryHelpers'
+
+const MonthSetupWizard = dynamic(
+  () => import('@/components/setup/MonthSetupWizard').then((m) => m.MonthSetupWizard),
+  { ssr: false, loading: () => null },
+)
+const WidgetDrawer = dynamic(
+  () => import('@/components/widgets/WidgetDrawer').then((m) => m.WidgetDrawer),
+  { ssr: false, loading: () => null },
+)
+const WidgetConfigCard = dynamic(
+  () => import('@/components/widgets/WidgetConfigCard').then((m) => m.WidgetConfigCard),
+  { ssr: false, loading: () => null },
+)
 
 // ── Month definitions (JAN - DEC) ─────────────────────────────
 export const MONTHS = [
@@ -168,6 +182,64 @@ export function OpenBook({
     setWidgets((prev) => prev.map((w) => (w.id === updated.id ? updated : w)))
   }, [])
 
+  const handleOpenConfig = useCallback((id: string) => {
+    setActiveConfigWidgetId(id)
+  }, [])
+
+  const handleCloseConfig = useCallback(() => {
+    setActiveConfigWidgetId(null)
+  }, [])
+
+  const handleOverlayHover = useCallback((page: PageSide, x: number, y: number) => {
+    setActivePlacement({ page, x, y })
+  }, [])
+
+  const handleDrawerOpenToggle = useCallback(() => {
+    if (pickedWidgetDef) {
+      setPickedWidgetDef(null)
+    } else {
+      setIsDrawerOpen((prev) => !prev)
+    }
+  }, [pickedWidgetDef])
+
+  const handlePickCard = useCallback((def: WidgetDefinition) => {
+    setPickedWidgetDef(def)
+    setIsDrawerOpen(false)
+  }, [])
+
+  const handleCancelPick = useCallback(() => {
+    setPickedWidgetDef(null)
+  }, [])
+
+  const noop = useCallback(() => {}, [])
+
+  const handleCompleteSetup = useCallback(
+    (
+      newLeft: PaperType,
+      newRight: PaperType,
+      createdWidgets?: WidgetData[],
+      newMonthId?: string,
+      newSetupConfig?: Record<string, unknown>,
+    ) => {
+      setCurrentPaperLeft(newLeft)
+      setCurrentPaperRight(newRight)
+      if (newMonthId) {
+        setCurrentMonthId(newMonthId)
+      }
+      if (newSetupConfig) {
+        setCurrentSetupConfig(newSetupConfig)
+      }
+      if (createdWidgets && createdWidgets.length > 0) {
+        setWidgets(createdWidgets)
+      }
+      setIsSetupDone(true)
+      startTransition(() => {
+        router.refresh()
+      })
+    },
+    [router],
+  )
+
   const [placementError, setPlacementError] = useState<string | null>(null)
   const [activePlacement, setActivePlacement] = useState<{
     page: PageSide
@@ -219,24 +291,79 @@ export function OpenBook({
       }
 
       const defToPlace = pickedWidgetDef
+      const meta = getWidgetMetadata(defToPlace.id)
+      const candidateW = w !== undefined ? Math.round(w) : meta?.defaultSize.w ?? defToPlace.defaultSize.w
+      const candidateH = h !== undefined ? Math.round(h) : meta?.defaultSize.h ?? defToPlace.defaultSize.h
+      const minSz = meta?.minSize ?? defToPlace.minSize
+
+      const candidateRect: WidgetRect = {
+        x: Math.round(x),
+        y: Math.round(y),
+        w: candidateW,
+        h: candidateH,
+      }
+
+      const existingOnPage = (targetPage === 'left' ? leftWidgets : rightWidgets).map((cw) => ({
+        x: cw.x,
+        y: cw.y,
+        w: cw.w,
+        h: cw.h,
+      }))
+
+      // Client-side bounds and overlap validation
+      if (!isValidPlacement(candidateRect, minSz, existingOnPage, PAGE_COLS, PAGE_ROWS)) {
+        triggerNoRoom()
+        return
+      }
+
+      const widgetId = crypto.randomUUID()
+      const optimisticWidget: WidgetData = {
+        id: widgetId,
+        month_id: currentMonthId,
+        page: targetPage,
+        type: defToPlace.id,
+        x: candidateRect.x,
+        y: candidateRect.y,
+        w: candidateRect.w,
+        h: candidateRect.h,
+        config: {},
+        z: 0,
+        created_at: new Date().toISOString(),
+      }
+
+      // Optimistically insert widget into state on immediate frame
+      setWidgets((prev) => [...prev, optimisticWidget])
+      setPickedWidgetDef(null)
+      setActivePlacement(null)
+      setIsDrawerOpen(false)
+      setIsArrangeMode(true)
+
+      // Call createWidget in background with same client-generated UUID
       try {
-        const res = await createWidget(currentMonthId, targetPage, defToPlace.id, x, y, w, h)
-        if (res.success && res.data) {
-          setWidgets((prev) => [...prev, res.data!])
-          setPickedWidgetDef(null)
-          setActivePlacement(null)
-          setIsDrawerOpen(false)
-          setIsArrangeMode(true) // Automatically enter Arrange mode (Correction & Detail)
-        } else {
+        const res = await createWidget(
+          currentMonthId,
+          targetPage,
+          defToPlace.id,
+          candidateRect.x,
+          candidateRect.y,
+          candidateRect.w,
+          candidateRect.h,
+          widgetId,
+        )
+        if (!res.success) {
+          // Roll back optimistic widget on placement failure
+          setWidgets((prev) => prev.filter((w) => w.id !== widgetId))
           setPlacementError(res.error || 'Failed to place widget')
           setTimeout(() => setPlacementError(null), 3500)
         }
       } catch (err) {
+        // Roll back optimistic widget on network/server error
+        setWidgets((prev) => prev.filter((w) => w.id !== widgetId))
         setPlacementError(err instanceof Error ? err.message : 'Failed to place widget')
         setTimeout(() => setPlacementError(null), 3500)
       }
     },
-    [currentMonthId, pickedWidgetDef],
+    [currentMonthId, pickedWidgetDef, leftWidgets, rightWidgets, triggerNoRoom],
   )
 
   // Find first available spot when a card is picked (Condition 6)
@@ -387,6 +514,14 @@ export function OpenBook({
     },
     [],
   )
+
+  // Prefetch previous and next month routes during idle time (Fix 2)
+  useEffect(() => {
+    const prev = getPrevDate(year, month)
+    const next = getNextDate(year, month)
+    router.prefetch(`/book/${prev.year}/${prev.month}`)
+    router.prefetch(`/book/${next.year}/${next.month}`)
+  }, [year, month, router, getPrevDate, getNextDate])
 
   const curMonthObj = MONTHS[month - 1]
 
@@ -599,7 +734,11 @@ export function OpenBook({
   if (isDesktop === null) {
     return (
       <div
-        className="w-full min-h-screen bg-desk flex items-center justify-center"
+        className="w-screen h-screen min-h-screen bg-desk"
+        style={{
+          backgroundColor: '#211b16',
+          contain: 'paint layout',
+        }}
         aria-hidden="true"
       />
     )
@@ -617,32 +756,11 @@ export function OpenBook({
         setupConfig={currentSetupConfig}
         prevMonthData={prevMonthData}
         widgets={widgets}
+        initialEntries={initialEntries}
         onWidgetsChange={setWidgets}
         onWidgetSaved={handleWidgetSaved}
         onTurnMonth={handleMobileTurnMonth}
-        onCompleteSetup={(
-          newLeft,
-          newRight,
-          createdWidgets,
-          newMonthId,
-          newSetupConfig,
-        ) => {
-          setCurrentPaperLeft(newLeft)
-          setCurrentPaperRight(newRight)
-          if (newMonthId) {
-            setCurrentMonthId(newMonthId)
-          }
-          if (newSetupConfig) {
-            setCurrentSetupConfig(newSetupConfig)
-          }
-          if (createdWidgets && createdWidgets.length > 0) {
-            setWidgets(createdWidgets)
-          }
-          setIsSetupDone(true)
-          startTransition(() => {
-            router.refresh()
-          })
-        }}
+        onCompleteSetup={handleCompleteSetup}
         initialPageMode={mobilePageMode}
       />
     )
@@ -695,7 +813,7 @@ export function OpenBook({
                     widgets={leftWidgets}
                     isArrangeMode={false}
                     onWidgetsChange={handleLeftWidgetsChange}
-                    onOpenConfig={() => {}}
+                    onOpenConfig={noop}
                   />
                   {renderLeftFolio(month, year)}
                   <div className="absolute inset-0 bg-ink pointer-events-none animate-shadow-under-left" />
@@ -713,7 +831,7 @@ export function OpenBook({
 
               {/* Flipping Leaf */}
               <div
-                className="absolute top-0 left-[484px] preserve-3d animate-page-flip-forward"
+                className="absolute top-0 left-[484px] preserve-3d animate-page-flip-forward transform-gpu"
                 style={{
                   width: PAGE_W,
                   height: PAGE_H,
@@ -729,7 +847,7 @@ export function OpenBook({
                       widgets={rightWidgets}
                       isArrangeMode={false}
                       onWidgetsChange={handleRightWidgetsChange}
-                      onOpenConfig={() => {}}
+                      onOpenConfig={noop}
                     />
                     {renderRightFolio(month, year)}
                     {renderFoldedCorner(() => {})}
@@ -775,7 +893,7 @@ export function OpenBook({
                     widgets={rightWidgets}
                     isArrangeMode={false}
                     onWidgetsChange={handleRightWidgetsChange}
-                    onOpenConfig={() => {}}
+                    onOpenConfig={noop}
                   />
                   {renderRightFolio(month, year)}
                   {renderFoldedCorner(() => {})}
@@ -785,7 +903,7 @@ export function OpenBook({
 
               {/* Flipping Leaf */}
               <div
-                className="absolute top-0 left-0 preserve-3d animate-page-flip-backward"
+                className="absolute top-0 left-0 preserve-3d animate-page-flip-backward transform-gpu"
                 style={{
                   width: PAGE_W,
                   height: PAGE_H,
@@ -802,7 +920,7 @@ export function OpenBook({
                       widgets={leftWidgets}
                       isArrangeMode={false}
                       onWidgetsChange={handleLeftWidgetsChange}
-                      onOpenConfig={() => {}}
+                      onOpenConfig={noop}
                     />
                     {renderLeftFolio(month, year)}
                     <div className="absolute inset-0 bg-ink pointer-events-none animate-leaf-shadow-backward" />
@@ -829,13 +947,10 @@ export function OpenBook({
               ════════════════════════════════════════════════════════ */}
           {!isTurning && (
             <div className="flex relative">
-              {/* Server / Placement Error Feedback (Condition 4) */}
+              {/* Server / Placement Error Feedback: handwritten red-pen message directly on the page (L1) */}
               {placementError && (
-                <div
-                  role="alert"
-                  className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-paper/95 border border-redpen px-4 py-1.5 rounded shadow-md pointer-events-none"
-                >
-                  <p className="font-hand text-xs text-redpen font-bold tracking-wide">
+                <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none select-none">
+                  <p className="font-hand text-sm text-redpen tracking-wide font-normal -rotate-1">
                     {placementError}
                   </p>
                 </div>
@@ -865,7 +980,7 @@ export function OpenBook({
                   widgets={leftWidgets}
                   isArrangeMode={isArrangeMode}
                   onWidgetsChange={handleLeftWidgetsChange}
-                  onOpenConfig={(id) => setActiveConfigWidgetId(id)}
+                  onOpenConfig={handleOpenConfig}
                 />
                 {pickedWidgetDef && (
                   <PlacementOverlay
@@ -873,7 +988,7 @@ export function OpenBook({
                     pickedWidgetDef={pickedWidgetDef}
                     existingWidgets={leftWidgets}
                     cursor={activePlacement?.page === 'left' ? activePlacement : null}
-                    onHover={(p, x, y) => setActivePlacement({ page: p, x, y })}
+                    onHover={handleOverlayHover}
                     onPlace={handlePlaceWidget}
                     onNoRoom={triggerNoRoom}
                     onDismissNoRoom={dismissNoRoom}
@@ -893,7 +1008,7 @@ export function OpenBook({
                   widgets={rightWidgets}
                   isArrangeMode={isArrangeMode}
                   onWidgetsChange={handleRightWidgetsChange}
-                  onOpenConfig={(id) => setActiveConfigWidgetId(id)}
+                  onOpenConfig={handleOpenConfig}
                 />
                 {pickedWidgetDef && (
                   <PlacementOverlay
@@ -901,7 +1016,7 @@ export function OpenBook({
                     pickedWidgetDef={pickedWidgetDef}
                     existingWidgets={rightWidgets}
                     cursor={activePlacement?.page === 'right' ? activePlacement : null}
-                    onHover={(p, x, y) => setActivePlacement({ page: p, x, y })}
+                    onHover={handleOverlayHover}
                     onPlace={handlePlaceWidget}
                     onNoRoom={triggerNoRoom}
                     onDismissNoRoom={dismissNoRoom}
@@ -954,7 +1069,7 @@ export function OpenBook({
               {activeConfigWidget && (
                 <WidgetConfigCard
                   widget={activeConfigWidget}
-                  onClose={() => setActiveConfigWidgetId(null)}
+                  onClose={handleCloseConfig}
                   onSaved={handleWidgetSaved}
                   allWidgets={widgets}
                 />
@@ -967,23 +1082,7 @@ export function OpenBook({
                   month={month}
                   monthName={curMonthObj.name}
                   prevMonthData={prevMonthData}
-                  onComplete={(newLeft, newRight, createdWidgets, newMonthId, newSetupConfig) => {
-                    setCurrentPaperLeft(newLeft)
-                    setCurrentPaperRight(newRight)
-                    if (newMonthId) {
-                      setCurrentMonthId(newMonthId)
-                    }
-                    if (newSetupConfig) {
-                      setCurrentSetupConfig(newSetupConfig)
-                    }
-                    if (createdWidgets && createdWidgets.length > 0) {
-                      setWidgets(createdWidgets)
-                    }
-                    setIsSetupDone(true)
-                    startTransition(() => {
-                      router.refresh()
-                    })
-                  }}
+                  onComplete={handleCompleteSetup}
                 />
               )}
             </div>
@@ -1009,6 +1108,8 @@ export function OpenBook({
                 key={m.num}
                 type="button"
                 onClick={() => handleTabClick(m.num)}
+                onPointerDown={() => router.prefetch(`/book/${year}/${m.num}`)}
+                onMouseEnter={() => router.prefetch(`/book/${year}/${m.num}`)}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={`Jump to ${m.name}`}
                 className={`flex items-center justify-center font-hand text-[11px] tracking-wider rounded-r-md transition-all duration-150 cursor-pointer select-none ${
@@ -1085,18 +1186,9 @@ export function OpenBook({
         isOpen={isDrawerOpen}
         isSetupDone={isSetupDone}
         pickedWidgetDef={pickedWidgetDef}
-        onToggleOpen={() => {
-          if (pickedWidgetDef) {
-            setPickedWidgetDef(null)
-          } else {
-            setIsDrawerOpen((prev) => !prev)
-          }
-        }}
-        onPickCard={(def) => {
-          setPickedWidgetDef(def)
-          setIsDrawerOpen(false)
-        }}
-        onCancelPick={() => setPickedWidgetDef(null)}
+        onToggleOpen={handleDrawerOpenToggle}
+        onPickCard={handlePickCard}
+        onCancelPick={handleCancelPick}
       />
     </div>
   )

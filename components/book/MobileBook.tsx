@@ -16,14 +16,22 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import type { PaperType } from '@/components/paper'
-import { MonthSetupWizard, type PreviousMonthData } from '@/components/setup'
+import type { PreviousMonthData } from '@/components/setup'
 import {
   getWidgetDefinition,
   type WidgetData,
   type WidgetDefinition,
 } from '@/components/widgets'
+import type { WidgetEntryRow } from '@/components/widgets/entryHelpers'
 import { MONTHS } from './OpenBook'
+
+const MonthSetupWizard = dynamic(
+  () => import('@/components/setup/MonthSetupWizard').then((m) => m.MonthSetupWizard),
+  { ssr: false, loading: () => null },
+)
 
 interface MobileBookProps {
   year: number
@@ -34,6 +42,7 @@ interface MobileBookProps {
   setupConfig?: Record<string, unknown>
   prevMonthData?: PreviousMonthData
   widgets: WidgetData[]
+  initialEntries?: WidgetEntryRow[]
   onWidgetsChange?: (widgets: WidgetData[]) => void
   onWidgetSaved?: (widget: WidgetData) => void
   onTurnMonth: (
@@ -84,10 +93,23 @@ export function MobileBook({
   setupConfig = {},
   prevMonthData = { exists: false },
   widgets,
+  initialEntries,
   onTurnMonth,
   onCompleteSetup,
   initialPageMode = 'first',
 }: MobileBookProps) {
+  const router = useRouter()
+
+  // Adjacent month prefetching in idle time
+  useEffect(() => {
+    const prevYear = month === 1 ? year - 1 : year
+    const prevMonth = month === 1 ? 12 : month - 1
+    const nextYear = month === 12 ? year + 1 : year
+    const nextMonth = month === 12 ? 1 : month + 1
+    router.prefetch(`/book/${prevYear}/${prevMonth}`)
+    router.prefetch(`/book/${nextYear}/${nextMonth}`)
+  }, [year, month, router])
+
   // Sort widgets according to mobile sequence rules
   const sortedWidgets = useMemo(() => sortWidgetsForMobile(widgets), [widgets])
 
@@ -324,7 +346,7 @@ export function MobileBook({
                       </div>
                     )
                   }
-                  const MobileComp = def.mobileComponent || def.component
+                  const MobileComp = (def.mobileComponent || def.component) as React.ComponentType<any>
                   return (
                     <div className="flex-1 flex flex-col overflow-hidden">
                       <MobileComp
@@ -338,6 +360,7 @@ export function MobileBook({
                         setupConfig={setupConfig}
                         mobileSubPage={subPage}
                         mobileTotalSubPages={totalSubPages}
+                        initialEntries={initialEntries}
                       />
                     </div>
                   )
@@ -416,6 +439,8 @@ export function MobileBook({
                   const direction = m.num > month ? 'forward' : 'backward'
                   onTurnMonth(year, m.num, direction, 'first')
                 }}
+                onPointerDown={() => router.prefetch(`/book/${year}/${m.num}`)}
+                onMouseEnter={() => router.prefetch(`/book/${year}/${m.num}`)}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={`Jump to ${m.name}`}
                 className={`flex items-center justify-center font-hand text-[11px] tracking-wider rounded-r-md transition-all duration-150 cursor-pointer select-none min-h-[44px] ${
