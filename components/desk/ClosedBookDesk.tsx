@@ -33,6 +33,7 @@ interface ClosedBookDeskProps {
 export function ClosedBookDesk({ variant = 'desktop' }: ClosedBookDeskProps) {
   const router = useRouter()
   const [isOpening, setIsOpening] = useState(false)
+  const [isReducedMotion, setIsReducedMotion] = useState(false)
 
   const now = new Date()
   const currentYear = now.getFullYear()
@@ -43,19 +44,25 @@ export function ClosedBookDesk({ variant = 'desktop' }: ClosedBookDeskProps) {
   const handleOpenMonth = () => {
     if (isOpening) return
 
+    router.prefetch(targetUrl)
+
     const prefersReducedMotion =
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+    setIsOpening(true)
     if (prefersReducedMotion) {
-      router.push(targetUrl)
+      setIsReducedMotion(true)
+      setTimeout(() => {
+        router.push(targetUrl)
+      }, 200)
       return
     }
 
-    setIsOpening(true)
+    // Start router.push ~500ms into the swing
     setTimeout(() => {
       router.push(targetUrl)
-    }, 900)
+    }, 500)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -69,7 +76,11 @@ export function ClosedBookDesk({ variant = 'desktop' }: ClosedBookDeskProps) {
 
   return (
     <div
-      className={`relative flex flex-col items-center justify-center select-none ${cormorant.variable}`}
+      className={`relative flex flex-col items-center justify-center select-none ${cormorant.variable} ${
+        isOpening && isReducedMotion
+          ? 'opacity-0 transition-opacity duration-200'
+          : 'opacity-100'
+      }`}
       data-desk-object="closed-book"
     >
       {/* 3D Perspective Container */}
@@ -95,13 +106,10 @@ export function ClosedBookDesk({ variant = 'desktop' }: ClosedBookDeskProps) {
           }}
           aria-hidden="true"
         >
-          {/* Paper texture with 22px dot grid */}
+          {/* Inner spine shadow */}
           <div
             className="w-full h-full"
             style={{
-              backgroundImage:
-                'radial-gradient(circle, rgba(28, 36, 51, 0.28) 1.4px, transparent 1.4px)',
-              backgroundSize: '22px 22px',
               boxShadow: 'inset 28px 0 32px -12px rgba(28, 36, 51, 0.22)',
             }}
           />
@@ -138,8 +146,8 @@ export function ClosedBookDesk({ variant = 'desktop' }: ClosedBookDeskProps) {
           style={{
             transformOrigin: 'left center',
             transformStyle: 'preserve-3d',
-            transform: isOpening ? 'rotateY(-140deg)' : 'rotateY(0deg)',
-            transition: 'transform 900ms cubic-bezier(0.25, 1, 0.5, 1)',
+            transform: isOpening ? 'rotateY(-180deg)' : 'rotateY(0deg)',
+            transition: 'transform 1100ms cubic-bezier(0.22, 0.8, 0.2, 1)',
             boxShadow: isOpening
               ? '-12px 14px 35px rgba(0, 0, 0, 0.7)'
               : '8px 12px 28px rgba(0, 0, 0, 0.55)',

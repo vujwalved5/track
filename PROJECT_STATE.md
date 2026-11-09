@@ -533,6 +533,28 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - Automated 4-tier E2E suite verified 18/18 assertions passing via headless CDP browser.
   - 24/24 adversarial attack tests passed for route security and BFcache eviction.
 
+## Phase 8 / Task 14-3 — Cover Animation, Transitions & Loading Spread
+- **Cover Swing Flat Geometry & Easing**:
+  - `ClosedBook.tsx` and `ClosedBookDesk.tsx`: Updated cover swing end angle to `rotateY(-180deg)` (previously stopped short at `-140deg`), ensuring the opened cover lies flat with zero trapezoid distortion or perspective magnification.
+  - Updated swing transition curve and duration to `1100ms cubic-bezier(0.22, 0.8, 0.2, 1)`.
+  - Handled `prefers-reduced-motion` with a smooth 200ms opacity fade before routing.
+- **Transition Orchestration & Prefetching**:
+  - In `ClosedBook.tsx`, added `router.prefetch('/home')` on sign-in / begin submission.
+  - Triggered `router.push('/home')` at ~500ms into the swing (matching in `ClosedBookDesk.tsx`) so the transition begins during the swing without waiting for an artificial 900ms freeze.
+- **App Home Loading UI**:
+  - Created `app/home/loading.tsx` rendering the physical open dotted spread with hardcover casing, center crease shadow, and `<Paper type="dotted">` pages.
+  - Added faint Kalam text `"turning the page..."` fading in gracefully after 400ms.
+  - Strictly zero spinners and no blank navy boards.
+- **Lock Animation & Seamless Exit**:
+  - In `OpenBook.tsx`, replaced `window.location.replace('/enter')` with `router.replace('/enter')` to prevent full-document teardown freezes.
+  - Kept the left page visible at `opacity-100` during `handleLockBook`, eliminating the `opacity-0` class that previously flashed the dark navy (`#1c2433`) casing frame.
+- **Removal of Faint Center Dots**:
+  - Identified that the two faint dots at the center of the right page on `/enter` were grid intersections from the unneeded mock `radial-gradient` dot grid layer in `ClosedBook.tsx:158-166`.
+  - Removed this layer so the interior right page of the book block is clean, authentic cream paper (`#f4eddc`) with spine inset shadow and edge stripes.
+- **Verification**:
+  - `npm run build` passed with exit code 0.
+  - Verified no trapezoid distortion on open, full swing animation, no blank navy casing flash, and no extra packages added.
+
 ## Phase 8 / Task 14-2 — Remove Duplicate Auth Calls & Parallel Embedded Queries
 - **Duplicate Auth Elimination**:
   - Evaluated `supabase.auth.getClaims()` on supabase-js 2.119.0: with HS256 tokens, offline signature verification is unsupported and calls `getUser()` internally; therefore kept exactly one `getUser()` in `proxy.ts:34` per instructions without passing user ID in custom headers.

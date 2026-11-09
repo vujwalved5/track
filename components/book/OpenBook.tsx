@@ -146,7 +146,7 @@ export function OpenBook({
         } catch (err) {
           console.error('Sign-out error:', err)
         }
-        window.location.replace('/enter')
+        router.replace('/enter')
       }, 150)
       return
     }
@@ -163,7 +163,7 @@ export function OpenBook({
 
     // Complete sequence (900ms): full navigation to /enter preventing back cache restore
     setTimeout(() => {
-      window.location.replace('/enter')
+      router.replace('/enter')
     }, 900)
   }, [isClosing, prefersReducedMotion])
 
@@ -1028,7 +1028,7 @@ export function OpenBook({
               {/* Left Page */}
               <div
                 className={`transition-opacity duration-300 ${
-                  isClosing && !prefersReducedMotion ? 'opacity-0' : 'opacity-100'
+                  'opacity-100'
                 }`}
               >
                 <Paper type={currentPaperLeft} side="left">
