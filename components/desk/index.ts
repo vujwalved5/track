@@ -1,2 +1,6 @@
 export { PinnedIndexCard } from './PinnedIndexCard'
 export { AntiqueBrassKey } from './AntiqueBrassKey'
+export { ClosedBookDesk } from './ClosedBookDesk'
+export { FocusNotesStack } from './FocusNotesStack'
+export { FocusSandTimer } from './FocusSandTimer'
+export { HomeDesk } from './HomeDesk'

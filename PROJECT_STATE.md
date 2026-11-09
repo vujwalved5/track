@@ -461,8 +461,55 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - Memo slip, pen rest, pencil board, sandglass (hourglass), sound effects, and proposed palette additions.
 - **Strict Adherence**: Zero new dependencies, strictly L6 palette (tints/shades of gold, kraft, desk), Kalam and Cormorant fonts only, zero emoji, all interactive controls keyboard accessible.
 
+
+### Phase 8 / Task 16 — The Home Desk Page (/home)
+- **Authentic Study Desk Scene (`app/home/page.tsx` & `components/desk/HomeDesk.tsx`)**:
+  - Full-screen desk timber substrate using procedural CSS `.desk-surface` with wood grain and lamp glow intensified by +35% to +40% per Section 4 of `RESEARCH_HOME.md`.
+  - Ambient greeting inscribed directly onto desk wood in handwritten Kalam text (`text-paper/85 font-hand italic`), tailored by time of day (morning, afternoon, evening). Zero names, zero emoji.
+  - Zero SaaS headers, sidebars, dashboard metrics, streak counters, or scrollbars (L1).
+- **Central Closed Book (`components/desk/ClosedBookDesk.tsx`)**:
+  - Closed oxblood hardcover casing (`#702028` to `#54181e`) centered on desk with Cormorant Garamond title and gold vertical spine band. No bookplate inputs.
+  - Inscribed handwritten cream paper tag: "Open [Current Month]" (e.g. "Open November").
+  - Click or keyboard Enter triggers 900ms CSS 3D cover open animation revealing inside endpaper and dotted grid, then navigates to `/book/[year]/[month]`. Instant navigation under `prefers-reduced-motion`.
+- **Daily Tip Card (`components/desk/PinnedIndexCard.tsx`)**:
+  - Integrates existing 3×5" cream paper index card with turned brass clip on desk timber, displaying verified daily quotes rotating deterministically from `lib/deskQuotes.ts`.
+- **Focus Notes Stack (`components/desk/FocusNotesStack.tsx` & `lib/focusNotes.ts`)**:
+  - Tactile resting stack of 7 loose paper sheets on the right of the desk with cascading organic tilts (-1.5deg to +2.8deg).
+  - Tapping the stack lifts the active sheet (Month Setup card style, paper colour `#f4eddc`, slight -1deg tilt, Kalam handwriting, zero modals).
+  - Exactly 7 topics: Single-Tasking, Attention Residue, Deep Work, Time-Boxing, Deliberate Breaks, Sleep & Attention, Phone-Free Sessions.
+  - Every note strictly 80 to 120 words in calm, non-preachy tone, includes a distinct "Try this today" actionable line, and cites a working canonical DOI / publisher source URL.
+  - Navigation: "turn over" arrow advances sequentially (1..7), and "put back" button smoothly returns the sheet to the resting stack. Tap targets >= 44×44px.
+- **Focus Sand Timer (`components/desk/FocusSandTimer.tsx`)**:
+  - Hand-drawn SVG hourglass with turned brass ends and support pillars at bottom-left desk edge.
+  - Tapping opens a cream paper duration tag with 15, 25, or 45 minute options (each >= 44×44px tap target).
+  - Sand stream drains from upper bulb to lower mound in real time.
+  - When timer reaches zero: glass tips gently (`.animate-sandglass-tip`) and displays handwritten Kalam word "done".
+  - Respects `prefers-reduced-motion`: eliminates animations, displaying remaining time in handwritten text (`Xm left`).
+  - Zero sound, zero browser notifications, zero database persistence.
+- **Antique Brass Key Overlap Fix (`components/desk/AntiqueBrassKey.tsx`)**:
+  - Repositioned on desktop to `left-[calc(100%+60px)] min-[1300px]:bottom-6` to provide 12px clearance from month tabs (which end at +48px).
+  - Headless CDP test confirmed 0 collisions with NOV and DEC tabs at 1440×900 and 1300×800.
+  - Mobile key charm dangling from spine binding maintains >= 44×44px tap target clear of back link and dog ear corner at 390×844.
+  - Sign-out sequence: calls `signOut()`, purges all local storage and cache storage, and triggers `window.location.replace('/')`, landing on `/` with empty fields.
+- **Open Book "Desk" Ribbon Tab (`components/book/OpenBook.tsx`)**:
+  - Small top-edge ribbon tab labelled "Desk" placed beside Arrange and Print (`left: 48px`, Arrange at `128px`, Print at `208px`).
+  - Clicking "Desk" returns the reader to `/home`.
+- **Mobile Responsive Layout (< 768px)**:
+  - Height locked to `100dvh` with ZERO inner scrolling (`scrollHeight <= clientHeight`).
+  - Vertical order: greeting at top, closed book (~240px), daily tip card (~115px), focus notes stack (~110px).
+  - Desk edge footer: sand timer button at bottom-left and brass key charm at bottom-right.
+  - All interactive tap targets strictly >= 44×44px.
+- **Routing & Auth Guards (`proxy.ts` & `components/book/ClosedBook.tsx`)**:
+  - Successful sign-in and sign-up on `/` route to `/home` instead of directly into the book.
+  - `proxy.ts` matcher expanded to `['/book/:path*', '/home', '/home/:path*']` with `Cache-Control: no-store, no-cache, must-revalidate`.
+  - Unauthenticated access to `/home` redirects (307) immediately to `/`.
+  - Browser Back navigation after sign-out cannot reveal `/home` or cached book pages.
+- **Verification**:
+  - 100% verified via automated headless Chrome/Edge CDP tests across 1440×900, 1300×800, and 390×844 viewports.
+  - Production build passed with exit code 0 (`npm run build`). Zero new packages, L6 palette only, L5 fonts only, zero emoji.
+
 ## Next
-- All core features and Task 15 Home Desk Environment fully implemented and verified.
+- Task 16 Home Desk Page (/home) fully built, tested, and verified.
 - Production build passing cleanly with exit code 0 (`npm run build`).
 
 ## Open Questions
@@ -497,3 +544,5 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 **L13** No emoji. Hand-drawn SVG icons.
 
 **L14** No extra features, redesigns, renames, or dependencies unless asked.
+
+L15 Home Desk: after sign-in the reader lands on /home, a desk scene (not a dashboard). Everything on it is a paper or brass desk object. No navbar, sidebar, stats panels, or SaaS cards.

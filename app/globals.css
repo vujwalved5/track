@@ -153,19 +153,58 @@
   will-change: transform;
 }
 
+/* ── Sandglass Tip Animation (Home Desk — Task 16) ── */
+@keyframes sandglassTip {
+  0% {
+    transform: rotate(0deg);
+  }
+  35% {
+    transform: rotate(18deg);
+  }
+  65% {
+    transform: rotate(-6deg);
+  }
+  100% {
+    transform: rotate(10deg);
+  }
+}
+
+.animate-sandglass-tip {
+  animation: sandglassTip 900ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform-origin: center center;
+}
+
+/* ── Focus Note Sheet Lift Animation (Home Desk — Task 16) ── */
+@keyframes noteLift {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) rotate(-3deg) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(-1deg) scale(1);
+  }
+}
+
+.animate-note-lift {
+  animation: noteLift 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* ── prefers-reduced-motion: disable all book animations ── */
 @media (prefers-reduced-motion: reduce) {
-  /* Page-flip keyframe animations → instant */
+  /* Page-flip & desk keyframe animations → instant */
   .animate-page-flip-forward,
   .animate-page-flip-backward,
   .animate-shadow-under-left,
   .animate-shadow-under-right,
   .animate-leaf-shadow-forward,
   .animate-leaf-shadow-backward,
-  .animate-reverse-cover-close {
-    animation: none;
-    opacity: 1;
-    transform: none;
+  .animate-reverse-cover-close,
+  .animate-sandglass-tip,
+  .animate-note-lift {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   /* Month setup sheet slide → instant */
@@ -207,14 +246,14 @@
   animation: sheetSlideIn 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ── Procedural Dark Walnut Desk Surface (Sections 4.1 & 4.2) ── */
+/* ── Procedural Dark Walnut Desk Surface (Task 16: wood grain & lamp glow +30% to +40%) ── */
 .desk-surface {
   background-color: #211b16; /* Locked palette desk token */
   background-image:
-    /* Layer 1: Ambient overhead lamp-light vignette */
+    /* Layer 1: Ambient overhead lamp-light vignette (+35% stronger glow) */
     radial-gradient(ellipse 1100px 800px at 50% 48%, 
-      rgba(244, 237, 220, 0.08) 0%, 
-      rgba(216, 180, 90, 0.03) 45%, 
+      rgba(244, 237, 220, 0.11) 0%, 
+      rgba(216, 180, 90, 0.045) 45%, 
       rgba(33, 27, 22, 0.50) 80%, 
       rgba(15, 12, 10, 0.95) 100%
     ),
@@ -222,13 +261,13 @@
     repeating-linear-gradient(90deg, 
       transparent 0px, 
       transparent 180px, 
-      rgba(15, 12, 10, 0.18) 180px, 
-      rgba(15, 12, 10, 0.18) 182px,
-      rgba(185, 137, 90, 0.04) 182px,
+      rgba(15, 12, 10, 0.20) 180px, 
+      rgba(15, 12, 10, 0.20) 182px,
+      rgba(185, 137, 90, 0.055) 182px,
       transparent 184px
     ),
-    /* Layer 3: Anisotropic organic timber grain pores (SVG feTurbulence data URI) */
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.005 0.22' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='0.06'/%3E%3C/svg%3E");
+    /* Layer 3: Anisotropic organic timber grain pores (+40% stronger grain opacity 0.085) */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.005 0.22' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='0.085'/%3E%3C/svg%3E");
   background-blend-mode: normal, normal, overlay;
 }
 
@@ -349,4 +388,3 @@
     display: none !important;
   }
 }
-

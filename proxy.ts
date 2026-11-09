@@ -42,12 +42,12 @@ export async function proxy(request: NextRequest) {
     return redirectResponse
   }
 
-  // Set Cache-Control: no-store on book spread responses per Condition 2
+  // Set Cache-Control: no-store on book spread and desk responses per Condition 2
   supabaseResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
 
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/book/:path*'],
+  matcher: ['/book/:path*', '/home', '/home/:path*'],
 }

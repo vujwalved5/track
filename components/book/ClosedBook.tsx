@@ -66,11 +66,8 @@ export function ClosedBook() {
         setIsSubmitting(false)
 
         if (session) {
-          // Email confirmation is off — open the book as in sign in
-          const now = new Date()
-          const year = now.getFullYear()
-          const month = now.getMonth() + 1
-          const targetUrl = `/book/${year}/${month}`
+          // Email confirmation is off — open the book and land on /home
+          const targetUrl = '/home'
 
           const prefersReducedMotion =
             typeof window !== 'undefined' &&
@@ -115,11 +112,8 @@ export function ClosedBook() {
           return
         }
 
-        // Successful sign in — route to current year and unpadded month number (e.g. /book/2026/11)
-        const now = new Date()
-        const year = now.getFullYear()
-        const month = now.getMonth() + 1
-        const targetUrl = `/book/${year}/${month}`
+        // Successful sign in — route to /home
+        const targetUrl = '/home'
 
         const prefersReducedMotion =
           typeof window !== 'undefined' &&

@@ -1243,11 +1243,27 @@ export function OpenBook({
         </nav>
 
         {/* ── Arrange Ribbon Tab at Top Edge (L1 — ribbon, not toolbar) ── */}
+        {/* ── Desk Ribbon Tab at Top Edge (Task 16 — returns to /home) ── */}
+        <button
+          type="button"
+          onClick={() => router.push('/home')}
+          className="absolute -top-7 left-12 z-30 flex items-center justify-center px-4 py-1 font-hand text-xs transition-all duration-200 cursor-pointer select-none rounded-t-sm shadow-[0_-2px_6px_rgba(28,36,51,0.3)] bg-kraft/90 hover:bg-kraft text-paper hover:-translate-y-0.5"
+          style={{
+            clipPath: 'polygon(0 100%, 0 0, 100% 0, 100% 100%, 50% 85%)',
+            height: '38px',
+            paddingBottom: '8px',
+          }}
+          aria-label="Return to Home Desk"
+          title="Return to Home Desk"
+        >
+          Desk
+        </button>
+
         {isSetupDone && (
           <button
             type="button"
             onClick={() => setIsArrangeMode((prev) => !prev)}
-            className={`absolute -top-7 left-24 z-30 flex items-center justify-center px-4 py-1 font-hand text-xs transition-all duration-200 cursor-pointer select-none rounded-t-sm shadow-[0_-2px_6px_rgba(28,36,51,0.3)] ${
+            className={`absolute -top-7 left-32 z-30 flex items-center justify-center px-4 py-1 font-hand text-xs transition-all duration-200 cursor-pointer select-none rounded-t-sm shadow-[0_-2px_6px_rgba(28,36,51,0.3)] ${
               isArrangeMode
                 ? 'bg-gold text-ink font-bold -translate-y-1'
                 : 'bg-kraft/90 hover:bg-kraft text-paper hover:-translate-y-0.5'
@@ -1270,7 +1286,7 @@ export function OpenBook({
           <button
             type="button"
             onClick={() => window.print()}
-            className="absolute -top-7 left-48 z-30 flex items-center justify-center px-4 py-1 font-hand text-xs transition-all duration-200 cursor-pointer select-none rounded-t-sm shadow-[0_-2px_6px_rgba(28,36,51,0.3)] bg-kraft/90 hover:bg-kraft text-paper hover:-translate-y-0.5"
+            className="absolute -top-7 left-52 z-30 flex items-center justify-center px-4 py-1 font-hand text-xs transition-all duration-200 cursor-pointer select-none rounded-t-sm shadow-[0_-2px_6px_rgba(28,36,51,0.3)] bg-kraft/90 hover:bg-kraft text-paper hover:-translate-y-0.5"
             style={{
               clipPath: 'polygon(0 100%, 0 0, 100% 0, 100% 100%, 50% 85%)',
               height: '38px',

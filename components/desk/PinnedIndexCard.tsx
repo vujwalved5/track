@@ -5,21 +5,24 @@ import { getDailyDeskQuote, type DeskQuote } from '@/lib/deskQuotes'
 
 /**
  * PinnedIndexCard Component
- * Memorable Moments — Home Desk Environment (Task 15)
+ * Memorable Moments — Home Desk Environment (Tasks 15 & 16)
  *
  * Rules:
- * - 3x5 card resting on the desk surface to the left of the book casing.
+ * - 3x5 card resting on the desk surface.
  * - Paper color #f4eddc, 22px grid rules, Kalam 15px/22px leading.
  * - Small hand-stamped date.
  * - Hand-drawn turned brass clip in SVG (gold #d8b45a, kraft #b9895a, desk #211b16).
- * - Organic tilt of -2.5deg.
+ * - Organic tilt of -2.5deg on desktop.
  * - Multi-stage contact and drop shadow (.shadow-paper-card).
- * - Desktop only (>= 768px), hidden on narrow desktop viewports (< 1300px) to prevent overlap.
- * - Date computed on client after mount to prevent hydration mismatch.
+ * - Verified daily quotes rotating deterministically.
  * - Pure L6 palette, L5 fonts, zero emoji.
  */
 
-export function PinnedIndexCard() {
+interface PinnedIndexCardProps {
+  variant?: 'openbook' | 'desk' | 'mobile'
+}
+
+export function PinnedIndexCard({ variant = 'openbook' }: PinnedIndexCardProps) {
   const [currentDate, setCurrentDate] = useState<Date | null>(null)
 
   useEffect(() => {
@@ -35,18 +38,92 @@ export function PinnedIndexCard() {
         .toUpperCase()} ${currentDate.getFullYear()}`
     : ''
 
+  if (variant === 'mobile') {
+    return (
+      <aside
+        data-desk-object="daily-tip-mobile"
+        aria-label="Daily inspiration index card"
+        className="relative select-none pointer-events-auto z-20 w-full max-w-[340px] h-[115px] -rotate-1"
+      >
+        {/* Tiny Clip */}
+        <div
+          className="absolute -top-2.5 left-6 z-30 pointer-events-none"
+          aria-hidden="true"
+        >
+          <svg width="28" height="18" viewBox="0 0 48 32" fill="none">
+            <rect x="10" y="11" width="28" height="14" rx="2.5" fill="#d8b45a" stroke="#211b16" strokeWidth="1.5" />
+            <path d="M 16 12 C 16 3, 32 3, 32 12" stroke="#b9895a" strokeWidth="2.4" strokeLinecap="round" />
+          </svg>
+        </div>
+
+        {/* Card Body */}
+        <div
+          className="w-full h-full bg-paper rounded-[2px] shadow-paper-card border border-desk/20 overflow-hidden flex flex-col justify-between pt-3 pb-2 px-3 relative"
+          style={{
+            backgroundImage:
+              'linear-gradient(to bottom, rgba(28, 36, 51, 0.12) 1px, transparent 1px)',
+            backgroundSize: '100% 22px',
+            backgroundPosition: '0 24px',
+          }}
+        >
+          <div className="relative z-10 flex items-center justify-between border-b border-ink/20 pb-0.5">
+            <span className="font-hand text-[9px] tracking-wider uppercase text-ink/70">
+              DAILY TIP
+            </span>
+            {formattedDate && (
+              <span className="font-hand text-[10px] text-ink/80 border border-ink/25 px-1 rounded-sm bg-paper/60">
+                {formattedDate}
+              </span>
+            )}
+          </div>
+
+          <div className="relative z-10 flex-1 flex flex-col justify-center my-0.5">
+            {quoteData ? (
+              <blockquote className="font-hand text-xs text-ink/85 italic line-clamp-2 leading-tight">
+                &ldquo;{quoteData.quote}&rdquo;
+              </blockquote>
+            ) : (
+              <span className="font-hand text-xs text-ink/40">...</span>
+            )}
+          </div>
+
+          <div className="relative z-10 border-t border-ink/15 pt-0.5 text-right">
+            {quoteData && (
+              <p className="font-hand text-[10px] text-ink/75 truncate leading-none">
+                — {quoteData.author}, {quoteData.work}
+              </p>
+            )}
+          </div>
+        </div>
+      </aside>
+    )
+  }
+
+  const isDesk = variant === 'desk'
+
   return (
     <aside
       data-desk-object="card"
       aria-label="Daily inspiration index card"
-      className="hidden min-[1300px]:block absolute select-none pointer-events-auto z-20"
+      className={
+        isDesk
+          ? 'relative select-none pointer-events-auto z-20 w-[198px] h-[330px]'
+          : 'hidden min-[1300px]:block absolute select-none pointer-events-auto z-20'
+      }
       style={{
-        left: '-216px',
-        top: '48px',
-        width: '198px', // 9 * 22px = 198px (3x5 aspect ratio with 330px height)
-        height: '330px', // 15 * 22px = 330px
-        transform: 'rotate(-2.5deg)',
-        transformOrigin: 'top center',
+        ...(isDesk
+          ? {
+              transform: 'rotate(-2.5deg)',
+              transformOrigin: 'top center',
+            }
+          : {
+              left: '-216px',
+              top: '48px',
+              width: '198px', // 9 * 22px = 198px (3x5 aspect ratio with 330px height)
+              height: '330px', // 15 * 22px = 330px
+              transform: 'rotate(-2.5deg)',
+              transformOrigin: 'top center',
+            }),
       }}
     >
       {/* ── Hand-Drawn Turned Brass Bulldog Clip (SVG) ── */}

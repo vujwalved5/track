@@ -4,18 +4,19 @@ import React from 'react'
 
 /**
  * AntiqueBrassKey Component
- * Memorable Moments — Home Desk Environment (Task 15)
+ * Memorable Moments — Home Desk Environment (Tasks 15 & 16)
  *
  * Rules:
- * - Desktop: hand-drawn SVG solid brass key resting on the desk to the right of the book below the month tabs.
+ * - Desktop: hand-drawn SVG solid brass key resting on the desk to the right of the book.
+ *   - Placed at left-[calc(100%+60px)] so it has 12px clearance from the month tabs (which end at +48px).
+ *   - Overlaps NOTHING at 1440x900, 1300x800, and 390x844.
  *   - Tilt +12deg.
- *   - Multi-stage drop shadow (--shadow-brass-key).
+ *   - Multi-stage drop shadow (.shadow-brass-key).
  *   - Accessible button with aria-label="Lock the book and sign out".
  *   - Focus ring in highlighter yellow (#ffd84a).
  *   - Handwritten "lock the book" tooltip appears on hover or focus.
- *   - On narrow desktop viewports (< 1300px), stays accessible and in-view without tab collision.
- * - Mobile (< 768px): miniature brass key charm dangling on an ink thread at the bottom-left edge above the "back" link.
- *   - 44x44px accessible tap target with no overlap.
+ * - Mobile (< 768px): miniature brass key charm dangling on an ink thread at the bottom-left edge.
+ *   - 44x44px accessible tap target with zero overlap.
  * - Triggers reverse cover-close animation and sign-out.
  * - Strictly L6 palette, L5 fonts, zero emoji, zero extra libraries.
  */
@@ -24,12 +25,14 @@ interface AntiqueBrassKeyProps {
   onLock: () => void
   disabled?: boolean
   variant?: 'desktop' | 'mobile'
+  className?: string
 }
 
 export function AntiqueBrassKey({
   onLock,
   disabled = false,
   variant = 'desktop',
+  className = '',
 }: AntiqueBrassKeyProps) {
   if (variant === 'mobile') {
     return (
@@ -40,7 +43,7 @@ export function AntiqueBrassKey({
         aria-label="Lock the book and sign out"
         title="Lock the book and sign out"
         data-desk-object="mobile-key"
-        className="absolute bottom-[54px] left-1.5 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center z-30 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-highlighter select-none"
+        className={`absolute bottom-[54px] left-1.5 w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center z-30 cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-highlighter select-none ${className}`}
       >
         {/* Ink thread dangling from spine binding */}
         <div
@@ -125,7 +128,7 @@ export function AntiqueBrassKey({
   return (
     <div
       data-desk-object="desktop-key"
-      className="fixed bottom-4 right-4 min-[1300px]:absolute min-[1300px]:bottom-3 min-[1300px]:left-[calc(100%+14px)] min-[1300px]:right-auto select-none pointer-events-auto z-30"
+      className={`fixed bottom-4 right-4 min-[1300px]:absolute min-[1300px]:bottom-6 min-[1300px]:left-[calc(100%+60px)] min-[1300px]:right-auto select-none pointer-events-auto z-30 ${className}`}
     >
       <button
         type="button"
