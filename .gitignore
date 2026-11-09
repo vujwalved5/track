@@ -11,3 +11,6 @@ npm-debug.log*
 .env.local
 public/sw.js
 tsconfig.tsbuildinfo
+
+# Agent scratch files
+.agents/
