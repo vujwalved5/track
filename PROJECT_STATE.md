@@ -533,11 +533,47 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - Automated 4-tier E2E suite verified 18/18 assertions passing via headless CDP browser.
   - 24/24 adversarial attack tests passed for route security and BFcache eviction.
 
+## Phase 8 / Task 14-1 — Infrastructure Speed Only
+- **Vercel Tokyo Region**: Created `vercel.json` with `{"regions": ["hnd1"]}` to colocate Vercel serverless execution with Supabase Tokyo (`ap-northeast-1`), eliminating cross-region latency.
+- **RLS Subquery Caching**: Created and applied `supabase/migrations/0003_optimize_rls_and_indexes.sql`, wrapping `auth.uid()` in `(SELECT auth.uid())` across all 16 RLS policies (`books`, `months`, `widgets`, `entries`), preventing per-row re-evaluation by Postgres.
+- **Foreign Key Indexing**:
+  - `books(user_id)`: Created index `idx_books_user_id`. (Previously existed only as composite unique constraint `(user_id, year)`).
+  - `months(book_id)`: Created index `idx_months_book_id`. (Previously existed only as composite unique constraint `(book_id, month)`).
+  - `widgets(month_id)`: Already existed as `idx_widgets_month_id` from migration `0002_add_widgets_month_id_index.sql`.
+  - `entries(widget_id)`: Created index `idx_entries_widget_id`. (Previously existed only as composite unique constraint `(widget_id, day)`).
+- **Verification**:
+  - `npm run build` passed with zero errors.
+  - Verified policy isolation in database via simulated authenticated sessions: authenticated User 1 accessed only their rows (1 book, 1 month, 3 widgets, 3 entries) while authenticated User 2 saw 0 rows across all 4 tables and was blocked from updates (0 rows affected).
+  - Zero modifications to UI components, pages, `proxy.ts`, auth code, and zero packages added.
+
+## Phase 8 / Task 14-DIAG — Diagnostic Investigation (Loading & Animation)
+- **Status**: Diagnostic complete; all 22 code citations across 4 explorer streams verified as **CONFIRMED** by independent forensic audit (`CLEAN`).
+- **Problems Diagnosed**:
+  - **Problem A (/book ~8s paint, blank navy board + cover says LOCKED)**:
+    - ~3.0s lost to server-side WAN waterfall: edge proxy `getUser()` (`proxy.ts:34`) + page `getUser()` (`page.tsx:57`) serial calls to Tokyo + `entries` waterfall (`page.tsx:117-124`) with un-cached `auth.uid()` RLS join (`0001_initial_schema.sql:163-174`).
+    - ~2.5s lost to un-tree-shaken monolithic client chunk (>1.14 MB uncompressed JS) caused by barrel exports in `@/components/book` and `@/components/widgets/registry.ts`.
+    - ~2.5s lost to empty-desk SSR hydration gate (`OpenBook.tsx:784-796`: `isDesktop === null` returns blank `#211b16` div; real book requires 2nd client render pass).
+    - Navy board + "LOCKED" visual: on lock/sign-out, `handleLockBook` sets `isClosing: true`, fading left page to `opacity-0` over `bg-ink` (`#1c2433` dark navy) casing frame (`OpenBook.tsx:847, 1030-1033`), while right page renders reverse cover overlay with text `"LOCKED"` (`OpenBook.tsx:1202`). At 900ms, `window.location.replace('/enter')` fires; the browser freezes displaying this frame for 7-8s during document navigation.
+  - **Problem B (/enter cover stays open ~10s before /home appears)**:
+    - 900ms artificial `setTimeout` hold in `ClosedBook.tsx:129` before calling `router.push('/home')`.
+    - `app/home/` has **no `loading.tsx`**, causing Next.js App Router to freeze `/enter` on screen during server transition.
+    - Serial duplicate `getUser()` in `proxy.ts:34` and `app/home/page.tsx:9` hitting Supabase Tokyo across WAN + Vercel serverless cold start.
+    - Two-pass SSR hydration gate in `HomeDesk.tsx:32, 100-108` (`isMobile === null`).
+    - Total freeze on `/enter`: ~8.0s–10.5s.
+  - **Problem C (Trapezoid distortion & where spinner is rendered)**:
+    - Trapezoid root cause: `ClosedBook.tsx:146` sets `perspective: 1800px`, line 196 rotates front cover to `rotateY(-140deg)` around left hinge. Stopping at -140° (40° short of -180° flat) pushes outer edge $z = +327.8\text{px}$ toward viewer, causing +22.3% perspective magnification ($856\text{px}$ outer height vs $700\text{px}$ at hinge) with missing flattening end state.
+    - Spinner location: Exactly **zero** spinners exist in codebase (Rule L1/L13 compliance: `PROJECT_STATE.md:221`). Interior right page is blank cream paper with 22px dot grid (`ClosedBook.tsx:149-178`). The perceived "lone spinner" is the browser navigation throbber or Vercel Deployment Protection interceptor displayed over the blank page during the 10-second stall.
+  - **Problem D (First paint blockers across routes)**:
+    - `/book`: Dual serial auth calls to Tokyo + empty-desk SSR suppression (`isDesktop === null`) + 1.14 MB client bundle.
+    - `/enter`: Missing `loading.tsx` + client-component font instantiation (`Cormorant_Garamond` in `ClosedBook.tsx`).
+    - `/home`: Dual serial auth calls to Tokyo + missing `app/home/loading.tsx` + empty-desk SSR suppression (`isMobile === null`).
+    - All routes: Cross-continental latency (Supabase in Tokyo `ap-northeast-1` vs Vercel default in `iad1` US-East; ~180-260ms RTT per hop) due to absent `vercel.json` and `preferredRegion`.
+
 ## Next
-- Next task according to product roadmap.
+- Next performance, animation, or UI tasks as requested (e.g., Task 14-2 / Closed-Book Animation & Geometry / Loading UI).
 
 ## Open Questions
-- None.
+- None (All 22 citations confirmed; fix strategy verified).
 
 ## Locked Decisions (L1–L14)
 
