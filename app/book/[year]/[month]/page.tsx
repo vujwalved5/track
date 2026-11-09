@@ -57,7 +57,7 @@ export default async function BookMonthPage({ params }: PageProps) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/')
+    redirect('/enter')
   }
 
   try {

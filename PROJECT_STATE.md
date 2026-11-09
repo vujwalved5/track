@@ -508,12 +508,36 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - 100% verified via automated headless Chrome/Edge CDP tests across 1440×900, 1300×800, and 390×844 viewports.
   - Production build passed with exit code 0 (`npm run build`). Zero new packages, L6 palette only, L5 fonts only, zero emoji.
 
+### Phase 8 / Task 17 — The Public Home Desk & Route Restructuring
+- **Public Home Desk ("/")**:
+  - Open to the public with zero login requirement and zero user data queries.
+  - Authentic wooden desk scene (`.desk-surface`) with tactile paper and brass paraphernalia:
+    - Paper title strip: "Memorable Moments" in Cormorant Garamond with a handwritten Kalam line about focus.
+    - Brass bookmark tag "Open your book" and handwritten link "Begin a new book", both navigating to `/enter` (tap target >= 44×44px).
+    - Daily tip card: Reused `PinnedIndexCard` with verified quotes from `lib/deskQuotes.ts`.
+    - Focus Notes: Reused 7-sheet `FocusNotesStack` from `lib/focusNotes.ts` with lift, turn-over, and put-back behaviors.
+    - Research Shelf: Pinned row of 8 paper clippings curated in `lib/researchShelf.ts` (academic studies Nov 2025 – Nov 2026 on AI attention, productivity, screen time, and models) with working URLs, tactile lift/turn-over/put-back controls, "Last updated: November 2026" indicator, and monthly refresh guidance.
+    - Exclusions respected: sand timer, closed book, brass key, and user data queries strictly omitted from `/`.
+- **Route Restructuring & Authentication Flow**:
+  - Relocated the closed-book login cover to `/enter` unchanged with a handwritten link "Back to the desk" leading to `/`.
+  - Signing in on `/enter` opens the book cover and navigates to `/home`.
+  - Added a handwritten link "Visit the desk" leading to `/` on `/home` and book spreads so authenticated readers can view the public desk.
+  - Updated `proxy.ts`: `/` and `/enter` are public; `/home` and `/book` remain protected, redirecting unauthenticated visitors to `/enter` (307) with `Cache-Control: no-store, no-cache, must-revalidate`.
+  - Brass key logout in `/home` and book spreads clears credentials and redirects to `/enter`; back-forward cache defense prevents viewing protected views via browser Back.
+- **Responsive Layout & Constraints**:
+  - Desktop (>= 768px): Fits 1440×900 and 1300×800 viewports with zero scrolling.
+  - Mobile (< 768px): Single vertical desk scroll on 390×844 with swipeable/horizontal research shelf and tap targets >= 44×44px.
+  - Colors strictly limited to L6 palette; typography strictly limited to L5 (Kalam, Cormorant Garamond); zero emoji; zero UI libraries; zero extra packages.
+- **Verification**:
+  - Independent victory audit confirmed VICTORY CONFIRMED.
+  - Automated 4-tier E2E suite verified 18/18 assertions passing via headless CDP browser.
+  - 24/24 adversarial attack tests passed for route security and BFcache eviction.
+
 ## Next
-- Task 16 Home Desk Page (/home) fully built, tested, and verified.
-- Production build passing cleanly with exit code 0 (`npm run build`).
+- Next task according to product roadmap.
 
 ## Open Questions
-- None. (The 5 open questions from Task 14 research were resolved by the owner for Task 15; password reset remains an intentional inert placeholder per original product design).
+- None.
 
 ## Locked Decisions (L1–L14)
 

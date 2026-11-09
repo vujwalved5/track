@@ -146,7 +146,7 @@ export function OpenBook({
         } catch (err) {
           console.error('Sign-out error:', err)
         }
-        window.location.replace('/')
+        window.location.replace('/enter')
       }, 150)
       return
     }
@@ -161,9 +161,9 @@ export function OpenBook({
       }
     }, 450)
 
-    // Complete sequence (900ms): full navigation to / preventing back cache restore
+    // Complete sequence (900ms): full navigation to /enter preventing back cache restore
     setTimeout(() => {
-      window.location.replace('/')
+      window.location.replace('/enter')
     }, 900)
   }, [isClosing, prefersReducedMotion])
 
@@ -177,7 +177,17 @@ export function OpenBook({
     setIsDesktop(mq.matches)
     const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
     mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
+
+    // Defensive BFcache reload listener
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) window.location.reload()
+    }
+    window.addEventListener('pageshow', onPageShow)
+
+    return () => {
+      mq.removeEventListener('change', handler)
+      window.removeEventListener('pageshow', onPageShow)
+    }
   }, [])
 
   // Listen to prefers-reduced-motion media query

@@ -13,10 +13,11 @@ L7 Paper: dotted (default), squared, lined, blank. 22px grid, 1.4px dots.
 L8 Desktop >=768px two-page spread; mobile one page; same data.
 L9 Every month starts with the Month Setup wizard.
 L10 Widgets are placed only via the Widget Library and snap to the 22px grid.
-L11 Login required; users see only their own data (RLS).
+L11 (amended) Login is required only for /home, /book and their data. The public page "/" and the closed-book cover "/enter" are open to everyone. Each user still sees only their own data (RLS).
 L12 Custom CSS 3D page turn. No flip-book library.
 L13 No emoji. Hand-drawn SVG icons.
 L14 No extra features, redesigns, renames, or dependencies unless I ask.
+L15 Public Home: "/" is a desk scene about focus, concentration, and technology and AI research. Everything on it is a paper or brass desk object. No navbar, sidebar, stats panels, or SaaS cards. It reads no user data.
 
 PROTOCOL FOR EVERY TASK:
 1. FIRST REPLY = PLAN ONLY: restate the task in at most 8 bullets, list every file you will create or edit, and list anything you are unsure about. Write no code. Then STOP and wait for me to type GO.

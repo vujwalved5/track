@@ -159,7 +159,17 @@ export function MobileBook({
     setPrefersReducedMotion(mediaQuery.matches)
     const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
     mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
+
+    // Defensive BFcache reload listener
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) window.location.reload()
+    }
+    window.addEventListener('pageshow', onPageShow)
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange)
+      window.removeEventListener('pageshow', onPageShow)
+    }
   }, [])
 
   // Mobile reverse cover-close & sign-out (Task 15 / Section 5.3)
@@ -174,7 +184,7 @@ export function MobileBook({
         } catch (err) {
           console.error('Sign-out error:', err)
         }
-        window.location.replace('/')
+        window.location.replace('/enter')
       }, 150)
       return
     }
@@ -188,9 +198,9 @@ export function MobileBook({
       }
     }, 450)
 
-    // Complete 900ms reverse close: full navigation to /
+    // Complete 900ms reverse close: full navigation to /enter
     setTimeout(() => {
-      window.location.replace('/')
+      window.location.replace('/enter')
     }, 900)
   }, [isClosing, prefersReducedMotion])
 

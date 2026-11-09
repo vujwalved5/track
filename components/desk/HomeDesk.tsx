@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { signOut } from '@/lib/supabase/auth'
 import { ClosedBookDesk } from './ClosedBookDesk'
 import { PinnedIndexCard } from './PinnedIndexCard'
@@ -46,7 +47,19 @@ export function HomeDesk() {
     setIsMobile(mql.matches)
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
     mql.addEventListener('change', handler)
-    return () => mql.removeEventListener('change', handler)
+
+    // 3. Defensive BFcache reload listener
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        window.location.reload()
+      }
+    }
+    window.addEventListener('pageshow', onPageShow)
+
+    return () => {
+      mql.removeEventListener('change', handler)
+      window.removeEventListener('pageshow', onPageShow)
+    }
   }, [])
 
   const handleLockDesk = async () => {
@@ -64,7 +77,7 @@ export function HomeDesk() {
         } catch (err) {
           console.error('Sign-out error:', err)
         }
-        window.location.replace('/')
+        window.location.replace('/enter')
       }, 150)
       return
     }
@@ -78,9 +91,9 @@ export function HomeDesk() {
       }
     }, 450)
 
-    // Complete sequence (900ms): full navigation to / preventing back cache restore
+    // Complete sequence (900ms): full navigation to /enter preventing back cache restore
     setTimeout(() => {
-      window.location.replace('/')
+      window.location.replace('/enter')
     }, 900)
   }
 
@@ -101,11 +114,18 @@ export function HomeDesk() {
         className="w-full h-[100dvh] max-h-[100dvh] desk-surface flex flex-col justify-between items-center px-3 py-2 overflow-hidden select-none relative"
         data-testid="home-desk-mobile"
       >
-        {/* Top: Handwritten Greeting */}
-        <header className="w-full pt-1 pb-0.5 text-center shrink-0">
+        {/* Top: Handwritten Greeting and Public Desk Link */}
+        <header className="w-full pt-1 pb-0.5 text-center shrink-0 flex flex-col items-center">
           <p className="font-hand italic text-xs sm:text-sm text-paper/85 tracking-wide leading-tight">
             {greeting}
           </p>
+          <Link
+            href="/"
+            className="font-hand text-[11px] sm:text-xs text-paper/70 hover:text-paper transition-colors underline decoration-dotted underline-offset-4 decoration-paper/30 inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-2"
+            aria-label="Visit the desk"
+          >
+            Visit the desk
+          </Link>
         </header>
 
         {/* 1. Closed Book at Top */}
@@ -149,10 +169,17 @@ export function HomeDesk() {
       data-testid="home-desk-desktop"
     >
       {/* ── Ambient Handwritten Greeting Inscribed on Desk Timber ── */}
-      <header className="w-full pt-2 pb-1 text-center z-10">
+      <header className="w-full pt-2 pb-1 text-center z-10 flex flex-col items-center">
         <p className="font-hand italic text-base lg:text-xl text-paper/85 tracking-wide">
           {greeting}
         </p>
+        <Link
+          href="/"
+          className="font-hand text-xs sm:text-sm text-paper/70 hover:text-paper transition-colors underline decoration-dotted underline-offset-4 decoration-paper/30 mt-1 inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-2"
+          aria-label="Visit the desk"
+        >
+          Visit the desk
+        </Link>
       </header>
 
       {/* ── Central Desk Working Area ── */}

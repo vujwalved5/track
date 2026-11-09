@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Cormorant_Garamond } from 'next/font/google'
 import { signIn, signUp } from '@/lib/supabase/auth'
@@ -267,7 +268,7 @@ export function ClosedBook() {
                         name="email"
                         type="email"
                         required
-                        autoComplete="email"
+                        autoComplete="off"
                         value={email}
                         onChange={(e) => {
                           setEmail(e.target.value)
@@ -291,7 +292,7 @@ export function ClosedBook() {
                         name="password"
                         type="password"
                         required
-                        autoComplete={mode === 'begin' ? 'new-password' : 'current-password'}
+                        autoComplete="off"
                         value={password}
                         onChange={(e) => {
                           setPassword(e.target.value)
@@ -373,24 +374,34 @@ export function ClosedBook() {
       </div>
 
       {/* Under the book: small links */}
-      <div className="flex items-center justify-center gap-5 mt-12 sm:mt-14 text-center">
-        <button
-          type="button"
-          className="font-cover text-xs tracking-widest text-gold/75 hover:text-gold transition-colors underline decoration-dotted underline-offset-4 decoration-gold/50 cursor-default"
-          aria-disabled="true"
+      <div className="flex flex-col items-center justify-center gap-2 mt-10 sm:mt-12 text-center select-none">
+        <div className="flex items-center justify-center gap-5">
+          <button
+            type="button"
+            className="font-cover text-xs tracking-widest text-gold/75 hover:text-gold transition-colors underline decoration-dotted underline-offset-4 decoration-gold/50 cursor-default"
+            aria-disabled="true"
+          >
+            Forgot the key?
+          </button>
+          <span className="text-gold/40 text-xs" aria-hidden="true">
+            ·
+          </span>
+          <button
+            type="button"
+            onClick={() => switchMode(mode === 'open' ? 'begin' : 'open')}
+            className="font-cover text-xs tracking-widest text-gold/75 hover:text-gold transition-colors underline decoration-dotted underline-offset-4 decoration-gold/50 cursor-pointer"
+          >
+            {mode === 'begin' ? 'I already have a book' : 'Begin a new book'}
+          </button>
+        </div>
+
+        <Link
+          href="/"
+          className="font-hand text-xs sm:text-sm text-gold/80 hover:text-gold transition-colors underline decoration-dotted underline-offset-4 decoration-gold/40 inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-3"
+          aria-label="Back to the desk"
         >
-          Forgot the key?
-        </button>
-        <span className="text-gold/40 text-xs" aria-hidden="true">
-          ·
-        </span>
-        <button
-          type="button"
-          onClick={() => switchMode(mode === 'open' ? 'begin' : 'open')}
-          className="font-cover text-xs tracking-widest text-gold/75 hover:text-gold transition-colors underline decoration-dotted underline-offset-4 decoration-gold/50 cursor-pointer"
-        >
-          {mode === 'begin' ? 'I already have a book' : 'Begin a new book'}
-        </button>
+          Back to the desk
+        </Link>
       </div>
     </div>
   )
