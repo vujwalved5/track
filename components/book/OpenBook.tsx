@@ -25,6 +25,8 @@ import {
   setInitialEntries,
   type WidgetEntryRow,
 } from '@/components/widgets/entryHelpers'
+import { signOut } from '@/lib/supabase/auth'
+import { PinnedIndexCard, AntiqueBrassKey } from '@/components/desk'
 
 const MonthSetupWizard = dynamic(
   () => import('@/components/setup/MonthSetupWizard').then((m) => m.MonthSetupWizard),
@@ -124,7 +126,46 @@ export function OpenBook({
     month,
   })
   const [isFading, setIsFading] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+
+  // Tactile Reverse Cover-Closing & Sign-Out (Task 15 / Section 5.3)
+  const handleLockBook = useCallback(async () => {
+    if (isClosing) return
+
+    // Disable spread pointer events and close open drawer or active card
+    setIsDrawerOpen(false)
+    setActiveConfigWidgetId(null)
+    setPickedWidgetDef(null)
+    setIsClosing(true)
+
+    if (prefersReducedMotion) {
+      setTimeout(async () => {
+        try {
+          await signOut()
+        } catch (err) {
+          console.error('Sign-out error:', err)
+        }
+        window.location.replace('/')
+      }, 150)
+      return
+    }
+
+    // Motion enabled: 900ms 3D reverse cover-closing sequence
+    // Midpoint (450ms): sign out and clear local caches
+    setTimeout(async () => {
+      try {
+        await signOut()
+      } catch (err) {
+        console.error('Sign-out error:', err)
+      }
+    }, 450)
+
+    // Complete sequence (900ms): full navigation to / preventing back cache restore
+    setTimeout(() => {
+      window.location.replace('/')
+    }, 900)
+  }, [isClosing, prefersReducedMotion])
 
   // Viewport detection (Correction 7: exactly ONE tree, null avoids hydration mismatch)
   const [isDesktop, setIsDesktop] = useState<boolean | null>(null)
@@ -528,7 +569,7 @@ export function OpenBook({
   // Master turn handler
   const executeTurn = useCallback(
     (tgtYear: number, tgtMonth: number, direction: TurnDirection) => {
-      if (isTurning || isFading) return
+      if (isTurning || isFading || isClosing) return
       if (tgtYear === year && tgtMonth === month) return
 
       // Cancel picked card and close drawer on page turn (Correction 4)
@@ -554,7 +595,7 @@ export function OpenBook({
         })
       }, 600)
     },
-    [isTurning, isFading, year, month, prefersReducedMotion, router],
+    [isTurning, isFading, isClosing, year, month, prefersReducedMotion, router],
   )
 
   const turnForward = useCallback(() => {
@@ -592,10 +633,10 @@ export function OpenBook({
     [month, year, executeTurn],
   )
 
-  // Arrow keys listener (disabled when setup is pending, correction 5)
+  // Arrow keys listener (disabled when setup is pending or book is closing)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isSetupDone) return // Unset month cannot be dismissed by arrows
+      if (!isSetupDone || isClosing) return // Unset month or closing book cannot be dismissed by arrows
       if (pickedWidgetDef) return // Do not turn pages while placing a widget (arrows move placement cursor)
       if (
         e.target instanceof HTMLInputElement ||
@@ -614,7 +655,7 @@ export function OpenBook({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [turnForward, turnBackward, isSetupDone, pickedWidgetDef])
+  }, [turnForward, turnBackward, isSetupDone, isClosing, pickedWidgetDef])
 
   // Left page heading
   const renderMonthTitle = (displayMonth: number, displayYear: number) => (
@@ -734,7 +775,7 @@ export function OpenBook({
   if (isDesktop === null) {
     return (
       <div
-        className="w-screen h-screen min-h-screen bg-desk"
+        className="w-screen h-screen min-h-screen desk-surface"
         style={{
           backgroundColor: '#211b16',
           contain: 'paint layout',
@@ -769,12 +810,18 @@ export function OpenBook({
   return (
     <div
       className={`relative select-none transition-opacity duration-200 ${
-        isFading ? 'opacity-0' : 'opacity-100'
-      }`}
+        isFading || (isClosing && prefersReducedMotion) ? 'opacity-0' : 'opacity-100'
+      } ${isClosing ? 'pointer-events-none' : ''}`}
       style={{
         width: PAGE_W * 2 + 24, // 968px + 24px casing padding = 992px
       }}
     >
+      {/* ── Desk Paraphernalia (Home Desk — Task 15) ── */}
+      {/* 1. Pinned Index Card with daily quote to the left of the book casing */}
+      <PinnedIndexCard />
+
+      {/* 2. Antique Brass Key for closing the book and signing out to the right below month tabs */}
+      <AntiqueBrassKey onLock={handleLockBook} disabled={isClosing} variant="desktop" />
       {/* Red-Pen Offline Connection Banner (Correction 3) */}
       {connectionError && (
         <div
@@ -969,33 +1016,39 @@ export function OpenBook({
               )}
 
               {/* Left Page */}
-              <Paper type={currentPaperLeft} side="left">
-                {renderMonthTitle(month, year)}
-                <PageWidgetLayer
-                  page="left"
-                  monthId={currentMonthId}
-                  year={year}
-                  month={month}
-                  setupConfig={currentSetupConfig}
-                  widgets={leftWidgets}
-                  isArrangeMode={isArrangeMode}
-                  onWidgetsChange={handleLeftWidgetsChange}
-                  onOpenConfig={handleOpenConfig}
-                />
-                {pickedWidgetDef && (
-                  <PlacementOverlay
+              <div
+                className={`transition-opacity duration-300 ${
+                  isClosing && !prefersReducedMotion ? 'opacity-0' : 'opacity-100'
+                }`}
+              >
+                <Paper type={currentPaperLeft} side="left">
+                  {renderMonthTitle(month, year)}
+                  <PageWidgetLayer
                     page="left"
-                    pickedWidgetDef={pickedWidgetDef}
-                    existingWidgets={leftWidgets}
-                    cursor={activePlacement?.page === 'left' ? activePlacement : null}
-                    onHover={handleOverlayHover}
-                    onPlace={handlePlaceWidget}
-                    onNoRoom={triggerNoRoom}
-                    onDismissNoRoom={dismissNoRoom}
+                    monthId={currentMonthId}
+                    year={year}
+                    month={month}
+                    setupConfig={currentSetupConfig}
+                    widgets={leftWidgets}
+                    isArrangeMode={isArrangeMode}
+                    onWidgetsChange={handleLeftWidgetsChange}
+                    onOpenConfig={handleOpenConfig}
                   />
-                )}
-                {renderLeftFolio(month, year, turnBackward)}
-              </Paper>
+                  {pickedWidgetDef && (
+                    <PlacementOverlay
+                      page="left"
+                      pickedWidgetDef={pickedWidgetDef}
+                      existingWidgets={leftWidgets}
+                      cursor={activePlacement?.page === 'left' ? activePlacement : null}
+                      onHover={handleOverlayHover}
+                      onPlace={handlePlaceWidget}
+                      onNoRoom={triggerNoRoom}
+                      onDismissNoRoom={dismissNoRoom}
+                    />
+                  )}
+                  {renderLeftFolio(month, year, turnBackward)}
+                </Paper>
+              </div>
 
               {/* Right Page */}
               <Paper type={currentPaperRight} side="right">
@@ -1093,6 +1146,68 @@ export function OpenBook({
             className="absolute top-0 bottom-0 left-[483px] w-[2px] bg-desk/50 shadow-[0_0_8px_rgba(28,36,51,0.6)] pointer-events-none z-10"
             aria-hidden="true"
           />
+
+          {/* ── 3D Reverse Cover-Closing Overlay (Task 15 / Section 5.3) ── */}
+          {isClosing && !prefersReducedMotion && (
+            <div
+              className="absolute top-0 bottom-0 left-[484px] w-[484px] preserve-3d animate-reverse-cover-close transform-gpu z-40"
+              style={{
+                transformOrigin: 'left center',
+                boxShadow: '8px 12px 28px rgba(0, 0, 0, 0.55)',
+              }}
+            >
+              {/* Front face of cover (oxblood with gold foil borders and title) */}
+              <div
+                className="absolute inset-0 rounded-r-2xl overflow-hidden bg-gradient-to-br from-oxblood to-oxblood-dark flex flex-col justify-between p-6 select-none"
+                style={{ backfaceVisibility: 'hidden' }}
+              >
+                {/* Spine band */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-8 bg-oxblood-dark border-r border-gold/75"
+                  aria-hidden="true"
+                />
+                {/* Inset gold foil border */}
+                <div
+                  className="absolute left-11 right-4 top-4 bottom-4 border border-gold/70 rounded-r-lg"
+                  aria-hidden="true"
+                >
+                  <div className="absolute inset-1 border border-gold/45 rounded-r-md" />
+                </div>
+                {/* Title */}
+                <div className="relative z-10 pl-8 pr-2 pt-6 text-center">
+                  <p className="font-cover text-xs tracking-[0.25em] text-gold uppercase font-medium">
+                    VOLUME — {year}
+                  </p>
+                  <h2 className="font-cover text-3xl text-gold font-bold tracking-[0.16em] uppercase leading-tight mt-2">
+                    MEMORABLE
+                    <br />
+                    MOMENTS
+                  </h2>
+                  <p className="font-cover italic text-sm text-gold/90 tracking-widest mt-2 font-normal">
+                    a year, kept by hand
+                  </p>
+                </div>
+                <div className="relative z-10 pl-8 pb-4 text-center">
+                  <span className="font-cover text-[11px] tracking-[0.2em] text-gold/80 uppercase">
+                    LOCKED
+                  </span>
+                </div>
+              </div>
+
+              {/* Inside endpaper backface facing reader before swinging flat */}
+              <div
+                className="absolute inset-0 rounded-l-2xl bg-paper overflow-hidden backface-hidden"
+                style={{
+                  transform: 'rotateY(180deg)',
+                  backgroundImage:
+                    'radial-gradient(circle, rgba(28, 36, 51, 0.25) 1.2px, transparent 1.2px)',
+                  backgroundSize: '22px 22px',
+                  boxShadow: 'inset -24px 0 28px -10px rgba(28, 36, 51, 0.25)',
+                }}
+                aria-hidden="true"
+              />
+            </div>
+          )}
         </div>
 
         {/* ── Month Index Tabs on Right Edge (L6 palette) ── */}

@@ -168,7 +168,7 @@ export default async function BookMonthPage({ params }: PageProps) {
 
     return (
       <main
-        className="h-screen w-screen overflow-hidden bg-desk flex items-center justify-center select-none"
+        className="h-screen w-screen overflow-hidden desk-surface flex items-center justify-center select-none"
         aria-label={`Book Spread ${year} Month ${month}`}
       >
         <OpenBook
@@ -192,7 +192,7 @@ export default async function BookMonthPage({ params }: PageProps) {
     console.error('Error loading month setup state:', err)
     return (
       <main
-        className="h-screen w-screen overflow-hidden bg-desk flex items-center justify-center select-none"
+        className="h-screen w-screen overflow-hidden desk-surface flex items-center justify-center select-none"
         aria-label={`Book Spread ${year} Month ${month}`}
       >
         <OpenBook

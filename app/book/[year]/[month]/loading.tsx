@@ -1,7 +1,7 @@
 export default function BookLoading() {
   return (
     <main
-      className="h-screen w-screen overflow-hidden bg-desk flex items-center justify-center select-none"
+      className="h-screen w-screen overflow-hidden desk-surface flex items-center justify-center select-none"
       aria-label="Loading notebook spread"
     >
       {/* Paper spread placeholder with faint handwritten text (L6, L7) */}

@@ -420,13 +420,53 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - Removed legacy `.agents/teamwork` files.
 - Verified `npm run build` and `npx tsc --noEmit` pass cleanly after each change.
 
+### Phase 8 / Task 14 — Home Desk & Tactile Log Out Research
+- Completed comprehensive investigation and architectural design documented in `RESEARCH_HOME.md`.
+- Synthesized 3 research tracks into 9 designated sections:
+  1. Summary in exactly 10 lines.
+  2. Motivation and focus content (evidence-based concepts, greeting patterns, 12 verified quotes <15 words, stateless deterministic selection rule).
+  3. Desk objects around the book (ranked top 6 evaluation table, rejected ideas with rationale).
+  4. Design language (pure CSS textures, inline SVG feTurbulence woodgrain, lamp-light vignette, multi-stage shadows, organic tilt, Kalam/Cormorant typography scale, calm motion).
+  5. Log out options (3 navbar-free options, Antique Brass Key chosen, mobile spine charm appearance, ~900ms reverse 3D cover-closing animation).
+  6. Proposed L6 palette amendments (brassPatina, pencilGraphite, linenTape, walnutWood as unapproved proposals for owner review).
+  7. Comprehensive bibliography of working canonical URLs for all claims, academic papers, and quotes.
+  8. Adherence matrix confirming 100% compliance with locked decisions L1–L14 (desk objects exist outside the book and do not violate L1 or L10).
+  9. Open questions for product owner regarding palette amendments, initial implementation scope, mobile focus presentation, hourglass interaction, and closing acoustics.
+- Evaluated physical touchstones: Ugmonk Analog, Midori Traveler's Notebook, Hobonichi Techo in original words.
+- **Iteration 2 URL Remediation**: Remediated all broken and redirected URLs in `RESEARCH_HOME.md` across sections 2.1, 2.3, 7.1, 7.2, 7.3, and 7.4. All URLs verified live (including 7 remediated canonical targets: Leonardo da Vinci Gutenberg #5000, Parkinson's Law Internet Archive lending library, TRAVELER'S COMPANY brass catalog, TRC 030 brass clip guide, Affine focus blog, Tobias Ahlin smooth shadows, and Wendell Berry canonical path). Verified Section 1 remains exactly 10 lines, all 12 quotes strictly < 15 words, and all 9 sections intact in exact order.
+
+### Phase 9 / Task 15 — Home Desk Environment & Tactile Sign-Out (Scoped)
+- **Desk Surface & Lamp-Light Vignette**:
+  - CSS procedural walnut timber surface applied to `.desk-surface` in `app/globals.css`: ambient radial lamp cone, longitudinal plank seams, and anisotropic woodgrain pores generated via inline SVG `feTurbulence` data URI with zero image files.
+  - Applied to `app/book/[year]/[month]/page.tsx` and `app/book/[year]/[month]/loading.tsx`. Closed book login screen keeps its existing desk presentation.
+- **Quote Rotation Logic (`lib/deskQuotes.ts`)**:
+  - Typed collection of 11 strictly verified historical/literary quotes (Quote 11 Wendell Berry dropped for copyright compliance; all 11 <= 13 words). Code comment added: "Wording to be spot-checked against sources by the owner."
+  - Pure mathematical day-of-year modulo algorithm (`getDailyDeskQuoteIndex`) cycling over `quotes.length` (11). Zero `Math.random`, zero network, zero state.
+  - Client-side post-mount date calculation in `PinnedIndexCard.tsx` prevents React hydration mismatches.
+- **Pinned Index Card (`components/desk/PinnedIndexCard.tsx`)**:
+  - 3×5" card (198×330px, 9×15 22px grid units) resting left of the book casing (`left: -216px, top: 48px`, tilt -2.5deg) with `--shadow-paper-card`.
+  - Paper color `#f4eddc`, 22px rules, Kalam 15px/22px leading, small hand-stamped date stamp, and hand-drawn turned brass bulldog clip in SVG (gold, kraft, desk).
+  - Desktop only; responsive breakpoint chosen: hidden below 1300px (`hidden min-[1300px]:block`) to prevent crowding on narrow viewports.
+- **Antique Brass Key & Tactile Sign-Out (`components/desk/AntiqueBrassKey.tsx`)**:
+  - Desktop: hand-drawn SVG solid brass key resting right of the book below the month tabs at tilt +12deg with `--shadow-brass-key`. Hover and keyboard focus reveal handwritten "lock the book" tooltip. High-contrast yellow focus ring (`#ffd84a`). Always reachable on narrower desktop screens (< 1300px).
+  - Mobile (< 768px): miniature brass key charm dangling on an ink thread at the bottom-left edge above the "back" text link (`bottom: 54px, left: 1.5`), featuring an accessible 44×44px tap target with zero overlap with the back link or bottom-right dog-ear corner. No quote or card rendered on mobile.
+  - Reverse Cover-Close Sequence:
+    - On click or keyboard Enter: immediately locks pointer events across spread and closes open drawer or active config card.
+    - ~900ms CSS 3D reverse cover close (`animate-reverse-cover-close` rotating clockwise from `rotateY(-140deg)` to `rotateY(0deg)`).
+    - Midpoint (450ms): calls `signOut()` from `lib/supabase/auth.ts`, clearing `mm_*` local keys, offline queue, and CacheStorage caches.
+    - 900ms completion: triggers full navigation `window.location.replace('/')`, landing cleanly on `/` showing the closed book with empty inputs.
+    - Respects `prefers-reduced-motion`: vestibular-safe instant 150ms opacity fade without 3D rotation.
+    - Back button protection verified: Next.js 16 `proxy.ts` (deprecated `middleware.ts`) and page-level `supabase.auth.getUser()` guard intercept unauthenticated visitors to `/book/*`, redirecting to `/` with `Cache-Control: no-store, no-cache, must-revalidate`.
+- **Deliberately NOT Built** (per product owner specification):
+  - Memo slip, pen rest, pencil board, sandglass (hourglass), sound effects, and proposed palette additions.
+- **Strict Adherence**: Zero new dependencies, strictly L6 palette (tints/shades of gold, kraft, desk), Kalam and Cormorant fonts only, zero emoji, all interactive controls keyboard accessible.
+
 ## Next
-- Complete Optimization Roadmap (Phase 1 through Phase 4) fully implemented and independently verified.
+- All core features and Task 15 Home Desk Environment fully implemented and verified.
 - Production build passing cleanly with exit code 0 (`npm run build`).
-- Ready for final end-to-end user acceptance and release.
 
 ## Open Questions
-- None. (Password reset not built: "Forgot the key?" remains an intentional inert placeholder per original product design. UI currently has no explicit sign-out control).
+- None. (The 5 open questions from Task 14 research were resolved by the owner for Task 15; password reset remains an intentional inert placeholder per original product design).
 
 ## Locked Decisions (L1–L14)
 

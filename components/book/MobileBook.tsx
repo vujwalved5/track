@@ -26,6 +26,8 @@ import {
   type WidgetDefinition,
 } from '@/components/widgets'
 import type { WidgetEntryRow } from '@/components/widgets/entryHelpers'
+import { signOut } from '@/lib/supabase/auth'
+import { AntiqueBrassKey } from '@/components/desk'
 import { MONTHS } from './OpenBook'
 
 const MonthSetupWizard = dynamic(
@@ -149,9 +151,52 @@ export function MobileBook({
   // Make sure currentPage stays clamped within bounds
   const clampedPage = Math.min(Math.max(0, currentPage), totalPages - 1)
 
+  const [isClosing, setIsClosing] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mediaQuery.matches)
+    const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+
+  // Mobile reverse cover-close & sign-out (Task 15 / Section 5.3)
+  const handleLockBook = useCallback(async () => {
+    if (isClosing) return
+    setIsClosing(true)
+
+    if (prefersReducedMotion) {
+      setTimeout(async () => {
+        try {
+          await signOut()
+        } catch (err) {
+          console.error('Sign-out error:', err)
+        }
+        window.location.replace('/')
+      }, 150)
+      return
+    }
+
+    // Midpoint: sign out & clear caches
+    setTimeout(async () => {
+      try {
+        await signOut()
+      } catch (err) {
+        console.error('Sign-out error:', err)
+      }
+    }, 450)
+
+    // Complete 900ms reverse close: full navigation to /
+    setTimeout(() => {
+      window.location.replace('/')
+    }, 900)
+  }, [isClosing, prefersReducedMotion])
+
   // Navigate to previous page or previous month
   const handleTurnBack = useCallback(() => {
-    if (!isSetupDone) return
+    if (!isSetupDone || isClosing) return
     if (clampedPage > 0) {
       setCurrentPage((prev) => prev - 1)
     } else {
@@ -160,11 +205,11 @@ export function MobileBook({
       const prevMonth = month === 1 ? 12 : month - 1
       onTurnMonth(prevYear, prevMonth, 'backward', 'last')
     }
-  }, [clampedPage, isSetupDone, month, year, onTurnMonth])
+  }, [clampedPage, isSetupDone, isClosing, month, year, onTurnMonth])
 
   // Navigate to next page or next month
   const handleTurnNext = useCallback(() => {
-    if (!isSetupDone) return
+    if (!isSetupDone || isClosing) return
     if (clampedPage < totalPages - 1) {
       setCurrentPage((prev) => prev + 1)
     } else {
@@ -173,7 +218,7 @@ export function MobileBook({
       const nextMonth = month === 12 ? 1 : month + 1
       onTurnMonth(nextYear, nextMonth, 'forward', 'first')
     }
-  }, [clampedPage, totalPages, isSetupDone, month, year, onTurnMonth])
+  }, [clampedPage, totalPages, isSetupDone, isClosing, month, year, onTurnMonth])
 
   // ── Swipe Touch Event Handlers (Correction 8) ────────────────
   const touchStartRef = useRef<{ x: number; y: number; isInteractive: boolean }>({
@@ -183,6 +228,7 @@ export function MobileBook({
   })
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (isClosing) return
     const touch = e.touches[0]
     if (!touch) return
 
@@ -200,6 +246,7 @@ export function MobileBook({
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (isClosing) return
     if (touchStartRef.current.isInteractive) return
     const touch = e.changedTouches[0]
     if (!touch) return
@@ -262,7 +309,9 @@ export function MobileBook({
       <div className="relative flex items-center justify-center max-w-[390px] w-full h-[844px] max-h-[100dvh]">
         {/* ── Single Cream Page (#f4eddc) ── */}
         <div
-          className="relative bg-paper text-ink rounded-sm shadow-[0_12px_36px_rgba(33,27,22,0.45),0_2px_8px_rgba(33,27,22,0.3)] border border-desk/30 overflow-hidden flex flex-col justify-between"
+          className={`relative bg-paper text-ink rounded-sm shadow-[0_12px_36px_rgba(33,27,22,0.45),0_2px_8px_rgba(33,27,22,0.3)] border border-desk/30 overflow-hidden flex flex-col justify-between transition-opacity duration-150 ${
+            isClosing && prefersReducedMotion ? 'opacity-0' : 'opacity-100'
+          } ${isClosing ? 'pointer-events-none' : ''}`}
           style={{
             width: 'calc(100% - 44px)', // 346px at 390px width
             height: 'calc(100% - 24px)', // 820px at 844px height
@@ -283,6 +332,13 @@ export function MobileBook({
           <div
             className="absolute left-3.5 top-2 bottom-2 w-0 border-r-2 border-dashed border-ink/25 pointer-events-none z-10"
             aria-hidden="true"
+          />
+
+          {/* ── Miniature Antique Brass Key Charm (Home Desk — Task 15) ── */}
+          <AntiqueBrassKey
+            onLock={handleLockBook}
+            disabled={isClosing}
+            variant="mobile"
           />
 
           {/* ── Hanging Red Ribbon from Top Edge ── */}
@@ -422,6 +478,73 @@ export function MobileBook({
             </button>
           </div>
         </div>
+
+        {/* ── Mobile 3D Reverse Cover-Closing Overlay (Task 15 / Section 5.3) ── */}
+        {isClosing && !prefersReducedMotion && (
+          <div
+            className="absolute left-0 top-3 bottom-3 z-50 pointer-events-none flex items-center justify-center"
+            style={{
+              width: 'calc(100% - 44px)',
+              perspective: '1800px',
+            }}
+          >
+            <div
+              className="absolute inset-0 preserve-3d animate-reverse-cover-close transform-gpu"
+              style={{
+                transformOrigin: 'left center',
+                boxShadow: '4px 6px 20px rgba(0, 0, 0, 0.65)',
+              }}
+            >
+              {/* Front face of cover (oxblood with gold foil borders and title) */}
+              <div
+                className="absolute inset-0 rounded-sm overflow-hidden bg-gradient-to-br from-oxblood to-oxblood-dark flex flex-col justify-between p-6 select-none"
+                style={{ backfaceVisibility: 'hidden' }}
+              >
+                {/* Spine band */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-7 bg-oxblood-dark border-r border-gold/75"
+                  aria-hidden="true"
+                />
+                <div
+                  className="absolute left-9 right-3 top-4 bottom-4 border border-gold/70 rounded-sm"
+                  aria-hidden="true"
+                >
+                  <div className="absolute inset-1 border border-gold/45 rounded-sm" />
+                </div>
+                <div className="relative z-10 pl-6 text-center pt-8">
+                  <p className="font-cover text-[10px] tracking-[0.25em] text-gold uppercase font-medium">
+                    VOLUME — {year}
+                  </p>
+                  <h2 className="font-cover text-2xl text-gold font-bold tracking-[0.16em] uppercase mt-1">
+                    MEMORABLE
+                    <br />
+                    MOMENTS
+                  </h2>
+                  <p className="font-cover italic text-xs text-gold/90 tracking-widest mt-1 font-normal">
+                    a year, kept by hand
+                  </p>
+                </div>
+                <div className="relative z-10 pl-6 text-center pb-6">
+                  <span className="font-cover text-[11px] tracking-[0.2em] text-gold/80 uppercase">
+                    LOCKED
+                  </span>
+                </div>
+              </div>
+
+              {/* Inside endpaper backface */}
+              <div
+                className="absolute inset-0 rounded-sm bg-paper overflow-hidden backface-hidden"
+                style={{
+                  transform: 'rotateY(180deg)',
+                  backgroundImage:
+                    'radial-gradient(circle, rgba(28, 36, 51, 0.25) 1.2px, transparent 1.2px)',
+                  backgroundSize: '22px 22px',
+                }}
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+        )}
 
         {/* ── Month Index Tabs on Right Edge (At least 44px tall each, Correction 6) ── */}
         <nav
