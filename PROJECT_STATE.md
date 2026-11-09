@@ -533,6 +533,20 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - Automated 4-tier E2E suite verified 18/18 assertions passing via headless CDP browser.
   - 24/24 adversarial attack tests passed for route security and BFcache eviction.
 
+## Phase 8 / Task 14-2 — Remove Duplicate Auth Calls & Parallel Embedded Queries
+- **Duplicate Auth Elimination**:
+  - Evaluated `supabase.auth.getClaims()` on supabase-js 2.119.0: with HS256 tokens, offline signature verification is unsupported and calls `getUser()` internally; therefore kept exactly one `getUser()` in `proxy.ts:34` per instructions without passing user ID in custom headers.
+  - `/home`: Removed duplicate `getUser()` in `app/home/page.tsx:9` (reduced from 2 calls to 1 in `proxy.ts:34`).
+  - `/book/[year]/[month]`: Removed duplicate `getUser()` in `app/book/[year]/[month]/page.tsx:57` and fallback `getUser()` in `components/setup/setupActions.ts:50` (reduced from 2 calls to 1 in `proxy.ts:34`).
+- **Embedded PostgREST Query**:
+  - Embedded `entries (*)` directly inside `widgets (...)` selector in `app/book/[year]/[month]/page.tsx`, completely removing the separate sequential entries waterfall query.
+- **Concurrent Query Execution**:
+  - Ran `getPreviousMonthData`, the embedded book/widgets/entries query, and the next-month prompt check in parallel via `Promise.all`.
+- **Verification**:
+  - `npm run build` passed with exit code 0.
+  - Verified unauthenticated users accessing protected routes (`/home`, `/book/:path*`) are redirected to `/enter` with `Cache-Control: no-store`.
+  - Zero UI/visual changes, zero RLS changes, zero packages added.
+
 ## Phase 8 / Task 14-1 — Infrastructure Speed Only
 - **Vercel Tokyo Region**: Created `vercel.json` with `{"regions": ["hnd1"]}` to colocate Vercel serverless execution with Supabase Tokyo (`ap-northeast-1`), eliminating cross-region latency.
 - **RLS Subquery Caching**: Created and applied `supabase/migrations/0003_optimize_rls_and_indexes.sql`, wrapping `auth.uid()` in `(SELECT auth.uid())` across all 16 RLS policies (`books`, `months`, `widgets`, `entries`), preventing per-row re-evaluation by Postgres.

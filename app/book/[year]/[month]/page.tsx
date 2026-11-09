@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation'
 import { OpenBook, MONTHS } from '@/components/book'
 import type { PaperType } from '@/components/paper'
 import { createClient } from '@/lib/supabase/server'
@@ -10,6 +9,10 @@ interface PageProps {
     year: string
     month: string
   }>
+}
+
+interface WidgetDataWithEntries extends WidgetData {
+  entries?: WidgetEntryRow[]
 }
 
 interface BookWithMonthsAndWidgets {
@@ -24,7 +27,7 @@ interface MonthRowWithWidgets {
   paper_left: PaperType
   paper_right: PaperType
   setup_config?: Record<string, unknown>
-  widgets?: WidgetData[]
+  widgets?: WidgetDataWithEntries[]
 }
 
 export default async function BookMonthPage({ params }: PageProps) {
@@ -51,44 +54,66 @@ export default async function BookMonthPage({ params }: PageProps) {
   const nextMonth = month === 12 ? 1 : month + 1
   const nextMonthName = MONTHS[nextMonth - 1]?.name || 'Next Month'
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Gentle prompt timing condition evaluated synchronously before fetching:
+  // Shows only when today is within last 3 days of viewed month AND next month's setup_done is false
+  const today = new Date()
+  const isViewingCurrentYear = today.getFullYear() === year
+  const isViewingCurrentMonth = today.getMonth() + 1 === month
+  const daysInViewedMonth = new Date(year, month, 0).getDate()
+  const isLast3DaysOfViewedMonth =
+    isViewingCurrentYear &&
+    isViewingCurrentMonth &&
+    today.getDate() >= daysInViewedMonth - 2 &&
+    today.getDate() <= daysInViewedMonth
 
-  if (!user) {
-    redirect('/enter')
-  }
+  const supabase = await createClient()
 
   try {
-    // 1. Fetch previous month data and current month relational tree concurrently
-    const [prevMonthDataResult, currentBookRes] = await Promise.all([
-      getPreviousMonthData(year, month, user.id),
-      supabase
-        .from('books')
-        .select(`
+    // Run all independent queries in parallel via Promise.all (Condition 1 / Task 14-2).
+    // Embed entries directly into widgets to eliminate the secondary waterfall query.
+    // Auth & tenant isolation are strictly enforced by Supabase RLS policies (L11).
+    const currentBookQuery = supabase
+      .from('books')
+      .select(`
+        id,
+        months (
           id,
-          months (
-            id,
-            month,
-            setup_done,
-            paper_left,
-            paper_right,
-            setup_config,
-            widgets (
-              id, month_id, page, type, x, y, w, h, config, z, created_at
-            )
+          month,
+          setup_done,
+          paper_left,
+          paper_right,
+          setup_config,
+          widgets (
+            id, month_id, page, type, x, y, w, h, config, z, created_at,
+            entries (*)
           )
-        `)
-        .eq('user_id', user.id)
-        .eq('year', year)
-        .eq('months.month', month)
-        .maybeSingle(),
+        )
+      `)
+      .eq('year', year)
+      .eq('months.month', month)
+      .maybeSingle()
+
+    const nextBookQuery = isLast3DaysOfViewedMonth
+      ? supabase
+          .from('books')
+          .select(`
+            id,
+            months (
+              setup_done
+            )
+          `)
+          .eq('year', nextYear)
+          .eq('months.month', nextMonth)
+          .maybeSingle()
+      : Promise.resolve(null)
+
+    const [prevMonthData, currentBookRes, nextBookRes] = await Promise.all([
+      getPreviousMonthData(year, month),
+      currentBookQuery,
+      nextBookQuery,
     ])
 
-    const prevMonthData = prevMonthDataResult
-
-    // Handle current month relational data safely without !inner
+    // Handle current month relational data safely
     const book = currentBookRes.data as unknown as BookWithMonthsAndWidgets | null
     const monthRows = Array.isArray(book?.months)
       ? (book.months as MonthRowWithWidgets[])
@@ -102,7 +127,7 @@ export default async function BookMonthPage({ params }: PageProps) {
       monthId = monthData.id
       setupConfig = (monthData.setup_config as Record<string, unknown>) || {}
 
-      const rawWidgets = (monthData.widgets as WidgetData[]) || []
+      const rawWidgets = (monthData.widgets as WidgetDataWithEntries[]) || []
       // Deterministically sort widgets by created_at ascending (with id tie-breaker)
       rawWidgets.sort(
         (a, b) =>
@@ -111,18 +136,8 @@ export default async function BookMonthPage({ params }: PageProps) {
       )
       initialWidgets = rawWidgets
 
-      // Batch fetch all entries for the month's widgets in a single query
-      if (initialWidgets.length > 0) {
-        const widgetIds = initialWidgets.map((w) => w.id)
-        const { data: entriesData } = await supabase
-          .from('entries')
-          .select('*')
-          .in('widget_id', widgetIds)
-
-        if (entriesData) {
-          initialEntries = entriesData as WidgetEntryRow[]
-        }
-      }
+      // Collect embedded entries from all widgets in a single pass without extra query
+      initialEntries = rawWidgets.flatMap((w) => w.entries || [])
     } else {
       // Month not yet set up; defaults ensure the 7-step wizard launches cleanly (Rule L9)
       setupDone = false
@@ -133,33 +148,9 @@ export default async function BookMonthPage({ params }: PageProps) {
       initialEntries = []
     }
 
-    // 2. Check gentle prompt condition (correction 5):
-    // Shows only when today is within last 3 days of viewed month AND next month's setup_done is false
-    const today = new Date()
-    const isViewingCurrentYear = today.getFullYear() === year
-    const isViewingCurrentMonth = today.getMonth() + 1 === month
-    const daysInViewedMonth = new Date(year, month, 0).getDate()
-    const isLast3DaysOfViewedMonth =
-      isViewingCurrentYear &&
-      isViewingCurrentMonth &&
-      today.getDate() >= daysInViewedMonth - 2 &&
-      today.getDate() <= daysInViewedMonth
-
-    if (isLast3DaysOfViewedMonth) {
-      const { data: nextBook } = await supabase
-        .from('books')
-        .select(`
-          id,
-          months (
-            setup_done
-          )
-        `)
-        .eq('user_id', user.id)
-        .eq('year', nextYear)
-        .eq('months.month', nextMonth)
-        .maybeSingle()
-
-      const rawNextBook = nextBook as unknown as { months?: Array<{ setup_done: boolean }> } | null
+    // Evaluate gentle next month prompt result
+    if (isLast3DaysOfViewedMonth && nextBookRes) {
+      const rawNextBook = nextBookRes.data as unknown as { months?: Array<{ setup_done: boolean }> } | null
       const nextMonthRow = rawNextBook?.months?.[0]
       if (!nextMonthRow || !nextMonthRow.setup_done) {
         showNextMonthPrompt = true

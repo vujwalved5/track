@@ -41,26 +41,13 @@ export async function getPreviousMonthData(
 ): Promise<PreviousMonthData> {
   try {
     const supabase = await createClient()
-    let effectiveUserId = userId
-
-    if (!effectiveUserId) {
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser()
-
-      if (authError || !user) {
-        return { exists: false }
-      }
-      effectiveUserId = user.id
-    }
-
     const prevYear = month === 1 ? year - 1 : year
     const prevMonth = month === 1 ? 12 : month - 1
     const prevMonthName = MONTH_NAMES[prevMonth - 1]
 
-    // Fetch previous month's book, month, and widgets in ONE nested query
-    const { data: prevBook } = await supabase
+    // Fetch previous month's book, month, and widgets in ONE nested query.
+    // Relies directly on Supabase RLS (user_id = (SELECT auth.uid())) to eliminate duplicate auth round trips.
+    let query = supabase
       .from('books')
       .select(`
         id,
@@ -74,10 +61,14 @@ export async function getPreviousMonthData(
           widgets (id)
         )
       `)
-      .eq('user_id', effectiveUserId)
       .eq('year', prevYear)
       .eq('months.month', prevMonth)
-      .maybeSingle()
+
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
+    const { data: prevBook } = await query.maybeSingle()
 
     interface PrevBookQueryResult {
       id: string
