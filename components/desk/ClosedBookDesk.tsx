@@ -59,10 +59,10 @@ export function ClosedBookDesk({ variant = 'desktop' }: ClosedBookDeskProps) {
       return
     }
 
-    // Start router.push ~500ms into the swing
+    // Router.push after the 1100ms swing ends
     setTimeout(() => {
       router.push(targetUrl)
-    }, 500)
+    }, 1100)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

@@ -533,6 +533,17 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - Automated 4-tier E2E suite verified 18/18 assertions passing via headless CDP browser.
   - 24/24 adversarial attack tests passed for route security and BFcache eviction.
 
+## Phase 8 / Task 14-4 — Timing Fix Only (router.push 1100ms Alignment)
+- **Cover Swing Navigation Alignment**:
+  - In `components/book/ClosedBook.tsx`, updated the `router.push(targetUrl)` delay from 500ms to 1100ms (lines 91 and 141) to match the completion of the 1100ms CSS 3D cover swing (`transition: transform 1100ms cubic-bezier(0.22, 0.8, 0.2, 1)`).
+  - In `components/desk/ClosedBookDesk.tsx`, updated the `router.push(targetUrl)` delay from 500ms to 1100ms (line 65) to match the completion of the 1100ms cover swing.
+- **Prefetch & Reduced-Motion Invariance**:
+  - Retained `router.prefetch` at 0ms upon interaction.
+  - Kept the 200ms `prefers-reduced-motion` opacity fade and push path unchanged in both components.
+- **Verification**:
+  - `npm run build` passed with exit code 0.
+  - Verified no visual changes, no timing changes other than the 500ms -> 1100ms alignment, and zero packages added.
+
 ## Phase 8 / Task 14-3 — Cover Animation, Transitions & Loading Spread
 - **Cover Swing Flat Geometry & Easing**:
   - `ClosedBook.tsx` and `ClosedBookDesk.tsx`: Updated cover swing end angle to `rotateY(-180deg)` (previously stopped short at `-140deg`), ensuring the opened cover lies flat with zero trapezoid distortion or perspective magnification.

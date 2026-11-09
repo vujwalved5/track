@@ -85,10 +85,10 @@ export function ClosedBook() {
             return
           }
 
-          // Start router.push ~500ms into the swing
+          // Router.push after the 1100ms swing ends
           setTimeout(() => {
             router.push(targetUrl)
-          }, 500)
+          }, 1100)
         } else {
           // Confirmation is on — show ink message, do not open cover
           setConfirmationMessage(
@@ -136,10 +136,10 @@ export function ClosedBook() {
           return
         }
 
-        // Start router.push ~500ms into the swing
+        // Router.push after the 1100ms swing ends
         setTimeout(() => {
           router.push(targetUrl)
-        }, 500)
+        }, 1100)
       } catch (err: unknown) {
         setIsSubmitting(false)
         const message =
