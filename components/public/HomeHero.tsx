@@ -27,14 +27,14 @@ export function HomeHero() {
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link
-                href="/"
+                href="/login"
                 className="press-btn inline-flex items-center gap-2 px-6 py-3.5 bg-[#172536] text-[#F4EFE4] font-public-condensed text-sm uppercase tracking-[0.16em] font-semibold rounded shadow-sm hover:bg-[#172536]/90"
               >
                 <span>Open Your Journal</span>
                 <span aria-hidden="true">↗</span>
               </Link>
               <Link
-                href="/welcome/focus-room"
+                href="/focus-room"
                 className="press-btn inline-flex items-center gap-2 px-6 py-3.5 bg-[#F4EFE4] text-[#172536] border border-[#172536]/30 font-public-condensed text-sm uppercase tracking-[0.16em] font-semibold rounded hover:border-[#172536] hover:bg-white/40"
               >
                 <span>Explore Focus Room</span>

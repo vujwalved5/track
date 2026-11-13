@@ -29,7 +29,7 @@ export function PublicNav({ current = 'home', theme = 'chalk' }: PublicNavProps)
         {/* Brand */}
         <div className="flex items-center gap-3">
           <Link
-            href="/welcome"
+            href="/"
             className="flex items-baseline gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#BD634A] rounded"
           >
             <span className="font-public-display text-2xl tracking-[0.18em] uppercase font-bold text-inherit">
@@ -44,25 +44,25 @@ export function PublicNav({ current = 'home', theme = 'chalk' }: PublicNavProps)
         {/* Links row - wraps on 390px without hamburger */}
         <div className="flex flex-wrap items-center gap-x-6 sm:gap-x-8 gap-y-2 text-sm font-public-sans tracking-wide">
           <Link
-            href="/welcome"
+            href="/"
             className={`pb-0.5 transition-colors ${current === 'home' ? activeLink : linkBase}`}
           >
             Home
           </Link>
           <Link
-            href="/"
+            href="/login"
             className={`pb-0.5 transition-colors ${linkBase}`}
           >
             Journal
           </Link>
           <Link
-            href="/welcome/focus-room"
+            href="/focus-room"
             className={`pb-0.5 transition-colors ${current === 'focus-room' ? activeLink : linkBase}`}
           >
             Focus Room
           </Link>
           <Link
-            href={current === 'home' ? '#about' : '/welcome#about'}
+            href={current === 'home' ? '#about' : '/#about'}
             className={`pb-0.5 transition-colors ${linkBase}`}
           >
             About
@@ -72,7 +72,7 @@ export function PublicNav({ current = 'home', theme = 'chalk' }: PublicNavProps)
         {/* Right CTA */}
         <div className="flex items-center gap-3">
           <Link
-            href="/"
+            href="/login"
             className={`press-btn inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-public-condensed uppercase tracking-[0.15em] font-semibold rounded ${
               isDark
                 ? 'bg-[#B68A53] text-[#172536] hover:bg-[#D2A75D]'

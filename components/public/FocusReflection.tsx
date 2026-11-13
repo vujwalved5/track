@@ -58,14 +58,14 @@ export function FocusReflection() {
 
           <div className="pt-6 flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/"
+              href="/login"
               className="press-btn inline-flex items-center gap-2 px-6 py-3 bg-[#BD634A] text-[#F4EFE4] font-public-condensed text-xs uppercase tracking-[0.18em] font-bold rounded shadow hover:bg-[#BD634A]/90"
             >
               <span>Return to journal</span>
               <span aria-hidden="true">↗</span>
             </Link>
             <Link
-              href="/welcome"
+              href="/"
               className="press-btn inline-flex items-center gap-2 px-6 py-3 bg-transparent border border-[#F4EFE4]/30 text-[#F4EFE4] font-public-condensed text-xs uppercase tracking-[0.16em] font-semibold rounded hover:border-[#F4EFE4]"
             >
               <span>Home (Atlas)</span>

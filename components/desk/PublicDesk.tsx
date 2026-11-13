@@ -106,7 +106,7 @@ export function PublicDesk() {
           {/* 2. Login Access: Brass bookmark tag & handwritten link */}
           <div className="flex items-center justify-center gap-3 mt-3 w-full max-w-[340px]">
             <Link
-              href="/enter"
+              href="/login"
               className="min-h-[44px] min-w-[44px] px-3.5 py-1.5 bg-gradient-to-r from-gold via-[#e5c46e] to-gold text-desk rounded-[2px] shadow-sm hover:brightness-105 active:translate-y-px transition-all border border-kraft/60 inline-flex items-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-highlighter focus-visible:ring-offset-2 focus-visible:ring-offset-desk"
               aria-label="Open your book — sign in to your journal"
             >
@@ -138,7 +138,7 @@ export function PublicDesk() {
             </Link>
 
             <Link
-              href="/enter"
+              href="/login"
               className="min-h-[44px] min-w-[44px] px-2 inline-flex items-center font-hand text-xs text-paper/80 hover:text-paper underline decoration-dotted underline-offset-4 decoration-paper/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-highlighter rounded-sm"
               aria-label="Begin a new book"
             >
@@ -248,7 +248,7 @@ export function PublicDesk() {
         {/* Right: Login Access (Brass Bookmark Tag + Handwritten Link) */}
         <div className="flex items-center justify-end gap-3 w-[240px]">
           <Link
-            href="/enter"
+            href="/login"
             className="min-h-[44px] min-w-[44px] px-3.5 py-1.5 bg-gradient-to-r from-gold via-[#e5c46e] to-gold text-desk rounded-[2px] shadow-sm hover:brightness-105 active:translate-y-px transition-all border border-kraft/60 inline-flex items-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-highlighter focus-visible:ring-offset-2 focus-visible:ring-offset-desk"
             aria-label="Open your book — sign in to your journal"
           >
@@ -280,7 +280,7 @@ export function PublicDesk() {
           </Link>
 
           <Link
-            href="/enter"
+            href="/login"
             className="min-h-[44px] min-w-[44px] px-2 inline-flex items-center font-hand text-xs sm:text-sm text-paper/80 hover:text-paper underline decoration-dotted underline-offset-4 decoration-paper/40 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-highlighter rounded-sm"
             aria-label="Begin a new book"
           >

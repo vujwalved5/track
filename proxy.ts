@@ -35,7 +35,7 @@ export async function proxy(request: NextRequest) {
 
   if (!user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/enter'
+    url.pathname = '/login'
     const redirectResponse = NextResponse.redirect(url)
     // Add Cache-Control: no-store per Condition 2
     redirectResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')

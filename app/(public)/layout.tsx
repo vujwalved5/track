@@ -59,7 +59,7 @@ export const metadata: Metadata = {
   description: 'A quieter space to track your days, notice your progress, and build habits that last.',
 }
 
-export default function WelcomeLayout({
+export default function PublicLayout({
   children,
 }: {
   children: React.ReactNode

@@ -77,7 +77,7 @@ export function HomeDesk() {
         } catch (err) {
           console.error('Sign-out error:', err)
         }
-        window.location.replace('/enter')
+        window.location.replace('/login')
       }, 150)
       return
     }
@@ -91,9 +91,9 @@ export function HomeDesk() {
       }
     }, 450)
 
-    // Complete sequence (900ms): full navigation to /enter preventing back cache restore
+    // Complete sequence (900ms): full navigation to /login preventing back cache restore
     setTimeout(() => {
-      window.location.replace('/enter')
+      window.location.replace('/login')
     }, 900)
   }
 

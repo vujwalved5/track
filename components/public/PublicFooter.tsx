@@ -28,7 +28,7 @@ export function PublicFooter({ current = 'home' }: PublicFooterProps = {}) {
             </p>
             <div className="pt-2">
               <Link
-                href="/"
+                href="/login"
                 className="press-btn inline-flex items-center gap-2 px-4 py-2 bg-[#BD634A] text-[#F4EFE4] font-public-condensed text-xs uppercase tracking-[0.18em] rounded hover:bg-[#BD634A]/90"
               >
                 <span>{isFocusRoom ? 'Return to journal' : 'Start with today'}</span>
@@ -44,22 +44,22 @@ export function PublicFooter({ current = 'home' }: PublicFooterProps = {}) {
             </h3>
             <ul className="space-y-2 font-public-sans text-sm text-[#F4EFE4]/75">
               <li>
-                <Link href="/welcome" className="hover:text-[#BD634A] transition-colors">
+                <Link href="/" className="hover:text-[#BD634A] transition-colors">
                   Home (Atlas)
                 </Link>
               </li>
               <li>
-                <Link href="/" className="hover:text-[#BD634A] transition-colors">
+                <Link href="/login" className="hover:text-[#BD634A] transition-colors">
                   Journal Login
                 </Link>
               </li>
               <li>
-                <Link href="/welcome/focus-room" className="hover:text-[#BD634A] transition-colors">
+                <Link href="/focus-room" className="hover:text-[#BD634A] transition-colors">
                   Focus Room
                 </Link>
               </li>
               <li>
-                <Link href="/welcome#about" className="hover:text-[#BD634A] transition-colors">
+                <Link href="/#about" className="hover:text-[#BD634A] transition-colors">
                   About the Idea
                 </Link>
               </li>

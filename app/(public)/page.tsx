@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     'A quieter space to track your days, notice your progress, and build habits that last. Make Every Day Count.',
 }
 
-export default function WelcomePage() {
+export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-[#F4EFE4]">
       <PublicNav current="home" theme="chalk" />

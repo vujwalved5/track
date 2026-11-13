@@ -146,7 +146,7 @@ export function OpenBook({
         } catch (err) {
           console.error('Sign-out error:', err)
         }
-        router.replace('/enter')
+        router.replace('/login')
       }, 150)
       return
     }
@@ -161,9 +161,9 @@ export function OpenBook({
       }
     }, 450)
 
-    // Complete sequence (900ms): full navigation to /enter preventing back cache restore
+    // Complete sequence (900ms): full navigation to /login preventing back cache restore
     setTimeout(() => {
-      router.replace('/enter')
+      router.replace('/login')
     }, 900)
   }, [isClosing, prefersReducedMotion])
 

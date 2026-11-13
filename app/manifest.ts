@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Memorable Moments',
     short_name: 'Memorable Moments',
     description: 'A private, book-like digital journal.',
-    start_url: '/',
+    start_url: '/login',
     display: 'standalone',
     background_color: '#211b16',
     theme_color: '#211b16',

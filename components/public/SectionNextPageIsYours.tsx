@@ -30,14 +30,14 @@ export function SectionNextPageIsYours() {
 
             <div className="pt-4 flex flex-wrap items-center gap-4">
               <Link
-                href="/"
+                href="/login"
                 className="press-btn inline-flex items-center gap-2.5 px-7 py-3.5 bg-[#BD634A] text-[#F4EFE4] font-public-condensed text-sm uppercase tracking-[0.18em] font-semibold rounded hover:bg-[#BD634A]/90 shadow-md"
               >
                 <span>Start with today</span>
                 <span aria-hidden="true">↗</span>
               </Link>
               <Link
-                href="/welcome/focus-room"
+                href="/focus-room"
                 className="press-btn inline-flex items-center gap-2 px-6 py-3.5 bg-transparent border border-[#F4EFE4]/30 text-[#F4EFE4] font-public-condensed text-sm uppercase tracking-[0.16em] font-semibold rounded hover:border-[#F4EFE4] hover:bg-white/5"
               >
                 <span>Explore Focus Room</span>

@@ -184,7 +184,7 @@ export function MobileBook({
         } catch (err) {
           console.error('Sign-out error:', err)
         }
-        window.location.replace('/enter')
+        window.location.replace('/login')
       }, 150)
       return
     }
@@ -198,9 +198,9 @@ export function MobileBook({
       }
     }, 450)
 
-    // Complete 900ms reverse close: full navigation to /enter
+    // Complete 900ms reverse close: full navigation to /login
     setTimeout(() => {
-      window.location.replace('/enter')
+      window.location.replace('/login')
     }, 900)
   }, [isClosing, prefersReducedMotion])
 

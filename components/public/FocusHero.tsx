@@ -34,7 +34,7 @@ export function FocusHero() {
                 <span aria-hidden="true">↓</span>
               </a>
               <Link
-                href="/"
+                href="/login"
                 className="press-btn inline-flex items-center gap-2 px-6 py-3.5 bg-transparent border border-[#F4EFE4]/30 text-[#F4EFE4] font-public-condensed text-sm uppercase tracking-[0.16em] font-semibold rounded hover:border-[#F4EFE4] hover:bg-white/5"
               >
                 <span>← Return to Journal</span>

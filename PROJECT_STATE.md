@@ -31,8 +31,8 @@
 - `components/paper/index.ts` — barrel export.
 - `app/dev/paper/page.tsx` — dev-only preview at `/dev/paper`.
 
-### Phase 2 / Task 4 — Closed Book Login Screen
-- Closed cloth-bound book (520×700px on desktop, scaling to fit mobile 390px) on desk background with soft vignette.
+### Phase 2 / Task 4 — Closed Book Login Screen (/login)
+- Closed cloth-bound book (520×700px on desktop, scaling to fit mobile 390px) on desk background with soft vignette, located at `/login` (moved from `/` in Task 15).
 - Oxblood cover (`#702028` to `#54181e` oxbloodDark) with dark spine band, gold vertical line, rounded right corners, and visible cream page edges on right.
 - Gold foil inset double border; Cormorant Garamond title: "VOLUME — YEAR", "MEMORABLE MOMENTS", "a year, kept by hand".
 - Glued cream bookplate (`#f4eddc`) with "THIS BOOK BELONGS TO", semantic `<label>`/`<input>` for email and password with dotted-underline style.
@@ -649,6 +649,18 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - **Verification**: Production build (`npm run build`) passed; real Edge browser CDP tests verified at 1440x900 and 390x844 viewports.
 
 
+### Phase 8 / Task 15 — Make Welcome Page the Main Page
+- **Route Restructuring via Route Group**: Moved public Canva pages into `app/(public)/` so the E1 layout (Canva tokens, Google Fonts, CSS variables) applies strictly to `/` (Home) and `/focus-room` (Focus Room).
+- **Closed-Book Login (/login)**: Created `app/login/page.tsx` rendering `<ClosedBook />`. Verified that signed-in users navigating to `/login` are immediately redirected to the current month `/book/[year]/[month]`, while signed-out users attempting to access `/book/*` or `/home` are intercepted by `proxy.ts` and redirected to `/login`.
+- **Public Navigation & Link Updates**: Updated all links across public components:
+  - Home -> `/`
+  - Journal / "Open your journal" / "Start with today" / "Return to journal" -> `/login`
+  - Focus Room / "Explore Focus Room" -> `/focus-room`
+  - About -> `/#about` (and `#about` on Home itself)
+- **Sign-Out & Auth Guards**: Repointed unauthenticated redirects in `proxy.ts`, sign-out handlers in `OpenBook.tsx`, `MobileBook.tsx`, and `HomeDesk.tsx`, and PWA `start_url` in `app/manifest.ts` from `/enter` / `/` to `/login`.
+- **Temporary Redirects in next.config.js**: Added temporary redirects (`permanent: false`) for `/welcome` -> `/`, `/welcome/focus-room` -> `/focus-room`, and `/enter` -> `/login`.
+- **Verification**: `npm run build` succeeds cleanly with all static and dynamic routes pre-rendered.
+
 ## Next
 - Next performance, animation, or UI tasks as requested (e.g., Task 14-2 / Closed-Book Animation & Geometry / Loading UI).
 
@@ -687,10 +699,10 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 
 L15 Home Desk: after sign-in the reader lands on /home, a desk scene (not a dashboard). Everything on it is a paper or brass desk object. No navbar, sidebar, stats panels, or SaaS cards.
 
-**Scoped Exception E1** (Task 14 — Canva Public Pages):
-Applies ONLY to `/welcome`, `/welcome/focus-room` and the components in `/components/public`:
+**Scoped Exception E1** (Tasks 14 & 15 — Canva Public Pages):
+Applies ONLY to `/`, `/focus-room` and the components in `/components/public` (with the login book at `/login`):
 - L1 is lifted: these are normal scrolling pages with a top nav (Home, Journal, Focus Room, About) and a footer. Everywhere else L1 still applies.
 - L5 is lifted: fonts used in the Canva design (`DM Sans`, `Fraunces`, `Barlow Condensed`, `Caveat`, `Italiana`, `Oswald`, `Nothing You Could Do`) are loaded with `next/font/google` for these routes only.
-- L6 is lifted: Canva colours (`#172536`, `#F4EFE4`, `#60432F`, `#B68A53`, `#BD634A`, `#899783`, `#30483D`, `#8799A7`, `#D2A75D`, `#79677A`, `rgba(244, 239, 228, 0.21)`) are defined in `/lib/tokens-public.ts` and as CSS variables on a wrapper in `/app/welcome/layout.tsx`. `/lib/tokens.ts` and core Tailwind colours remain strictly unchanged.
+- L6 is lifted: Canva colours (`#172536`, `#F4EFE4`, `#60432F`, `#B68A53`, `#BD634A`, `#899783`, `#30483D`, `#8799A7`, `#D2A75D`, `#79677A`, `rgba(244, 239, 228, 0.21)`) are defined in `/lib/tokens-public.ts` and as CSS variables on a wrapper in `app/(public)/layout.tsx`. `/lib/tokens.ts` and core Tailwind colours remain strictly unchanged.
 - L14 is lifted only for the items in Task 14.
 - Still applies: L2 (Next App Router + TypeScript + Tailwind), L3 (no new packages, no animation library, pure CSS only), L13 (no emoji, custom SVG only).
