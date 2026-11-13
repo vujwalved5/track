@@ -616,6 +616,39 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
     - `/home`: Dual serial auth calls to Tokyo + missing `app/home/loading.tsx` + empty-desk SSR suppression (`isMobile === null`).
     - All routes: Cross-continental latency (Supabase in Tokyo `ap-northeast-1` vs Vercel default in `iad1` US-East; ~180-260ms RTT per hop) due to absent `vercel.json` and `preferredRegion`.
 
+## Phase 8 / Task 14 — Public Pages from Canva ("TRACK Atlas of Everyday website")
+- **Scoped Exception E1**: Built public routes `/welcome` (Home) and `/welcome/focus-room` (Focus Room) based on Canva design "TRACK Atlas of Everyday website".
+- **Asset Integrity**: Four exact photos downloaded directly via Pexels IDs into `/public/welcome/` with alt text matching Canva design:
+  - `hero-desk.jpg` (Pexels 18831745)
+  - `hero-mountain.jpg` (Pexels 9063428)
+  - `quote-mountain.jpg` (Pexels 39040022)
+  - `focus-desk.jpg` (Pexels 18530057)
+- **Scoped Tokens & Fonts**:
+  - `lib/tokens-public.ts`: 11 Canva color tokens isolated from core book tokens.
+  - `app/welcome/layout.tsx`: Loaded 7 fonts via `next/font/google` (`DM Sans`, `Fraunces`, `Barlow Condensed`, `Caveat`, `Italiana`, `Oswald`, `Nothing You Could Do`) and injected CSS variables scoped to route wrapper.
+  - Zero changes to `/lib/tokens.ts` or book palette.
+- **Home Page Structure (6 Main Body Sections)**:
+  - Hero: "Make Every Day Count." (Count in italics clay), buttons (`Open Your Journal ↗` -> `/`, `Explore Focus Room →` -> `/welcome/focus-room`), photo collage with polaroid and taped field note.
+  - 01 / The Idea (`id="about"`): "What is Track?", physical paper grid with hand-drawn botanical branch SVG.
+  - 02 / Tools for Noticing (`id="journal"`): 4 feature cards (Track, Charts, Ask, Write).
+  - 03 / The Long View (`id="trace"`): 6-node route diagram SVG with milestone badges and handwritten notes.
+  - 04 / A Note for the Road (`id="perspective"`): Sunrise photo with quote "You don't have to be perfect. You just have to keep showing up."
+  - 05 / The Next Page Is Yours (`id="start"`): "Your days are worth remembering.", CTA button "Start with today ↗" -> `/`.
+  - Public Footer: Wordmark, quick links, colophon, hand-drawn book emblem.
+- **Focus Room Page Structure**:
+  - Hero: "Find your rhythm.", warm desk photo with celestial orbit SVG.
+  - 01 / The Practice (`id="practice"`): 25:00 timer dial with Start/Pause/Reset, pace chooser tabs, "Coming soon" tag, checklist, 5-axis habit radar SVG, 4-stage box breathing guide (static visual, no ring pulse).
+  - 02 / The Journey: Session 1 of 4 progression wave SVG, ambient focus player with 31 static waveform bars, volume slider, and 3 sound chips.
+  - 03 / Reflection: Constellation star map SVG, "Give one thing your full attention." / "the rest can wait a little."
+- **Navigation & Mobile Responsiveness**:
+  - Full desktop layout at 1440px; columns stack cleanly on 390px mobile with zero horizontal scroll overflow.
+  - Nav wraps gracefully on 390px without hamburger menus.
+  - Motion restricted strictly to CSS hover lift and button press (disabled under `prefers-reduced-motion`).
+- **Developer Note Exclusion**: All 8 developer-note texts identified in Canva design were omitted from public markup.
+- **Contrast Audit**: Complete file-and-line catalog of clay (`#BD634A`) and brass (`#B68A53`) on small text documented in Deviation report without altering Canva palette.
+- **Verification**: Production build (`npm run build`) passed; real Edge browser CDP tests verified at 1440x900 and 390x844 viewports.
+
+
 ## Next
 - Next performance, animation, or UI tasks as requested (e.g., Task 14-2 / Closed-Book Animation & Geometry / Loading UI).
 
@@ -653,3 +686,11 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 **L14** No extra features, redesigns, renames, or dependencies unless asked.
 
 L15 Home Desk: after sign-in the reader lands on /home, a desk scene (not a dashboard). Everything on it is a paper or brass desk object. No navbar, sidebar, stats panels, or SaaS cards.
+
+**Scoped Exception E1** (Task 14 — Canva Public Pages):
+Applies ONLY to `/welcome`, `/welcome/focus-room` and the components in `/components/public`:
+- L1 is lifted: these are normal scrolling pages with a top nav (Home, Journal, Focus Room, About) and a footer. Everywhere else L1 still applies.
+- L5 is lifted: fonts used in the Canva design (`DM Sans`, `Fraunces`, `Barlow Condensed`, `Caveat`, `Italiana`, `Oswald`, `Nothing You Could Do`) are loaded with `next/font/google` for these routes only.
+- L6 is lifted: Canva colours (`#172536`, `#F4EFE4`, `#60432F`, `#B68A53`, `#BD634A`, `#899783`, `#30483D`, `#8799A7`, `#D2A75D`, `#79677A`, `rgba(244, 239, 228, 0.21)`) are defined in `/lib/tokens-public.ts` and as CSS variables on a wrapper in `/app/welcome/layout.tsx`. `/lib/tokens.ts` and core Tailwind colours remain strictly unchanged.
+- L14 is lifted only for the items in Task 14.
+- Still applies: L2 (Next App Router + TypeScript + Tailwind), L3 (no new packages, no animation library, pure CSS only), L13 (no emoji, custom SVG only).
