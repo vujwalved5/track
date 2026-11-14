@@ -661,8 +661,57 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - **Temporary Redirects in next.config.js**: Added temporary redirects (`permanent: false`) for `/welcome` -> `/`, `/welcome/focus-room` -> `/focus-room`, and `/enter` -> `/login`.
 - **Verification**: `npm run build` succeeds cleanly with all static and dynamic routes pre-rendered.
 
+### Phase 8 / Task 14B (Pilot) — Focus Room Fidelity Pass (Nav, Hero, Settle into Focus)
+- **Pilot Scope Delivered**: Rigorous pixel-fidelity pass for Focus Room (`/focus-room`) matching Canva design reference `design-reference/focus-room.png` at 1366×768.
+- **PublicNav (`PublicNav.tsx`)**:
+  - Exact 91px height matching reference y=0 to y=91, with border bottom `#F4EFE4/15`.
+  - Brand `TRACK`: bold uppercase condensed sans (`font-public-headline` / Oswald) with 2px gold accent bar beneath `TR`.
+  - Center: `HOME`, `JOURNAL`, `FOCUS ROOM`, `ABOUT` in uppercase `font-public-condensed` (Barlow Condensed, text-xs, tracking-[0.22em]), dead-centered on desktop viewports. Active link for `FOCUS ROOM` highlighted with `#B68A53` border.
+  - Right: stacked `NIGHT STUDY / 02` in `#B68A53` and `← Return to journal` link in `font-public-sans` (DM Sans lowercase) with gold underline.
+  - Responsive: flex-wrapping gracefully down to 390px mobile viewport without overflow.
+- **Hero Section (`FocusHero.tsx`)**:
+  - Exact 862px height measured directly from Canva reference (862px from y=91 to y=953).
+  - Left column:
+    - Top: `TRACK / FOCUS ROOM` — `02` with horizontal rule divider.
+    - Center: `Find your` / `rhythm.` in `font-public-display` (Italiana, 116px–122px, font-normal, `#F4EFE4`).
+    - Paragraph: `One focused session at a time. Make space for deep work, then take a proper break.` (DM Sans, text-lg, text-[#F4EFE4]/80, max-w-md).
+    - Bottom: Leading gold horizontal rule (`w-[60px] h-px bg-[#B68A53]`) followed by `A QUIETER KIND OF MOMENTUM` label in `#B68A53`.
+  - Right column:
+    - Uses `/welcome/focus-desk.jpg` with dark navy gradient overlay on left edge to seamlessly fade the desk photo into the `#172536` background.
+    - Celestial orbit overlay tilted at -22° matching the reference geometry.
+    - Thin framing line border inset with `+` crosshair at upper right.
+    - Vertical caption running along right edge: `LOW LIGHT / CLEAR MIND / 01:25 AM`.
+    - Developer note `STAR MAP DRIFTS BARELY / FUTURE IMPLEMENTATION` hidden per requirement 2.
+- **Section 01: Settle into focus (`FocusThePractice.tsx`)**:
+  - Header:
+    - Top banner: `01 / THE PRACTICE` (left) ... `A PLACE TO BEGIN` (right) with horizontal border divider.
+    - Headline: `A LITTLE SPACE TO THINK` eyebrow and `Settle into focus.` in Italiana (84px, font-normal, antialiased) in left column (`lg:col-span-8`).
+    - Lead paragraph: `A future home for unhurried work, thoughtful pauses, and the simple ritual of beginning.` in right column (`lg:col-span-4`), left-aligned, and horizontally aligned with the cream card below (Requirement 6).
+  - Left Card (Timer Card, `lg:col-span-8`):
+    - Offset shadow slab behind card (`translate-x-4 translate-y-4 bg-[#0d1926] border border-[#F4EFE4]/10`, Requirement 4).
+    - Inner framing line border enclosing top section with 16px inset.
+    - Top row: `FOCUS SESSION / 01` (left) and `MOCKUP / COMING SOON` tag tilted at -2.5° (right, Requirement 2).
+    - Middle: Visual timer dial (500px viewBox, radius 204) with 8 radial ticks, sweeping active gold arc (152° clockwise from 12 o'clock, 25 mins on 60 min clock), illuminated orbit bead at 3 o'clock, glowing amber beacon star at 12 o'clock inside dial, `25:00` numerals in Italiana (112px font-normal), and `FOCUS SESSION` sub-label (Requirement 4).
+    - Buttons: Rectangular `rounded-[2px]` `START` (brass `#B68A53`), `PAUSE`, `RESET` with `aria-disabled="true"` preserving design colors without browser grey disabled styling (Requirement 3).
+    - Developer note `TIMER ARC SWEEPS SMOOTHLY / FUTURE IMPLEMENTATION` hidden per requirement 2.
+    - Bottom section: `CHOOSE YOUR PACE` and `01 — 03` eyebrow; active `FOCUS 25 MIN` tab with bottom-left chamfer cut and gold underline, and inactive tabs `SHORT BREAK 5 MIN`, `LONG BREAK 15 MIN` spanning the width evenly.
+  - Right Card (Cream Field-Note Card, `lg:col-span-4`):
+    - Background cream `#F4EFE4`, chamfered 45° cut on top-right corner (`clip-path: polygon(...)`), inner inset double border following the corner chamfer geometry (Requirement 4).
+    - Top label: `FIELD NOTE / A SMALL RITUAL` in tobacco `#60432F`.
+    - Title: `Before you` / `begin` in Italiana (48px).
+    - Paragraph under title: `A few quiet gestures can make room for what matters.` in DM Sans (Requirement 4).
+    - Three checklist items with empty circle checkboxes (Requirement 3) bounded by horizontal divider rules: `Clear your desk`, `Choose one task`, `Take a breath`.
+    - Middle section: Authentic celestial radar chart with circular outline, inner dashed circle, 8 spokes, 5-node polygon, `+` crosshairs (top-right and bottom-left), and `NORTH / 02` at bottom right. No extraneous labels.
+    - Bottom section: `A BREATHING GUIDE` with horizontal divider rule (no floating `02`) and 4-stage box breathing guide (`INHALE`, `HOLD`, `EXHALE`, `REST`) with concentric state circles.
+    - Height: Exactly aligns with the timer card bottom edge baseline across desktop viewports.
+- **Verification Deliverables**:
+  - Captured responsive screenshots at 1366×768, 1440, 1280, 2560, and 390 viewports with zero horizontal overflow (`scrollWidth <= innerWidth` confirmed across all viewports).
+  - 1920 check skipped because `focus-hero-1920.png` and `focus-practice-1920.png` do not exist in `design-reference/`.
+  - Re-generated side-by-side comparison images saved to `design-reference/compare/` (`compare-hero.png`, `compare-practice.png`, `compare-viewport-1366x768.png`, `compare-pilot-side-by-side.png`).
+  - Computed font checks and copy-diff table documented.
+
 ## Next
-- Next performance, animation, or UI tasks as requested (e.g., Task 14-2 / Closed-Book Animation & Geometry / Loading UI).
+- **Task 14B Phase 2:** Focus Room sections beyond pilot scope (Section 02 "The Journey", Section 03 "Reflection", and Footer fidelity against `focus-room.png`).
 
 ## Open Questions
 - None (All 22 citations confirmed; fix strategy verified).
@@ -706,3 +755,11 @@ Applies ONLY to `/`, `/focus-room` and the components in `/components/public` (w
 - L6 is lifted: Canva colours (`#172536`, `#F4EFE4`, `#60432F`, `#B68A53`, `#BD634A`, `#899783`, `#30483D`, `#8799A7`, `#D2A75D`, `#79677A`, `rgba(244, 239, 228, 0.21)`) are defined in `/lib/tokens-public.ts` and as CSS variables on a wrapper in `app/(public)/layout.tsx`. `/lib/tokens.ts` and core Tailwind colours remain strictly unchanged.
 - L14 is lifted only for the items in Task 14.
 - Still applies: L2 (Next App Router + TypeScript + Tailwind), L3 (no new packages, no animation library, pure CSS only), L13 (no emoji, custom SVG only).
+
+---
+
+### Task 16 (Research) — Focus Room Timer & Sound Research
+- Research complete: RESEARCH_FOCUS_ROOM.md written to project root on 2026-11-13.
+- Covers: Pomodoro technique variants, browser timer accuracy (Web Worker + timestamp approach), persistence (localStorage), alerts (Notifications API, wake lock), accessibility (aria-live milestones, prefers-reduced-motion), and 3+ music candidates per chip (Rain & Nature, Soft Piano, Deep Focus).
+- Recommended approach: Web Worker timer, CC0/CC BY OGG files self-hosted in /public/audio/, Web Audio API synthesis for Deep Focus chip.
+- Next: Task 17 (build) — awaiting 5 product owner decisions listed in Open Questions.

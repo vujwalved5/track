@@ -14,3 +14,7 @@ tsconfig.tsbuildinfo
 
 # Agent scratch files
 .agents/
+
+# Design reference images and comparison captures
+design-reference/
+
