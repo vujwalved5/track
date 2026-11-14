@@ -30,43 +30,43 @@ export function SectionTheIdea() {
           <div className="lg:col-span-6 flex flex-col justify-start text-[#F4EFE4] lg:pl-[28px]">
             {/* Eyebrow at design page y=1064..1071 */}
             <div className="flex items-center gap-1.5">
-              <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#BD634A]">
+              <span className="font-public-condensed text-[14px] lg:text-xs uppercase tracking-[0.25em] font-semibold text-[#BD634A]">
                 01 /
               </span>
-              <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#F4EFE4]">
+              <span className="font-public-condensed text-[14px] lg:text-xs uppercase tracking-[0.25em] font-semibold text-[#F4EFE4]">
                 THE IDEA
               </span>
             </div>
 
             {/* Display Heading: Two stacked lines ("What is" / "Track?") starting at exact design page y=1168 */}
-            <h2 className="font-instrument text-5xl sm:text-6xl lg:text-[72px] tracking-[-0.03em] leading-[0.98] mt-[80px] font-normal select-none">
+            <h2 className="font-instrument text-5xl sm:text-6xl lg:text-[72px] tracking-[-0.03em] leading-[0.98] mt-8 lg:mt-[80px] font-normal select-none">
               <span className="block text-[#F4EFE4]">What is</span>
               <span className="block text-[#D2A75D] italic mt-1.5">Track?</span>
             </h2>
 
             {/* Left Paragraph in Fraunces 400 regular serif, cream, normal letter-spacing, 3 lines, design copy only starting at exact design page y=1358 */}
-            <p className="font-public-serif text-2xl sm:text-[28px] lg:text-[30px] leading-[1.38] tracking-normal text-[#F4EFE4] mt-[38px] max-w-[490px] font-normal">
-              A quieter space to track your days,<br />
-              notice your progress, and build habits<br />
-              that last.
+            <p className="font-public-serif text-2xl sm:text-[28px] lg:text-[30px] leading-[1.38] tracking-normal text-[#F4EFE4] mt-6 lg:mt-[38px] max-w-[490px] font-normal">
+              A quieter space to track your days,<br className="hidden sm:inline" />
+              {' '}notice your progress, and build habits<br className="hidden sm:inline" />
+              {' '}that last.
             </p>
           </div>
 
-          {/* Right Column (on Tan Squared Grid Paper, starting at exact design x=868, y=1196) */}
-          <div className="lg:col-span-6 flex flex-col justify-start lg:pl-[191px] lg:pt-[122px]">
-            <p className="font-public-sans text-base sm:text-[17px] text-[#172536] leading-[1.9] font-normal w-[392px] max-w-[392px]">
+          {/* Right Column (on Tan Squared Grid Paper on mobile & desktop, starting at exact design x=868, y=1196) */}
+          <div className="lg:col-span-6 flex flex-col justify-start lg:pl-[191px] lg:pt-[122px] bg-[#E9E1D1] lg:bg-transparent p-6 sm:p-8 lg:p-0 rounded-[2px] lg:rounded-none bg-[linear-gradient(to_right,#ded5c3_1px,transparent_1px),linear-gradient(to_bottom,#ded5c3_1px,transparent_1px)] [background-size:24px_24px] lg:bg-none">
+            <p className="font-public-sans text-base sm:text-[17px] text-[#172536] leading-[1.9] font-normal w-full max-w-[392px] lg:w-[392px]">
               <span className="font-bold text-[#172536]">Not a race to do more.</span> Track is a personal space<br className="hidden lg:inline" />
-              to record daily activities, capture<br className="hidden lg:inline" />
-              memorable moments, reflect on what<br className="hidden lg:inline" />
-              matters, and see your progress over time. A<br className="hidden lg:inline" />
-              place to return to yourself, one day at a time.
+              {' '}to record daily activities, capture<br className="hidden lg:inline" />
+              {' '}memorable moments, reflect on what<br className="hidden lg:inline" />
+              {' '}matters, and see your progress over time. A<br className="hidden lg:inline" />
+              {' '}place to return to yourself, one day at a time.
             </p>
           </div>
         </div>
 
         {/* Bottom Colophon Tag in cream at exact design page y=1557 */}
-        <div className="lg:pl-[28px] flex items-center">
-          <span className="font-public-condensed text-xs uppercase tracking-[0.22em] font-semibold text-[#F4EFE4]/90">
+        <div className="lg:pl-[28px] flex items-center mt-8 lg:mt-0">
+          <span className="font-public-condensed text-[14px] lg:text-xs uppercase tracking-[0.22em] font-semibold text-[#F4EFE4]/90">
             A PERSONAL ATLAS, IN THE MAKING
           </span>
         </div>

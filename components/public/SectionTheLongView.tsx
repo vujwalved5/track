@@ -10,16 +10,16 @@ export function SectionTheLongView() {
         backgroundSize: '40px 40px',
       }}
     >
-      <div className="w-full max-w-[1366px] mx-auto px-4 sm:px-8 lg:pl-[82px] lg:pr-[72px] pt-[111px] pb-[88px] relative z-10">
+      <div className="w-full max-w-[1366px] mx-auto px-4 sm:px-8 lg:pl-[82px] lg:pr-[72px] pt-14 lg:pt-[111px] pb-14 lg:pb-[88px] relative z-10">
         {/* Section Header: Eyebrow + 2-line Heading + Right Subtitle */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
           <div>
             {/* Eyebrow at y=2914 */}
             <div className="flex items-center gap-2 mb-[23px]">
-              <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#BD634A]">
+              <span className="font-public-condensed text-[14px] lg:text-xs uppercase tracking-[0.25em] font-semibold text-[#BD634A]">
                 03 /
               </span>
-              <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#172536]">
+              <span className="font-public-condensed text-[14px] lg:text-xs uppercase tracking-[0.25em] font-semibold text-[#172536]">
                 THE LONG VIEW
               </span>
             </div>
@@ -32,7 +32,7 @@ export function SectionTheLongView() {
           </div>
 
           {/* Right Subtitle at x=1030..1294 */}
-          <div className="max-w-[260px] lg:mb-[6px] text-[#172536]/80 font-public-sans text-[13.5px] leading-relaxed">
+          <div className="max-w-[260px] lg:mb-[6px] text-[#172536]/80 font-public-sans text-[14px] lg:text-[13.5px] leading-relaxed">
             <p>
               Not every step feels significant while you take it. Look back, and a path begins to appear.
             </p>
@@ -40,7 +40,138 @@ export function SectionTheLongView() {
         </div>
 
         {/* Route Diagram Container */}
-        <div className="w-full relative mt-4 overflow-x-auto pb-4">
+        {/* ========================================================
+            MOBILE VERTICAL ROUTE TRAIL (Below 1024px)
+            All text >= 14px in HTML, 6 circular nodes, botanical accents, compass rose
+            ======================================================== */}
+        <div className="block lg:hidden w-full max-w-sm mx-auto mt-8 py-4">
+          <div className="relative pl-12 pr-2 space-y-9">
+            {/* Dashed vertical trail path on left */}
+            <svg
+              className="absolute left-[20px] top-4 bottom-4 w-6 h-[calc(100%-32px)] overflow-visible pointer-events-none"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <line
+                x1="12"
+                y1="0"
+                x2="12"
+                y2="100%"
+                stroke="#30483D"
+                strokeWidth="2.2"
+                strokeDasharray="6 6"
+                strokeLinecap="round"
+              />
+            </svg>
+
+            {/* Step 1: Start + mark, Node 1, Sprout, Milestone 1 */}
+            <div className="relative">
+              <div className="absolute -left-12 top-0 flex flex-col items-center">
+                <span className="text-[#30483D] text-sm leading-none font-bold select-none">+</span>
+                <div className="w-[21px] h-[21px] rounded-full border-[2.2px] border-[#30483D] bg-[#DFE4D9] mt-1" />
+              </div>
+              <div className="flex items-start gap-3">
+                <div>
+                  <span className="font-public-condensed text-[14px] font-bold uppercase tracking-[0.2em] text-[#172536] block">
+                    A SMALL BEGINNING
+                  </span>
+                  {/* Botanical Sprout SVG */}
+                  <svg className="w-12 h-8 mt-1 text-[#30483D]" viewBox="0 0 48 32" fill="none" aria-hidden="true">
+                    <line x1="2" y1="26" x2="44" y2="28" stroke="#30483D" strokeWidth="1.2" strokeLinecap="round" />
+                    <line x1="18" y1="26" x2="14" y2="14" stroke="#30483D" strokeWidth="1.2" strokeLinecap="round" />
+                    <ellipse cx="12" cy="8" rx="6" ry="8" transform="rotate(-15 12 8)" fill="#899783" stroke="#30483D" strokeWidth="1.2" />
+                    <line x1="28" y1="27" x2="32" y2="16" stroke="#30483D" strokeWidth="1.2" strokeLinecap="round" />
+                    <ellipse cx="34" cy="10" rx="5.5" ry="7.5" transform="rotate(20 34 10)" fill="#899783" stroke="#30483D" strokeWidth="1.2" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2: Node 2, Cursive Marginalia */}
+            <div className="relative">
+              <div className="absolute -left-12 top-1">
+                <div className="w-[21px] h-[21px] rounded-full border-[2.2px] border-[#30483D] bg-[#DFE4D9]" />
+              </div>
+              <div>
+                <p className="font-public-hand text-[18px] text-[#30483D] leading-none">
+                  one thing at a time
+                </p>
+                {/* Botanical leaves pair */}
+                <svg className="w-8 h-6 mt-1 text-[#30483D]" viewBox="0 0 32 24" fill="none" aria-hidden="true">
+                  <ellipse cx="10" cy="12" rx="4.5" ry="7" transform="rotate(-25 10 12)" fill="#899783" stroke="#30483D" strokeWidth="1.1" />
+                  <ellipse cx="22" cy="12" rx="4.5" ry="7" transform="rotate(25 22 12)" fill="#899783" stroke="#30483D" strokeWidth="1.1" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Step 3: Node 3 */}
+            <div className="relative py-1">
+              <div className="absolute -left-12 top-1">
+                <div className="w-[21px] h-[21px] rounded-full border-[2.2px] border-[#30483D] bg-[#DFE4D9]" />
+              </div>
+              <div className="text-[14px] uppercase tracking-widest text-[#30483D]/60 font-public-condensed">
+                waypoint
+              </div>
+            </div>
+
+            {/* Step 4: Node 4, Milestone 2 */}
+            <div className="relative">
+              <div className="absolute -left-12 top-1">
+                <div className="w-[21px] h-[21px] rounded-full border-[2.2px] border-[#30483D] bg-[#DFE4D9]" />
+              </div>
+              <div>
+                <span className="font-public-condensed text-[14px] font-bold uppercase tracking-[0.2em] text-[#172536] block">
+                  NOTICE THE SHIFT
+                </span>
+                {/* Botanical leaves pair */}
+                <svg className="w-8 h-6 mt-1 text-[#30483D]" viewBox="0 0 32 24" fill="none" aria-hidden="true">
+                  <ellipse cx="10" cy="12" rx="4.5" ry="7" transform="rotate(-25 10 12)" fill="#899783" stroke="#30483D" strokeWidth="1.1" />
+                  <ellipse cx="22" cy="12" rx="4.5" ry="7" transform="rotate(25 22 12)" fill="#899783" stroke="#30483D" strokeWidth="1.1" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Step 5: Node 5, Cursive Marginalia */}
+            <div className="relative">
+              <div className="absolute -left-12 top-1">
+                <div className="w-[21px] h-[21px] rounded-full border-[2.2px] border-[#30483D] bg-[#DFE4D9]" />
+              </div>
+              <div>
+                <p className="font-public-hand text-[18px] text-[#30483D] leading-none">
+                  there's a story here ↗
+                </p>
+              </div>
+            </div>
+
+            {/* Step 6: Node 6, Milestone 3, Compass Rose */}
+            <div className="relative">
+              <div className="absolute -left-12 top-1 flex flex-col items-center">
+                <div className="w-[21px] h-[21px] rounded-full border-[2.2px] border-[#30483D] bg-[#DFE4D9]" />
+                <span className="text-[#30483D] text-sm leading-none font-bold mt-1 select-none">+</span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <span className="font-public-condensed text-[14px] font-bold uppercase tracking-[0.2em] text-[#172536] block">
+                    KEEP GOING
+                  </span>
+                </div>
+                {/* Recognizable Compass Rose */}
+                <div className="shrink-0">
+                  <svg width="56" height="56" viewBox="0 0 60 60" fill="none" aria-label="Compass rose indicator">
+                    <circle cx="30" cy="30" r="24" stroke="#30483D" strokeWidth="1.2" strokeDasharray="2 3" fill="none" opacity="0.4" />
+                    <path d="M 30 8 L 35 26 L 52 30 L 35 34 L 30 52 L 25 34 L 8 30 L 25 26 Z" stroke="#30483D" strokeWidth="1.4" fill="#DFE4D9" />
+                    <path d="M 30 8 L 35 26 L 30 30 Z" fill="#30483D" opacity="0.3" />
+                    <path d="M 30 52 L 25 34 L 30 30 Z" fill="#30483D" opacity="0.3" />
+                    <circle cx="30" cy="30" r="2.5" fill="#30483D" />
+                    <text x="30" y="6" textAnchor="middle" fill="#30483D" className="font-public-condensed text-[14px] font-bold">N</text>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden lg:block w-full relative mt-4 overflow-x-auto pb-4">
           <div className="min-w-[900px] lg:min-w-full">
             <svg
               viewBox="0 0 1212 480"

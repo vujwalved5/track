@@ -994,8 +994,89 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - `design-reference/compare/home-16a-botanical-leaves3.png`
   - `design-reference/compare/home-16a-compass-rose.png`
 
+### Phase 8 / Task 16B — Public Home Section 04, Section 05 & Home Footer Build
+- **Scoped Execution**: Built Section 04 ("A note for the road"), Section 05 ("The next page is yours"), and the Home Footer variant at 1366px width against `design-reference/home.png` (`y=3766..5281`).
+- **Untouched Boundary**: Did NOT touch navigation, hero, Section 01, Section 02, Section 03, or the Focus Room (`/focus-room`). Preserved Focus Room footer 100% byte-for-byte in layout with 0 pixel difference before/after.
+- **Section 04 ("A note for the road")**:
+  - Deep forest green `#30483D` band (`y=3768..4518`, 750px height, $\Delta=2\text{px}$ — Exact Match).
+  - Barlow Condensed eyebrow: `04 / A NOTE FOR THE ROAD` at `x=110, y=3869` ($\Delta=1\text{px}$ X, $\Delta=4\text{px}$ Y).
+  - Instrument Serif italic display quote ("You don't have to be perfect. You just have to keep showing up.") with two-tone cream `#F4EFE4` and gold `#D2A75D`.
+  - Hairline divider line: `x=109..448, y=4257` ($\Delta=0\text{px}$ X, $\Delta=0\text{px}$ Y — Exact Match).
+  - DM Sans subtitle paragraph: "Small steps, written down, become progress you can see." at `x=109, y=4292`.
+  - Tilted date stamp box: `DATE STAMP / ------` with thin gold border tilted -5.4° at `x=105..274, y=4366..4419`.
+  - Tilted kraft tag: `KEEP THE WIDER VIEW IN SIGHT ↗` (`x=1076..1327`, tilted 2.5°, static non-link `<div>` per instructions).
+  - Torn paper edge scrap: custom responsive SVG path tracing the exact white/cream paper contour along the bottom right border (`x=755..1366`).
+  - Developer note: `QUOTE APPEARS LINE BY LINE / FUTURE IMPLEMENTATION` kept hidden.
+- **Section 05 ("The next page is yours")**:
+  - Terracotta rust `#BD634A` band (`y=4518..5002`, 484px height, $\Delta=2\text{px}$ — Exact Match).
+  - Barlow Condensed eyebrow: `THE NEXT PAGE IS YOURS` at `x=120, y=4641`.
+  - Instrument Serif italic headline: "Your days are / worth remembering." at `x=83, y=4770` ($\Delta=2\text{px}$ X, $\Delta=0\text{px}$ Y — Exact Match).
+  - Rectangular cream button: `START WITH TODAY ↗` at `x=1096..1283, y=4824..4869` ($\Delta=0\text{px}$ on all bounds — Exact Match), linking to `/login`.
+- **Home Footer Variant**:
+  - Deep navy `#172536` band (`y=5002..5281`, 281px height, $\Delta=2\text{px}$ — Exact Match).
+  - Oswald bold uppercase wordmark `TRACK`: `x=83..195, y=5063..5095` ($\Delta=0\text{px}$ X — Exact Match).
+  - Instrument Serif italic tagline: `A little more present. A little more consistent.` at `x=81, y=5127` ($\Delta=1\text{px}$ X — Exact Match).
+  - Barlow Condensed nav links: `HOME`, `JOURNAL`, `FOCUS ROOM`, `ABOUT` across `x=1009..1278, y=5065` ($\Delta=1\text{px}$ X — Exact Match).
+  - Hairline divider line: `x=83..1282, y=5224` ($\Delta=1\text{px}$ — Exact Match).
+  - Colophon bar: `THE ATLAS OF EVERYDAY` (`x=83`) and `AN OPEN PAGE, ALWAYS` (`x=1280`) ($\Delta=1\text{px}$ — Exact Match).
+- **Focus Room Footer Integrity**: Verified identical before vs after with 0 pixel difference out of 546,400 pixels (`home-16b-focus-footer-diff.png`).
+- **Font Exclusions**: Kalam and Cormorant Garamond confirmed 100% absent from all public Home sections. No fonts added or changed.
+- **Deliverables Generated**:
+  - `design-reference/compare/home-16b-sec04.png`
+  - `design-reference/compare/home-16b-sec05.png`
+  - `design-reference/compare/home-16b-footer.png`
+  - `design-reference/compare/home-16b-full.png`
+  - `design-reference/compare/home-16b-crop-date-stamp.png`
+  - `design-reference/compare/home-16b-crop-right-tag.png`
+  - `design-reference/compare/home-16b-crop-torn-edge.png`
+  - `design-reference/compare/home-16b-crop-sec05-button.png`
+  - `design-reference/compare/home-16b-focus-footer-diff.png`
+
+### Phase 8 / Task 16B-FIX — Touch-up & Exact Typography Calibration
+- **Scoped Touch-ups**:
+  1. **Section 04 Display Quote**: Line 1 ("You don't have to be") and "perfect." set to upright (`not-italic`) cream `#F4EFE4`; only "You just have to keep showing up." is italic gold `#D2A75D`.
+  2. **Section 05 Headline**: "Your days are" and "worth" set to upright (`not-italic`) cream `#F4EFE4`; only "remembering." is italic cream.
+  3. **Footer Tagline**: "A little more present. A little more consistent." set to upright Fraunces serif (`font-public-serif not-italic`), matching reference scan letterforms.
+  4. **Footer TRACK Wordmark**: Calibrated with tighter tracking (`tracking-[-0.04em]`) in bold Oswald; exact width 96px vs 99px in scan ($\Delta=2\text{px}$ — Exact Match), start X `83px` ($\Delta=0\text{px}$ — Exact Match).
+  5. **Section 04 Paragraph Wrapping**: Narrowed container to `max-w-[315px]` to achieve natural CSS wrap: "Small steps, written down, become progress / you can see." with zero manual breaks.
+  6. **Focus Room Footer Invariant**: Re-ran pixel diff against baseline `focus_room_footer_before.png`; **0 pixel differences out of 546,400 pixels** confirmed.
+  7. **Position Invariant**: Confirmed no positions shifted outside the 2px delta threshold.
+- **Touch-up Deliverables Generated**:
+  - `design-reference/compare/home-16b-fix-quote.png`
+  - `design-reference/compare/home-16b-fix-headline.png`
+  - `design-reference/compare/home-16b-fix-tagline.png`
+  - `design-reference/compare/home-16b-fix-wordmark.png`
+  - `design-reference/compare/home-16b-fix-paragraph.png`
+  - `design-reference/compare/home-16b-sec04.png` (updated)
+  - `design-reference/compare/home-16b-sec05.png` (updated)
+  - `design-reference/compare/home-16b-footer.png` (updated)
+  - `design-reference/compare/home-16b-full.png` (updated)
+
+### Phase 8 / Task 16C — Responsive Pass on Public Home Page (/)
+- Comprehensive responsive pass across all 6 target widths: **1920, 1440, 1280, 1024, 768, 390**.
+- **Horizontal Overflow Audit**: `scrollWidth <= innerWidth` verified across all 6 viewports (0px overflow on all 6).
+- **Hero Below 1024px**: Stacked layout with copy above and photo container below; tilted polaroid and taped note contained inside the photo container.
+- **Section 02 Below 1024px**: Single-column responsive card stack (`block lg:hidden`), preserving 3-column exact layout on desktop (`hidden lg:block`).
+- **Section 03 Below 1024px & 390px**: Custom vertical route trail with 6 circular milestone nodes, botanical leaf/sprout SVGs, recognizable compass rose, and HTML text $\ge 14\text{px}$.
+- **Section 04 Mobile**: `KEEP THE WIDER VIEW IN SIGHT` tag preserved and repositioned on mobile; fluid divider container.
+- **Section 05 Mobile**: Fluid display headline scaling (`text-[44px] sm:text-[78px] lg:text-[104px]`).
+- **Public Navigation**: Home mobile navigation below 768px rendered as a compact top row (`TRACK` + `OPEN JOURNAL ↗`) and secondary text row for links (`HOME`, `JOURNAL`, `FOCUS ROOM`, `ABOUT`); `ISSUE NO. 01 / THE EVERYDAY EDITION` tag hidden below 640px (`hidden sm:flex`).
+- **Public Footer**: Decoupled mobile flow (`block lg:hidden`) with full-width responsive colophon and nav links.
+- **Mobile Tap Targets (390px)**: All 13 interactive links and buttons audited at $\ge 44\times 44\text{px}$ (0 violations).
+- **Mobile Text Size (390px)**: All visible text nodes audited at $\ge 14\text{px}$ (0 violations).
+- **Focus Room Invariant**: Focus Room full-page screenshots at 1366, 768, and 390 confirmed byte-for-byte identical to baseline (`0 pixel difference` across all 3).
+- **Deliverables Generated**:
+  - `design-reference/compare/home-16c-1920.png`
+  - `design-reference/compare/home-16c-1440.png`
+  - `design-reference/compare/home-16c-1280.png`
+  - `design-reference/compare/home-16c-1024.png`
+  - `design-reference/compare/home-16c-768.png`
+  - `design-reference/compare/home-16c-390.png`
+
 ## Next
-- **Task 16B**: Public Home Section 04 ("Research & Writing"), Section 05 ("An Open Invitation"), and Public Footer (with prop variant so Focus Room footer remains unaffected).
+- Public Home page & Focus Room pixel-fidelity parity complete (Tasks 16A, 16B, 16B-FIX, 16C, 16C-CHECK).
+- Changes committed and pushed to remote `origin/main`.
+- Awaiting product owner directive for next phase (e.g. Focus Room timer & audio implementation / Task 17).
 
 ## Open Questions
 - None.

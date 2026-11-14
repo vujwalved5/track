@@ -19,7 +19,7 @@ export function HomeHero() {
             {/* Eyebrow with short terracotta rule at exact design y=116..128 (rel to hero) */}
             <div className="flex items-center gap-3">
               <span className="w-[35px] h-px bg-[#BD634A]" aria-hidden="true" />
-              <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#60432F]">
+              <span className="font-public-condensed text-[14px] lg:text-xs uppercase tracking-[0.25em] font-semibold text-[#60432F]">
                 YOUR PERSONAL FIELD GUIDE / VOL. 01
               </span>
             </div>
@@ -46,7 +46,7 @@ export function HomeHero() {
             <div className="flex flex-wrap items-center gap-3.5 mt-[31px]">
               <Link
                 href="/login"
-                className="press-btn inline-flex items-center justify-center gap-2 w-[218px] h-[46px] bg-[#172536] text-[#F4EFE4] font-public-condensed text-xs uppercase tracking-[0.2em] font-semibold rounded shadow-sm hover:bg-[#172536]/90 transition-colors"
+                className="press-btn inline-flex items-center justify-center gap-2 w-[218px] h-[46px] bg-[#172536] text-[#F4EFE4] font-public-condensed text-[14px] lg:text-xs uppercase tracking-[0.2em] font-semibold rounded shadow-sm hover:bg-[#172536]/90 transition-colors"
               >
                 <span>OPEN YOUR JOURNAL</span>
                 <svg
@@ -66,7 +66,7 @@ export function HomeHero() {
               </Link>
               <Link
                 href="/focus-room"
-                className="press-btn inline-flex items-center justify-center gap-2.5 w-[212px] h-[46px] bg-transparent text-[#172536] border border-[#172536] font-public-condensed text-xs uppercase tracking-[0.2em] font-bold rounded hover:bg-[#172536]/5 transition-colors"
+                className="press-btn inline-flex items-center justify-center gap-2.5 w-[212px] h-[46px] bg-transparent text-[#172536] border border-[#172536] font-public-condensed text-[14px] lg:text-xs uppercase tracking-[0.2em] font-bold rounded hover:bg-[#172536]/5 transition-colors"
               >
                 <span>EXPLORE FOCUS ROOM</span>
                 <svg
@@ -88,11 +88,11 @@ export function HomeHero() {
 
             {/* Bottom scroll prompt at exact design y=779 rel to hero in dark navy */}
             <div className="flex items-center gap-4 mt-[56px] pt-1 text-[#172536]">
-              <span className="font-public-condensed text-[11px] uppercase tracking-[0.25em] font-bold">
+              <span className="font-public-condensed text-[14px] lg:text-[11px] uppercase tracking-[0.25em] font-bold">
                 A MAP OF YOUR DAYS
               </span>
               <div className="w-[45px] h-px bg-[#172536]/25" aria-hidden="true" />
-              <span className="font-public-condensed text-[11px] uppercase tracking-[0.25em] font-bold flex items-center gap-1.5">
+              <span className="font-public-condensed text-[14px] lg:text-[11px] uppercase tracking-[0.25em] font-bold flex items-center gap-1.5">
                 <span>SCROLL TO EXPLORE</span>
                 <svg
                   width="9"
@@ -144,7 +144,7 @@ export function HomeHero() {
               sizes="295px"
             />
           </div>
-          <div className="font-public-condensed text-[10px] uppercase tracking-[0.25em] text-[#172536] text-center font-bold mt-3">
+          <div className="font-public-condensed text-[14px] lg:text-[10px] uppercase tracking-[0.25em] text-[#172536] text-center font-bold mt-3">
             LANDSCAPE STUDY / 01
           </div>
         </div>
@@ -158,7 +158,7 @@ export function HomeHero() {
             className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-20 h-6 bg-[#c29b63] opacity-85 rotate-[-2deg] shadow-xs"
             aria-hidden="true"
           />
-          <div className="font-public-condensed text-[11px] uppercase tracking-[0.25em] text-[#BD634A] font-semibold mb-3">
+          <div className="font-public-condensed text-[14px] lg:text-[11px] uppercase tracking-[0.25em] text-[#BD634A] font-semibold mb-3">
             FIELD ENTRY — OPEN PAGE
           </div>
           <h3 className="font-instrument text-[37px] leading-[1.05] text-[#172536] font-medium mb-5 tracking-[-0.02em]">
