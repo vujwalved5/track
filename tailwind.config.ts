@@ -25,6 +25,7 @@ const config: Config = {
       fontFamily: {
         hand:  ['var(--font-kalam)', 'cursive'],
         cover: ['var(--font-cormorant)', 'serif'],
+        instrument: ["'Instrument Serif'", 'Georgia', 'serif'],
       },
       spacing: {
         grid: '22px',

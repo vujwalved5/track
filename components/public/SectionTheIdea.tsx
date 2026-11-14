@@ -1,135 +1,193 @@
 export function SectionTheIdea() {
   return (
-    <section id="about" className="py-16 md:py-24 border-b border-[#172536]/10">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-          {/* Left Navy / Ink Card */}
-          <div className="lg:col-span-5 bg-[#172536] text-[#F4EFE4] rounded-lg p-8 sm:p-12 flex flex-col justify-between shadow-lg relative overflow-hidden lift-card">
-            {/* Subtle stationery corner watermark */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-[#F4EFE4]/10 to-transparent pointer-events-none" />
+    <section
+      id="about"
+      className="relative w-full overflow-hidden min-h-[637px] lg:h-[637px] flex items-center bg-[#172536]"
+    >
+      {/* Background Split: Left half is Navy (#172536, 0..683), Right half is Tan Squared Grid Paper (#E9E1D1, 683..1366) */}
+      <div
+        className="hidden lg:block absolute top-0 bottom-0 left-0 w-1/2 bg-[#172536] z-0"
+        aria-hidden="true"
+      >
+        <div className="absolute inset-0 bg-[#172536]" />
+      </div>
+      <div
+        className="hidden lg:block absolute top-0 bottom-0 left-1/2 right-0 bg-[#E9E1D1] bg-[linear-gradient(to_right,#ded5c3_1px,transparent_1px),linear-gradient(to_bottom,#ded5c3_1px,transparent_1px)] [background-size:24px_24px] z-0"
+        aria-hidden="true"
+      />
 
-            <div className="space-y-6">
-              <div className="flex items-center gap-2">
-                <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#B68A53]">
-                  01 / The Idea
-                </span>
-                <span className="h-px w-8 bg-[#B68A53]/40" />
-              </div>
+      {/* Vertical Ruled Ladder Strip spanning x=665..700 (w=35px, centered on x=683 screen divider) with 32px rungs */}
+      <div
+        className="hidden lg:block absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[35px] border-l border-[#d4bd9d] border-r border-[#8a7a67] bg-[repeating-linear-gradient(to_bottom,transparent,transparent_31px,#c3b89e_31px,#c3b89e_32px)] pointer-events-none z-10"
+        aria-hidden="true"
+      />
 
-              <h2 className="font-public-serif text-3xl sm:text-4xl text-[#F4EFE4] tracking-tight">
-                What is Track?
-              </h2>
-
-              <p className="font-public-sans text-base sm:text-lg text-[#F4EFE4]/85 leading-relaxed">
-                A quieter space to track your days, notice your progress, and build habits that last.
-              </p>
-            </div>
-
-            <div className="pt-8 border-t border-[#F4EFE4]/15 mt-8 flex items-center justify-between">
-              <span className="font-public-condensed text-xs uppercase tracking-[0.2em] text-[#BD634A]">
-                Daily Reflection & Focus
+      {/* Main Content Container matching max-w-[1202px] */}
+      <div className="w-full max-w-[1202px] mx-auto px-6 lg:px-0 h-full relative z-20 flex flex-col justify-between pt-12 pb-10 lg:pt-[100px] lg:pb-[38px]">
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-0 items-start">
+          {/* Left Column (on Navy #172536, starting at exact design x=110) */}
+          <div className="lg:col-span-6 flex flex-col justify-start text-[#F4EFE4] lg:pl-[28px]">
+            {/* Eyebrow at design page y=1064..1071 */}
+            <div className="flex items-center gap-1.5">
+              <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#BD634A]">
+                01 /
               </span>
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 28 28"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-[#B68A53]"
-                aria-hidden="true"
-              >
-                <circle cx="14" cy="14" r="12" stroke="currentColor" strokeWidth="1.2" strokeDasharray="2 3" />
-                <path d="M14 6V22M6 14H22" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-                <circle cx="14" cy="14" r="2" fill="currentColor" />
-              </svg>
+              <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#F4EFE4]">
+                THE IDEA
+              </span>
             </div>
+
+            {/* Display Heading: Two stacked lines ("What is" / "Track?") starting at exact design page y=1168 */}
+            <h2 className="font-instrument text-5xl sm:text-6xl lg:text-[72px] tracking-[-0.03em] leading-[0.98] mt-[80px] font-normal select-none">
+              <span className="block text-[#F4EFE4]">What is</span>
+              <span className="block text-[#D2A75D] italic mt-1.5">Track?</span>
+            </h2>
+
+            {/* Left Paragraph in Fraunces 400 regular serif, cream, normal letter-spacing, 3 lines, design copy only starting at exact design page y=1358 */}
+            <p className="font-public-serif text-2xl sm:text-[28px] lg:text-[30px] leading-[1.38] tracking-normal text-[#F4EFE4] mt-[38px] max-w-[490px] font-normal">
+              A quieter space to track your days,<br />
+              notice your progress, and build habits<br />
+              that last.
+            </p>
           </div>
 
-          {/* Right Paper Grid */}
-          <div className="lg:col-span-7 bg-[#F4EFE4] rounded-lg p-8 sm:p-12 border border-[#172536]/15 flex flex-col justify-between relative shadow-sm lift-card">
-            {/* Dot grid subtle background */}
-            <div
-              className="absolute inset-0 opacity-25 rounded-lg pointer-events-none"
-              style={{
-                backgroundImage: 'radial-gradient(#172536 1.2px, transparent 1.2px)',
-                backgroundSize: '22px 22px',
-              }}
-            />
-
-            <div className="relative z-10 space-y-6 max-w-2xl">
-              <p className="font-public-serif text-2xl sm:text-3xl text-[#172536] leading-snug">
-                <strong className="font-semibold text-[#172536]">Not a race to do more.</strong>{' '}
-                Track is a personal space to record daily activities, capture memorable moments, reflect on what matters, and see your progress over time.
-              </p>
-
-              <p className="font-public-sans text-base sm:text-lg text-[#172536]/80 leading-relaxed">
-                A place to return to yourself, one day at a time. It behaves like real paper in your hands: two pages side by side on desktop, one page on mobile, with hand-drawn charts and no algorithmic feeds.
-              </p>
-
-              <div className="flex items-center gap-3 pt-2">
-                <span className="font-public-hand text-xl text-[#BD634A]">
-                  one day at a time...
-                </span>
-                <span className="font-public-script text-sm text-[#B68A53]">
-                  ~ recorded in ink
-                </span>
-              </div>
-            </div>
-
-            {/* Botanical Branch SVG illustration */}
-            <div className="relative z-10 pt-6 mt-6 border-t border-[#172536]/10 flex justify-end">
-              <svg
-                width="160"
-                height="48"
-                viewBox="0 0 160 48"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-[#30483D]"
-                aria-label="Hand-drawn botanical branch illustration"
-                role="img"
-              >
-                {/* Hand-drawn stem */}
-                <path
-                  d="M10 24C40 22 80 25 150 20"
-                  stroke="#30483D"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-                {/* Leaves */}
-                <path
-                  d="M35 23C32 15 42 10 48 18C44 23 38 24 35 23Z"
-                  fill="#899783"
-                  stroke="#30483D"
-                  strokeWidth="1.2"
-                />
-                <path
-                  d="M60 24C62 32 72 36 76 28C71 24 64 23 60 24Z"
-                  fill="#899783"
-                  stroke="#30483D"
-                  strokeWidth="1.2"
-                />
-                <path
-                  d="M85 24C83 14 95 11 100 20C95 24 88 25 85 24Z"
-                  fill="#899783"
-                  stroke="#30483D"
-                  strokeWidth="1.2"
-                />
-                <path
-                  d="M115 23C118 31 129 33 132 26C127 22 120 22 115 23Z"
-                  fill="#899783"
-                  stroke="#30483D"
-                  strokeWidth="1.2"
-                />
-                <path
-                  d="M140 21C142 15 152 14 155 19C150 22 144 22 140 21Z"
-                  fill="#899783"
-                  stroke="#30483D"
-                  strokeWidth="1.2"
-                />
-              </svg>
-            </div>
+          {/* Right Column (on Tan Squared Grid Paper, starting at exact design x=868, y=1196) */}
+          <div className="lg:col-span-6 flex flex-col justify-start lg:pl-[191px] lg:pt-[122px]">
+            <p className="font-public-sans text-base sm:text-[17px] text-[#172536] leading-[1.9] font-normal w-[392px] max-w-[392px]">
+              <span className="font-bold text-[#172536]">Not a race to do more.</span> Track is a personal space<br className="hidden lg:inline" />
+              to record daily activities, capture<br className="hidden lg:inline" />
+              memorable moments, reflect on what<br className="hidden lg:inline" />
+              matters, and see your progress over time. A<br className="hidden lg:inline" />
+              place to return to yourself, one day at a time.
+            </p>
           </div>
         </div>
+
+        {/* Bottom Colophon Tag in cream at exact design page y=1557 */}
+        <div className="lg:pl-[28px] flex items-center">
+          <span className="font-public-condensed text-xs uppercase tracking-[0.22em] font-semibold text-[#F4EFE4]/90">
+            A PERSONAL ATLAS, IN THE MAKING
+          </span>
+        </div>
+      </div>
+
+      {/* Botanical Branch SVG Illustration crossing the divider at bottom center */}
+      <div
+        className="hidden lg:block absolute bottom-[-16px] left-[683px] -translate-x-[50%] z-30 pointer-events-none"
+        aria-hidden="true"
+      >
+        <svg
+          width="320"
+          height="340"
+          viewBox="0 0 320 340"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-label="Hand-drawn botanical branch crossing dividing line"
+          role="img"
+        >
+          <defs>
+            <filter id="branch-shadow" x="-40%" y="-40%" width="180%" height="180%">
+              <feDropShadow dx="4" dy="8" stdDeviation="8" floodColor="#000000" floodOpacity="0.45" />
+            </filter>
+          </defs>
+
+          <g filter="url(#branch-shadow)">
+            {/* Main curved central stem rising from bottom divider up past ladder (centered at x=160 = page x=683) */}
+            <path
+              d="M160 340 C 158 265, 152 175, 142 85"
+              stroke="#1e3328"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+
+            {/* 7 Leaves: wider spread matching x=552..759 in design, dark leaf edges, soft shadow */}
+
+            {/* Leaf 1: Terminal top leaf (tilted slightly left, upright) */}
+            <g transform="translate(142, 85) rotate(-14)">
+              <path
+                d="M0 0 C -16 -20, -18 -44, 0 -60 C 18 -44, 16 -20, 0 0Z"
+                fill="#7e9680"
+                stroke="#1e3328"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path d="M0 0 C 0 -20, -1 -44, 0 -56" stroke="#1e3328" strokeWidth="1.1" strokeLinecap="round" />
+            </g>
+
+            {/* Leaf 2: Upper right leaf (crossing into tan grid, reaching page x=740) */}
+            <g transform="translate(150, 135) rotate(54)">
+              <path
+                d="M0 0 C -18 -24, -22 -56, 0 -80 C 22 -56, 18 -24, 0 0Z"
+                fill="#7e9680"
+                stroke="#1e3328"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path d="M0 0 C 0 -26, 0 -56, 0 -76" stroke="#1e3328" strokeWidth="1.1" strokeLinecap="round" />
+            </g>
+
+            {/* Leaf 3: Upper left leaf (extending wide into navy, reaching page x=560) */}
+            <g transform="translate(147, 165) rotate(-58)">
+              <path
+                d="M0 0 C -22 -26, -26 -60, 0 -86 C 26 -60, 22 -26, 0 0Z"
+                fill="#7e9680"
+                stroke="#1e3328"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path d="M0 0 C 0 -28, -1 -60, 0 -82" stroke="#1e3328" strokeWidth="1.1" strokeLinecap="round" />
+            </g>
+
+            {/* Leaf 4: Mid-lower right leaf (pointing down-right, crossing divider to page x=755) */}
+            <g transform="translate(156, 215) rotate(45)">
+              <path
+                d="M0 0 C -22 -28, -26 -64, 0 -90 C 26 -64, 22 -28, 0 0Z"
+                fill="#7e9680"
+                stroke="#1e3328"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path d="M0 0 C 0 -30, 1 -64, 0 -86" stroke="#1e3328" strokeWidth="1.1" strokeLinecap="round" />
+            </g>
+
+            {/* Leaf 5: Mid-lower left leaf (pointing down-left, reaching page x=552) */}
+            <g transform="translate(154, 245) rotate(-50)">
+              <path
+                d="M0 0 C -22 -28, -26 -64, 0 -90 C 26 -64, 22 -28, 0 0Z"
+                fill="#7e9680"
+                stroke="#1e3328"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path d="M0 0 C 0 -28, -1 -60, 0 -86" stroke="#1e3328" strokeWidth="1.1" strokeLinecap="round" />
+            </g>
+
+            {/* Leaf 6: Lowest left leaf */}
+            <g transform="translate(157, 285) rotate(-64)">
+              <path
+                d="M0 0 C -18 -22, -20 -50, 0 -70 C 20 -50, 18 -22, 0 0Z"
+                fill="#7e9680"
+                stroke="#1e3328"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path d="M0 0 C 0 -24, 0 -50, 0 -66" stroke="#1e3328" strokeWidth="1.1" strokeLinecap="round" />
+            </g>
+
+            {/* Leaf 7: Lowest right leaf (crossing well into the right panel to page x=759) */}
+            <g transform="translate(160, 275) rotate(64)">
+              <path
+                d="M0 0 C -20 -24, -24 -56, 0 -80 C 24 -56, 20 -24, 0 0Z"
+                fill="#7e9680"
+                stroke="#1e3328"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path d="M0 0 C 0 -26, 0 -56, 0 -76" stroke="#1e3328" strokeWidth="1.1" strokeLinecap="round" />
+            </g>
+          </g>
+        </svg>
       </div>
     </section>
   )

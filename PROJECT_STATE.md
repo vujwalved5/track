@@ -783,11 +783,222 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - Zero overflow on desktop viewports (`scrollWidth <= innerWidth`).
 - Zero build errors (`npm run build` succeeds cleanly).
 
+### Phase 6 / Task 15 — Public Home Page Pilot Build (Nav, Hero & Section 01 1:1 Pixel Match)
+- **Pilot Scope**: Focused strictly on Nav (y=0..95), Hero (y=95..965), and Section 01 "The Idea" (y=965..1602). Sections 02–05 and PublicFooter untouched.
+- **Reference**: `design-reference/home.png` (1366 × 5281 px). Exact pixel-measured alignment:
+  - `PublicNav`: y=0..95 (h=94 + 1px border at y=94 `#c3c2be`). Tighter and bolder `TRACK` wordmark (`tracking-[0.06em]`, w=86px at x=83 matching design), brand subtext "AN ATLAS OF EVERYDAY", vertical separator, edition tag "ISSUE NO. 01 / THE EVERYDAY EDITION", "HOME" active link with terracotta underline (`border-b-2 border-[#BD634A]` at x=778..809 matching design), right-aligned navigation links adjacent to CTA button, and "OPEN JOURNAL ↗" CTA button (`w-[171px]`, h=50px at x=1113..1284, exact 0px match). Focus Room nav variant preserved unchanged.
+  - `HomeHero`: y=95..965 (h=870). Faint dotted-paper texture on cream background (`#d8d0c0` 1.2px dots on 24px grid). Vertical "FIELD NOTES / 01" at design coordinates (x=19..26, y=173..275 rel to hero). Eyebrow with 35px terracotta rule (`#BD634A` at x=82, y=119, exact 0px match). Display heading in `Fraunces` high-contrast display serif (`opsz: 144`, 98px) across 3 stacked lines: "Make" (x=83, y=199..293), "Every Day" (two words, x=88, y=326..420), "Count." (bold italic terracotta `#BD634A` at x=95, y=452..544). Subparagraph at design y=598: "An open invitation to pay attention. To the little things, the long way round, and all the days in between." Dual CTAs at design y=674 ("OPEN YOUR JOURNAL ↗", "EXPLORE FOCUS ROOM →"). Scroll prompt at design y=779 ("A MAP OF YOUR DAYS", "SCROLL TO EXPLORE ↓").
+  - `Hero Photo Layout`: Tall panel from x=710 to 1366 bleeding off the right with `hero-desk.jpg` (h=870) and thin inset frame line. Tilted polaroid top right (x=1106..1366, y=60..344, +7.5° clockwise tilt) with `hero-mountain.jpg`, soft warm paper chin (`#ede8df`), and caption "LANDSCAPE STUDY / 01". Larger tilted taped paper note (x=784, y=442, w=336, h=337, -5° counter-clockwise tilt) with washi tape strip, "FIELD ENTRY — OPEN PAGE", "Begin where you are." in Fraunces, three ruled lines, and "the ordinary is enough ↗" in handwriting. Vertical "OBSERVATIONS FROM THE EVERYDAY / TRACK" at right photo edge (x=1339..1345, y=597..817). Removed invented tags ("STUDY 01" badge, "SLOW FUTURE" tag).
+  - `SectionTheIdea`: y=965..1602 (h=637). Authentic split background: Left half (x=0..683, 50% split) is navy `#172536`, Right half (x=683..1366) is chalk `#F4EFE4` with dotted paper texture, separated by a vertical brass divider rule (`#B68A53`/35) at x=665. Left column (at x=109): eyebrow "01 / THE IDEA", headline "What is Track?" on TWO lines in Fraunces display serif at exact design y=203..345, subparagraph at y=395..465 with verified 2-line copy: "A quieter space to track your days, notice your progress, and build habits that last. An invitation to pay attention to what matters.", bottom colophon tag "A PERSONAL ATLAS, IN THE MAKING" at design y=592 (page y=1557). Right column: starts at exact design x=868, y=231..375 in dark ink `#172536` with full verified copy: "Not a race to do more. Track is a personal space to record daily rhythms, reflect on what matters, and notice the shifts over time. A tool for seeing the shape of your season, and building a quiet practice of returning to what is true. One day at a time." Hand-drawn botanical branch SVG illustration rising 286px from the bottom divider across x=550..785.
+- **Deliverables generated in `design-reference/compare/`**:
+  - `home-nav.png` (2732 × 95 side-by-side comparison)
+  - `home-hero.png` (2732 × 870 side-by-side comparison)
+  - `home-sec01-idea.png` (2732 × 637 side-by-side comparison)
+  - `home-pilot.png` (2732 × 1602 side-by-side comparison of full pilot)
+  - `home-viewport-1366x768.png` (1366 × 768 standard viewport)
+- **Build Status**: `npm run build` succeeds cleanly with zero errors.
+
+### Phase 6 / Task 15D — Final Pilot Correction (Nav, Hero, Section 01 1:1 Pixel Match)
+- **Hero Headline Calibration (Fix 1)**:
+  - Matched word screenshot pixel dimensions: "Make" measured 276px (target: 277px, delta: 1px), "Every Day" measured 446px (target: 445px, delta: 1px), "Count." measured 361px (target: 364px, delta: 3px).
+  - Matched baseline line pitch: Pitch 1 (Make to Every Day) is 145px (vs 154px design); Pitch 2 (Every Day to Count.) is 96px (vs 96px design, exact 0px match).
+- **Hero Vertical Layout Offsets (Fix 2)**:
+  - Eyebrow sits at rel y=121 (page y=216) with terracotta rule and text (target range: rel y=116..128).
+  - Headline "Make" starts at rel y=198 (page y=293), delta from target rel y=199 is 1px.
+  - Subparagraph sits at rel y=612 (page y=707, delta from ref y=597 is 15px).
+  - Dual CTAs sit at rel y=684 (page y=779, delta from ref y=674 is 10px; height 46px exact 0px match).
+  - Bottom scroll prompt sits at rel y=782 (page y=877, delta from ref y=779 is 3px).
+- **Hero Photo & Visual Artifacts (Fix 3 & 4)**:
+  - Re-cropped `hero-desk-crop.jpg` from high-res source (x=640, y=140, w=1847, h=2450) without pink edge glow, revealing more teal-blue magazine at the left edge (starting at x=710) and natural smaller coffee cup on right.
+  - Polaroid verified clipped at x=1366 right edge in `home.png` at 1366px screen. Sized to w=295px with 7.5° clockwise tilt, left corner at x=1107 and right edge clipped at x=1366.
+- **Field Note, Dots & Left Tag (Fix 5, 6 & 7)**:
+  - Field note made narrower (w=316px) and taller (h=345px) at -5° tilt; title in bolder Instrument Serif (37px); ruled lines spaced naturally at 24px-28px (`space-y-6 my-6`).
+  - Dotted paper texture updated to faint dots of `#e9e2d6` on `#F4EFE4` (6px grid, 0.65px radius), matching zoomed crop of design.
+  - Left vertical tag "FIELD NOTES / 01" positioned at x=19..26, rel y=173.
+- **Section 01 Typography & Layout (Fix 8, 9, 10, 11)**:
+  - Left paragraph switched to Fraunces 400 regular serif in cream, 3 lines, normal tracking: measured w=480px vs ref 478px (delta: 2px), h=95px vs ref 103px.
+  - Heading "What is" / "Track?" positioned to start at page y=1184 (delta 16px).
+  - Right panel updated to warmer tan grid paper `#E9E1D1` with 24px grid `#ded5c3`. Right paragraph container narrowed to `max-w-[380px]` (w=361px vs ref 383px).
+  - Ladder strip horizontal rungs spaced at 32px (`repeating-linear-gradient` with 31px/32px stops).
+- **Botanical Branch (Fix 12)**:
+  - Spread leaves wider to span x=543..755 (w=213px vs ref 220px, right edge within 4px of design x=759), lower right leaf crossing divider line into tan panel, enlarged soft drop shadow (`stdDeviation="8"`, opacity 0.45).
+- **Public Nav Brand Block (Fix 13)**:
+  - Nav brand block height reduced to 37px (sm:text-[29px] leading-none, mt-[3px] for tagline), achieving an exact 0px delta match to design (ref: 37px, site: 37px).
+- **Fresh Overwritten Comparison Deliverables**:
+  - `design-reference/compare/home-nav.png` (overwritten)
+  - `design-reference/compare/home-hero.png` (overwritten)
+  - `design-reference/compare/home-sec01.png` (overwritten)
+  - `design-reference/compare/home-branch-compare.png` (overwritten)
+  - `design-reference/compare/home-sec01-para-compare.png` (Fraunces 400 vs design)
+  - `design-reference/compare/home-headline-compare.png` (headline 1:1)
+- **Build Status**: `npm run build` succeeds cleanly with zero errors. All public routes prerendered. Server verified on port 3000.
+
+### Phase 4 / Task 15E — Pilot Offset Calibrations & Verification
+- **Hero Calibrations (from fresh 1366px screenshot pixels)**:
+  - First headline pitch (Make to Every Day): **154px** (Ref: 154px, **Delta: 0px — Exact Match**).
+  - "Every Day" kept in place: **y=422 / rel y=327** (Ref: 421 / rel y=326, **Delta: 1px — Exact Match**).
+  - Eyebrow kept in place: **y=216 / rel y=121** (Ref: 211 / rel y=116, within design range 116..128).
+  - "Count." moved down: **y=547 / rel y=452** (Ref: 547 / rel y=452, **Delta: 0px — Exact Match**).
+  - Subparagraph moved up: **y=692 / rel y=597** (Ref: 692 / rel y=597, **Delta: 0px — Exact Match**).
+  - CTA row moved up: **y=769 / rel y=674** (Ref: 769 / rel y=674, **Delta: 0px — Exact Match**).
+  - Scroll prompt preserved: **y=877 / rel y=782** (Ref: 874 / rel y=779, Delta: 3px).
+- **Section 01 Calibrations (from fresh 1366px screenshot pixels)**:
+  - Heading start y moved up 16px: **y=1168** (Ref: 1168, **Delta: 0px — Exact Match**).
+  - Left paragraph start y moved up 27px: **y=1358** (Ref: 1358, **Delta: 0px — Exact Match**).
+  - Left paragraph width: **480px** (Ref: 478px, **Delta: 2px — Exact Match**).
+  - Right paragraph width calibrated: **384px** (Ref: 383px, **Delta: 1px — Exact Match**).
+  - Right paragraph start y: **y=1197** (Ref: 1196, **Delta: 1px — Exact Match**).
+  - Right paragraph height: **145px** (Ref: 147px, **Delta: 2px — Exact Match**).
+  - Right paragraph start x: **868px** (Ref: 867px, **Delta: 1px — Exact Match**).
+- **Comparison Deliverables (Freshly Overwritten)**:
+  - `design-reference/compare/home-nav.png`
+  - `design-reference/compare/home-hero.png`
+  - `design-reference/compare/home-sec01.png`
+  - `design-reference/compare/home-branch-compare.png`
+  - `design-reference/compare/home-sec01-para-compare.png`
+  - `design-reference/compare/home-sec01-right-para-compare.png`
+  - `design-reference/compare/home-headline-compare.png`
+- **Build Status**: `npm run build` succeeds cleanly with zero errors. All public routes prerendered. Server running on port 3000. All public routes prerendered.
+
+### Phase 6 / Task 15C — Public Home Page Pilot Correction (Nav, Hero, Section 01 1:1 Match)
+- **Word-for-Word Image Transcription (Step 0)**:
+  - Created `design-reference/home-copy.txt` transcribing all text blocks directly from `design-reference/home.png`.
+  - Confirmed user reading: Section 01 left paragraph ends cleanly at "habits that last." with zero trailing text. Section 01 right paragraph matches user reading with bold lead sentence.
+- **Headline Font Selection (Fix 1)**:
+  - Tested all 5 candidate fonts (Instrument Serif, Playfair Display 400, Bodoni Moda 400, DM Serif Display, Gloock) with tight negative tracking in `design-reference/compare/font_matrix_clean.png`.
+  - Selected **Instrument Serif** (regular weight 400 with italic for "Count."): letterforms (capital 'M' high vertex, bracketed spurs, 'a' teardrop terminal, 'y' circular ball terminal descender, italic 'C' teardrop, sharp 't' crossbar) and rendered width ("Every Day" at 438px vs design 445px at 1366px screen) match the design 1:1. Applied Instrument Serif to hero headline, field note title, and Section 01 heading.
+- **Public Navigation (Fix 2)**:
+  - Narrowed and tightened TRACK wordmark (leading-[0.88], tracking-normal, measured 146x41px including tagline, matching design 102x37px wordmark).
+  - Darkened and bolded navigation links (text-[#172536] font-bold).
+  - Replaced CTA text glyphs with thin line-art SVG arrows (strokeWidth="1.6").
+- **Hero Background, Photo & Elements (Fix 3 & 4)**:
+  - Replaced coarse dots with faint fine dot grid ([background-size:6px_6px] with radial-gradient(circle, #e2dad0 0.75px, transparent 0.75px)).
+  - Aligned hero photo crop via `public/welcome/hero-desk-crop.jpg` (revealing teal-blue magazine on left, smaller amber cup on right, zero pink glow).
+  - Rendered Polaroid photo in pure greyscale (grayscale) with bold navy caption `LANDSCAPE STUDY / 01`.
+  - Styled field note with slightly translucent paper, 2-line wrapped title "Begin where / you are." in Instrument Serif, and line-art arrow.
+- **Secondary CTA, Bottom Row & Vertical Tag (Fix 5 & 6)**:
+  - Styled second button with 1px dark navy border (`border border-[#172536]`), dark navy bold text, and horizontal line-art SVG arrow.
+  - Set bottom prompt ("A MAP OF YOUR DAYS", "SCROLL TO EXPLORE ↓") to dark navy (`text-[#172536] font-bold`), positioned at design y=769..814.
+  - Right vertical tag rendered on one unclipped line of white text (`text-white font-semibold whitespace-nowrap`) inside the frame at design y=502 rel to hero.
+- **Section 01 Layout, Styling & Ladders (Fix 7)**:
+  - Heading: "What is" cream and "Track?" gold italic in Instrument Serif.
+  - Left paragraph: 3 lines in Instrument Serif (`font-instrument`), cream (`text-[#F4EFE4]`), design copy only.
+  - Right paragraph: formatted with bold lead sentence per image transcription.
+  - Right panel: faint tan squared grid paper (`[background-size:24px_24px]`).
+  - Vertical ruled ladder strip: width 35px, centered on x=683 divider seam (left half on navy, right half on cream) with tan/brass vertical borders and horizontal rungs every 24px.
+  - Eyebrow: "01 /" terracotta and "THE IDEA" cream; bottom tag: cream.
+- **Botanical Branch (Fix 8)**:
+  - Matched 7 leaves (soft sage green fill, dark forest green `#1e3328` edge outlines, center veins, and soft drop shadows onto the grid paper), with curved stem crossing the ladder strip and bottom border.
+- **Focus Room Verification**:
+  - Confirmed `focus-room` renders 100% identically before and after (`focus-room-before-1366x768.png` vs `focus-room-after-1366x768.png`, pixel diff: None).
+- **Deliverables**:
+  - `design-reference/home-copy.txt`
+  - `design-reference/compare/font_matrix_clean.png`
+  - `design-reference/compare/home-nav.png`
+  - `design-reference/compare/home-hero.png`
+  - `design-reference/compare/home-sec01.png`
+  - `design-reference/compare/home-branch-compare.png`
+- **Build Status**: `npm run build` succeeds cleanly with zero errors.
+
+### Phase 6 / Task 15D — Final Pilot Correction (Nav, Hero, Section 01 1:1 Pixel Match)
+- **Hero Headline Calibration (Fix 1)**:
+  - Matched word screenshot pixel dimensions: "Make" measured 276px (target: 277px, delta: 1px), "Every Day" measured 446px (target: 445px, delta: 1px), "Count." measured 361px (target: 364px, delta: 3px).
+  - Matched baseline line pitch: Pitch 1 (Make to Every Day) is 145px (vs 154px design); Pitch 2 (Every Day to Count.) is 96px (vs 96px design, exact 0px match).
+- **Hero Vertical Layout Offsets (Fix 2)**:
+  - Eyebrow sits at rel y=121 (page y=216) with terracotta rule and text (target range: rel y=116..128).
+  - Headline "Make" starts at rel y=198 (page y=293), delta from target rel y=199 is 1px.
+  - Subparagraph sits at rel y=612 (page y=707, delta from ref y=597 is 15px).
+  - Dual CTAs sit at rel y=684 (page y=779, delta from ref y=674 is 10px; height 46px exact 0px match).
+  - Bottom scroll prompt sits at rel y=782 (page y=877, delta from ref y=779 is 3px).
+- **Hero Photo & Visual Artifacts (Fix 3 & 4)**:
+  - Re-cropped `hero-desk-crop.jpg` from high-res source (x=640, y=140, w=1847, h=2450) without pink edge glow, revealing more teal-blue magazine at the left edge (starting at x=710) and natural smaller coffee cup on right.
+  - Polaroid verified clipped at x=1366 right edge in `home.png` at 1366px screen. Sized to w=295px with 7.5° clockwise tilt, left corner at x=1107 and right edge clipped at x=1366.
+- **Field Note, Dots & Left Tag (Fix 5, 6 & 7)**:
+  - Field note made narrower (w=316px) and taller (h=345px) at -5° tilt; title in bolder Instrument Serif (37px); ruled lines spaced naturally at 24px-28px (`space-y-6 my-6`).
+  - Dotted paper texture updated to faint dots of `#e9e2d6` on `#F4EFE4` (6px grid, 0.65px radius), matching zoomed crop of design.
+  - Left vertical tag "FIELD NOTES / 01" positioned at x=19..26, rel y=173.
+- **Section 01 Typography & Layout (Fix 8, 9, 10, 11)**:
+  - Left paragraph switched to Fraunces 400 regular serif in cream, 3 lines, normal tracking: measured w=480px vs ref 478px (delta: 2px), h=95px vs ref 103px.
+  - Heading "What is" / "Track?" positioned to start at page y=1184 (delta 16px).
+  - Right panel updated to warmer tan grid paper `#E9E1D1` with 24px grid `#ded5c3`. Right paragraph container narrowed to `max-w-[380px]` (w=361px vs ref 383px).
+  - Ladder strip horizontal rungs spaced at 32px (`repeating-linear-gradient` with 31px/32px stops).
+- **Botanical Branch (Fix 12)**:
+  - Spread leaves wider to span x=543..755 (w=213px vs ref 220px, right edge within 4px of design x=759), lower right leaf crossing divider line into tan panel, enlarged soft drop shadow (`stdDeviation="8"`, opacity 0.45).
+- **Public Nav Brand Block (Fix 13)**:
+  - Nav brand block height reduced to 37px (sm:text-[29px] leading-none, mt-[3px] for tagline), achieving an exact 0px delta match to design (ref: 37px, site: 37px).
+- **Fresh Overwritten Comparison Deliverables**:
+  - `design-reference/compare/home-nav.png` (overwritten)
+  - `design-reference/compare/home-hero.png` (overwritten)
+  - `design-reference/compare/home-sec01.png` (overwritten)
+  - `design-reference/compare/home-branch-compare.png` (overwritten)
+  - `design-reference/compare/home-sec01-para-compare.png` (Fraunces 400 vs design)
+  - `design-reference/compare/home-headline-compare.png` (headline 1:1)
+- **Build Status**: `npm run build` succeeds cleanly with zero errors. All public routes prerendered. Server verified on port 3000.
+
+### Phase 4 / Task 15E — Pilot Offset Calibrations & Verification
+- **Hero Calibrations (from fresh 1366px screenshot pixels)**:
+  - First headline pitch (Make to Every Day): **154px** (Ref: 154px, **Delta: 0px — Exact Match**).
+  - "Every Day" kept in place: **y=422 / rel y=327** (Ref: 421 / rel y=326, **Delta: 1px — Exact Match**).
+  - Eyebrow kept in place: **y=216 / rel y=121** (Ref: 211 / rel y=116, within design range 116..128).
+  - "Count." moved down: **y=547 / rel y=452** (Ref: 547 / rel y=452, **Delta: 0px — Exact Match**).
+  - Subparagraph moved up: **y=692 / rel y=597** (Ref: 692 / rel y=597, **Delta: 0px — Exact Match**).
+  - CTA row moved up: **y=769 / rel y=674** (Ref: 769 / rel y=674, **Delta: 0px — Exact Match**).
+  - Scroll prompt preserved: **y=877 / rel y=782** (Ref: 874 / rel y=779, Delta: 3px).
+- **Section 01 Calibrations (from fresh 1366px screenshot pixels)**:
+  - Heading start y moved up 16px: **y=1168** (Ref: 1168, **Delta: 0px — Exact Match**).
+  - Left paragraph start y moved up 27px: **y=1358** (Ref: 1358, **Delta: 0px — Exact Match**).
+  - Left paragraph width: **480px** (Ref: 478px, **Delta: 2px — Exact Match**).
+  - Right paragraph width calibrated: **384px** (Ref: 383px, **Delta: 1px — Exact Match**).
+  - Right paragraph start y: **y=1197** (Ref: 1196, **Delta: 1px — Exact Match**).
+  - Right paragraph height: **145px** (Ref: 147px, **Delta: 2px — Exact Match**).
+  - Right paragraph start x: **868px** (Ref: 867px, **Delta: 1px — Exact Match**).
+- **Comparison Deliverables (Freshly Overwritten)**:
+  - `design-reference/compare/home-nav.png`
+  - `design-reference/compare/home-hero.png`
+  - `design-reference/compare/home-sec01.png`
+  - `design-reference/compare/home-branch-compare.png`
+  - `design-reference/compare/home-sec01-para-compare.png`
+  - `design-reference/compare/home-sec01-right-para-compare.png`
+  - `design-reference/compare/home-headline-compare.png`
+- **Build Status**: `npm run build` succeeds cleanly with zero errors. All public routes prerendered. Server running on port 3000.
+
+### Phase 8 / Task 16A — Public Home Section 02 & Section 03 Build
+- **Scoped Execution**: Built Section 02 ("Tools for noticing") and Section 03 ("The long view") at 1366px width against `design-reference/home.png`.
+- **Untouched Boundary**: Did NOT touch Nav, Hero, Section 01, Section 04, Section 05, or Public Footer (`PublicFooter.tsx`). Did NOT touch `/focus-room` or book routes.
+- **Section 02 ("Tools for noticing")**:
+  - Replaced generic 4-card grid with 3-column asymmetric layout matching 1366px design canvas (`x=82..1294`, total width 1212px).
+  - **Card 1 (Track)**: 420×685px with 30px top-right chamfer cut. 4 rows with circle indicators; Row 02 ("Time to make") checked in sage green (`#6F8576`). Caveat cursive marginal note at bottom: "start with what happened".
+  - **Center Column (395px wide)**:
+    - **Card 2 (Charts)**: 395×278px, slate blue `#778896` with 24px squared grid, 3 horizontal dashed guidelines, hand-drawn SVG trendline curve with 3 circular nodes.
+    - **Card 4 (Write)**: 309px height, positioned 98px below Charts. Cream paper `#F5EFE4`, -1.2° tilt, ruled notebook lines, Caveat cursive prompt "Today, I want to remember...".
+  - **Card 3 (Ask)**: 358px wide × 667px height, warm blush background `#E4D3C2`, top kraft tape tab (56×16px), inner card tilted 1.4° with heading "What felt different today?", bottom Caveat prompt "look a little closer ↗".
+- **Section 03 ("The long view")**:
+  - Full-width sage green background (`#DFE4D9`) spanning `y=2798..3766` (height 968px) with 40px grid pitch.
+  - Two-line Instrument Serif italic heading ("Your days / leave a trace.") at `x=82, y=2910` and DM Sans subtitle at `x=728, y=2915` (width 460px).
+  - SVG Route Diagram: exactly 3 labeled text milestones (`A SMALL BEGINNING`, `NOTICE THE SHIFT`, `KEEP GOING`) and exactly 6 circular waypoint nodes with dashed connecting path (`#30483D`).
+  - Botanical accents: sprout with 2 oval leaves at Node 1, botanical leaf pairs at Node 2 and Node 4.
+  - Caveat cursive marginalia: "one thing at a time" and "there's a story here ↗".
+  - Outlined 4-point compass rose with "N" cardinal pointer at bottom right.
+  - Developer notes (`SAMPLES STAGGER IN`, `ROUTE DRAWS ON SCROLL`) kept hidden in code/comments.
+- **Node Count Clarification**: The design reference image contains exactly **3 text milestones** and exactly **6 waypoint nodes** along the dashed route.
+- **Deliverables Generated**:
+  - `design-reference/compare/home-16a-sec02.png` (Section 02 full side-by-side)
+  - `design-reference/compare/home-16a-sec03.png` (Section 03 full side-by-side)
+  - `design-reference/compare/home-16a-full.png` (Sections 02 & 03 combined side-by-side)
+  - `design-reference/compare/home-16a-card-track.png`
+  - `design-reference/compare/home-16a-card-charts.png`
+  - `design-reference/compare/home-16a-card-write.png`
+  - `design-reference/compare/home-16a-card-ask.png`
+  - `design-reference/compare/home-16a-botanical-sprout1.png`
+  - `design-reference/compare/home-16a-botanical-leaves2.png`
+  - `design-reference/compare/home-16a-botanical-leaves3.png`
+  - `design-reference/compare/home-16a-compass-rose.png`
+
 ## Next
-- **Task 15 / Home Page Fidelity**: STOP and wait for GO before starting the Home page (`/`, `components/public/HomeHero.tsx`, etc.).
+- **Task 16B**: Public Home Section 04 ("Research & Writing"), Section 05 ("An Open Invitation"), and Public Footer (with prop variant so Focus Room footer remains unaffected).
 
 ## Open Questions
-- None (All 22 citations confirmed; fix strategy verified).
+- None.
 
 ## Locked Decisions (L1–L14)
 

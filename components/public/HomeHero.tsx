@@ -3,109 +3,198 @@ import Link from 'next/link'
 
 export function HomeHero() {
   return (
-    <section className="relative overflow-hidden pt-8 pb-16 md:pt-16 md:pb-24 border-b border-[#172536]/10">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+    <section className="relative w-full overflow-hidden bg-[#F4EFE4] min-h-[870px] lg:h-[870px] bg-[radial-gradient(circle,#e9e2d6_0.65px,transparent_0.65px)] [background-size:6px_6px]">
+      {/* Vertical 'FIELD NOTES / 01' at exact design coordinates (x=19..26, y=173..275 rel to hero) */}
+      <div
+        className="hidden lg:block absolute left-[19px] top-[173px] font-public-condensed text-[11px] uppercase tracking-[0.25em] text-[#60432F] [writing-mode:vertical-rl] rotate-180 font-semibold select-none pointer-events-none z-20"
+        aria-hidden="true"
+      >
+        FIELD NOTES / 01
+      </div>
+
+      <div className="w-full max-w-[1202px] mx-auto px-6 lg:px-0 h-full relative">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start h-full">
           {/* Left Column: Copy & Actions */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#B68A53]/15 border border-[#B68A53]/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#BD634A]" />
-              <span className="font-public-condensed text-xs uppercase tracking-[0.2em] font-semibold text-[#B68A53]">
-                Issue No. 01 — Autumn / Winter
+          <div className="lg:col-span-6 z-10 lg:pt-[116px] flex flex-col">
+            {/* Eyebrow with short terracotta rule at exact design y=116..128 (rel to hero) */}
+            <div className="flex items-center gap-3">
+              <span className="w-[35px] h-px bg-[#BD634A]" aria-hidden="true" />
+              <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#60432F]">
+                YOUR PERSONAL FIELD GUIDE / VOL. 01
               </span>
             </div>
 
-            <h1 className="font-public-serif text-5xl sm:text-6xl lg:text-7xl leading-[1.08] tracking-tight text-[#172536]">
-              Make Every Day{' '}
-              <span className="italic text-[#BD634A] font-normal">Count.</span>
+            {/* Display Heading - 3 stacked lines with Instrument Serif starting at exact design y=199 rel to hero */}
+            <h1 className="font-instrument select-none font-normal mt-[36px]">
+              <span className="block text-[#172536] text-6xl sm:text-7xl lg:text-[158px] leading-[0.88] tracking-[-0.02em]">
+                Make
+              </span>
+              <span className="block text-[#172536] text-6xl sm:text-7xl lg:text-[143px] leading-[0.88] tracking-[-0.03em] -mt-[16px] ml-0.5 sm:ml-1">
+                Every Day
+              </span>
+              <span className="block text-[#BD634A] italic text-6xl sm:text-7xl lg:text-[166px] leading-[0.88] tracking-[-0.015em] -mt-[19px] ml-1.5 sm:ml-2">
+                Count.
+              </span>
             </h1>
 
-            <p className="font-public-sans text-lg sm:text-xl text-[#172536]/80 max-w-xl leading-relaxed">
-              A quieter space to track your days, notice your progress, and build habits that last.
-              A physical notebook feeling for your digital daily record.
+            {/* Subparagraph at exact design y=598 rel to hero */}
+            <p className="font-public-sans text-base sm:text-[17px] text-[#172536]/80 max-w-[430px] leading-[1.55] -mt-[10px]">
+              An open invitation to pay attention. To the little things, the long way round, and all the days in between.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            {/* CTA Buttons at exact design y=674 rel to hero */}
+            <div className="flex flex-wrap items-center gap-3.5 mt-[31px]">
               <Link
                 href="/login"
-                className="press-btn inline-flex items-center gap-2 px-6 py-3.5 bg-[#172536] text-[#F4EFE4] font-public-condensed text-sm uppercase tracking-[0.16em] font-semibold rounded shadow-sm hover:bg-[#172536]/90"
+                className="press-btn inline-flex items-center justify-center gap-2 w-[218px] h-[46px] bg-[#172536] text-[#F4EFE4] font-public-condensed text-xs uppercase tracking-[0.2em] font-semibold rounded shadow-sm hover:bg-[#172536]/90 transition-colors"
               >
-                <span>Open Your Journal</span>
-                <span aria-hidden="true">↗</span>
+                <span>OPEN YOUR JOURNAL</span>
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 11 11"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  className="shrink-0"
+                >
+                  <path d="M2.5 8.5L8.5 2.5M3.5 2.5H8.5V7.5" />
+                </svg>
               </Link>
               <Link
                 href="/focus-room"
-                className="press-btn inline-flex items-center gap-2 px-6 py-3.5 bg-[#F4EFE4] text-[#172536] border border-[#172536]/30 font-public-condensed text-sm uppercase tracking-[0.16em] font-semibold rounded hover:border-[#172536] hover:bg-white/40"
+                className="press-btn inline-flex items-center justify-center gap-2.5 w-[212px] h-[46px] bg-transparent text-[#172536] border border-[#172536] font-public-condensed text-xs uppercase tracking-[0.2em] font-bold rounded hover:bg-[#172536]/5 transition-colors"
               >
-                <span>Explore Focus Room</span>
-                <span aria-hidden="true">→</span>
+                <span>EXPLORE FOCUS ROOM</span>
+                <svg
+                  width="13"
+                  height="10"
+                  viewBox="0 0 13 10"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  className="shrink-0"
+                >
+                  <path d="M1 5h11M8 1l4 4-4 4" />
+                </svg>
               </Link>
             </div>
 
-            <div className="pt-4 border-t border-[#172536]/10 max-w-md">
-              <p className="font-public-condensed text-xs uppercase tracking-[0.2em] text-[#B68A53]">
-                Not a race to do more. Just a quiet record of what is.
-              </p>
+            {/* Bottom scroll prompt at exact design y=779 rel to hero in dark navy */}
+            <div className="flex items-center gap-4 mt-[56px] pt-1 text-[#172536]">
+              <span className="font-public-condensed text-[11px] uppercase tracking-[0.25em] font-bold">
+                A MAP OF YOUR DAYS
+              </span>
+              <div className="w-[45px] h-px bg-[#172536]/25" aria-hidden="true" />
+              <span className="font-public-condensed text-[11px] uppercase tracking-[0.25em] font-bold flex items-center gap-1.5">
+                <span>SCROLL TO EXPLORE</span>
+                <svg
+                  width="9"
+                  height="11"
+                  viewBox="0 0 9 11"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  className="shrink-0"
+                >
+                  <path d="M4.5 1v9M1 6.5l3.5 3.5 3.5-3.5" />
+                </svg>
+              </span>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Right Column: Desk Photo Collage */}
-          <div className="lg:col-span-5 relative flex justify-center items-center">
-            <div className="relative w-full max-w-[480px]">
-              {/* Main Desk Photo */}
-              <div className="relative lift-card rounded-lg overflow-hidden shadow-xl border-4 border-[#F4EFE4] bg-[#F4EFE4] z-10 aspect-[4/3] w-full">
-                <Image
-                  src="/welcome/hero-desk.jpg"
-                  alt="Orange coffee mug beside an open notebook in soft sunlight, capturing a calm study vibe."
-                  fill
-                  priority
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 480px"
-                />
-              </div>
+      {/* Right Tall Panel: Cup-and-Magazine Photo bleeding off the right at x=710 */}
+      <div className="relative lg:absolute lg:top-0 lg:bottom-0 lg:left-[710px] lg:right-0 h-[450px] lg:h-[870px] bg-[#211b16] overflow-hidden z-10 mt-8 lg:mt-0">
+        <Image
+          src="/welcome/hero-desk-crop.jpg"
+          alt="Coffee mug beside an open magazine in soft daylight, capturing quiet morning focus."
+          fill
+          priority
+          className="object-cover object-center"
+          sizes="(max-width: 1024px) 100vw, 656px"
+        />
 
-              {/* Inset Polaroid: Mountain Sunrise */}
-              <div className="absolute -bottom-8 -left-4 sm:-bottom-10 sm:-left-6 w-44 sm:w-52 p-2 sm:p-2.5 bg-[#F4EFE4] shadow-2xl rounded-sm border border-[#172536]/15 rotate-[-4deg] z-20 lift-card">
-                <div className="relative aspect-square w-full overflow-hidden rounded-xs bg-[#172536]/5">
-                  <Image
-                    src="/welcome/hero-mountain.jpg"
-                    alt="Tranquil view of misty mountain ranges under a pale sky, evoking peace and serenity."
-                    fill
-                    className="object-cover"
-                    sizes="200px"
-                  />
-                </div>
-                <div className="mt-2 text-center">
-                  <span className="font-public-script text-xs sm:text-sm text-[#172536]/80">
-                    morning ridge
-                  </span>
-                </div>
-              </div>
+        {/* Thin inset frame line */}
+        <div
+          className="absolute top-6 bottom-6 left-6 right-6 border border-[#F4EFE4]/30 pointer-events-none z-10"
+          aria-hidden="true"
+        />
 
-              {/* Taped handwritten note */}
-              <div className="absolute -top-6 -right-2 sm:-top-8 sm:-right-4 bg-[#F4EFE4] p-3 sm:p-4 rounded shadow-md border border-[#B68A53]/30 rotate-[3deg] z-20 max-w-[200px] lift-card">
-                {/* Washi tape strip */}
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-16 h-4 bg-[#B68A53]/35 rounded-xs transform -rotate-1" />
-                <div className="font-public-condensed text-[10px] uppercase tracking-[0.18em] text-[#BD634A] mb-1 font-semibold">
-                  Field Entry — Open Page
-                </div>
-                <p className="font-public-hand text-base leading-snug text-[#172536]">
-                  Begin where you are.
-                </p>
-                <div className="font-public-script text-xs text-[#BD634A] mt-1 flex items-center justify-between">
-                  <span>the ordinary is enough</span>
-                  <span aria-hidden="true">↗</span>
-                </div>
-              </div>
-
-              {/* Vertical stamp / badge */}
-              <div className="hidden sm:flex absolute -right-6 top-1/2 -translate-y-1/2 transform rotate-90 origin-right items-center gap-2 py-1 px-3 bg-[#172536] text-[#F4EFE4] rounded text-[10px] font-public-condensed uppercase tracking-[0.22em] shadow z-0">
-                <span>Observations from the Everyday</span>
-                <span className="text-[#BD634A]">·</span>
-                <span className="text-[#D2A75D]">TRACK</span>
-              </div>
-            </div>
+        {/* Tilted Polaroid of landscape at top right matching reference coordinates (clipped at x=1366 edge) */}
+        <div
+          className="absolute top-[5px] right-[-36px] bg-[#ede8df] p-3 pb-7 shadow-xl rounded-[2px] w-[295px] rotate-[7.5deg] z-20 lift-card"
+        >
+          <div className="relative w-full h-[210px] bg-[#172536]/10 overflow-hidden">
+            <Image
+              src="/welcome/hero-mountain.jpg"
+              alt="Misty landscape study"
+              fill
+              className="object-cover grayscale"
+              sizes="295px"
+            />
           </div>
+          <div className="font-public-condensed text-[10px] uppercase tracking-[0.25em] text-[#172536] text-center font-bold mt-3">
+            LANDSCAPE STUDY / 01
+          </div>
+        </div>
+
+        {/* Narrower and taller Tilted Taped Paper Note matching reference coordinates: x=784 (left: 74px in panel), y=442 rel to hero */}
+        <div
+          className="absolute top-[442px] left-[74px] bg-[#F4EFE4]/95 backdrop-blur-[0.5px] p-7 pt-8 shadow-2xl rounded-[2px] border border-[#B68A53]/25 w-[316px] min-h-[345px] rotate-[-5deg] z-30 lift-card"
+        >
+          {/* Washi tape strip */}
+          <div
+            className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-20 h-6 bg-[#c29b63] opacity-85 rotate-[-2deg] shadow-xs"
+            aria-hidden="true"
+          />
+          <div className="font-public-condensed text-[11px] uppercase tracking-[0.25em] text-[#BD634A] font-semibold mb-3">
+            FIELD ENTRY — OPEN PAGE
+          </div>
+          <h3 className="font-instrument text-[37px] leading-[1.05] text-[#172536] font-medium mb-5 tracking-[-0.02em]">
+            Begin where<br />you are.
+          </h3>
+          {/* Three ruled lines spaced out naturally */}
+          <div className="space-y-6 my-6" aria-hidden="true">
+            <div className="w-full h-px bg-[#172536]/15" />
+            <div className="w-full h-px bg-[#172536]/15" />
+            <div className="w-full h-px bg-[#172536]/15" />
+          </div>
+          <div className="flex items-center justify-between text-[#BD634A] mt-5">
+            <span className="font-public-hand text-2xl">the ordinary is enough</span>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 13 13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              className="shrink-0"
+            >
+              <path d="M3 10L10 3M4 3h6v6" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Vertical 'OBSERVATIONS FROM THE EVERYDAY / TRACK' inside frame at right photo edge at exact design y=502 rel to hero */}
+        <div
+          className="hidden lg:block absolute right-[32px] top-[502px] font-public-condensed text-[11px] uppercase tracking-[0.28em] text-white [writing-mode:vertical-rl] rotate-180 font-semibold select-none pointer-events-none z-20 whitespace-nowrap leading-none"
+          aria-hidden="true"
+        >
+          OBSERVATIONS FROM THE EVERYDAY / TRACK
         </div>
       </div>
     </section>

@@ -85,6 +85,8 @@ export default function PublicLayout({
       }
     >
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+
         .font-public-sans { font-family: var(--font-dm-sans), sans-serif; }
         .font-public-serif { font-family: var(--font-fraunces), serif; }
         .font-public-condensed { font-family: var(--font-barlow-condensed), sans-serif; }
@@ -92,6 +94,7 @@ export default function PublicLayout({
         .font-public-display { font-family: var(--font-italiana), serif; }
         .font-public-headline { font-family: var(--font-oswald), sans-serif; }
         .font-public-script { font-family: var(--font-nothing), cursive; }
+        .font-instrument { font-family: 'Instrument Serif', Georgia, serif; }
 
         .lift-card {
           transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);

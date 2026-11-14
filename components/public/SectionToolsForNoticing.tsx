@@ -1,194 +1,249 @@
 export function SectionToolsForNoticing() {
   return (
-    <section id="journal" className="py-16 md:py-24 border-b border-[#172536]/10">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8">
-        {/* Section Header */}
-        <div className="mb-12 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#B68A53]">
-              02 / Tools for Noticing
-            </span>
-            <span className="h-px w-8 bg-[#B68A53]/40" />
+    <section
+      id="journal"
+      className="w-full bg-[#F4EFE4] border-b border-[#172536]/10 relative overflow-hidden"
+      style={{ minHeight: '1196px' }}
+    >
+      <div className="w-full max-w-[1366px] mx-auto px-4 sm:px-8 lg:pl-[82px] lg:pr-[72px] pt-[119px] pb-[99px]">
+        {/* Section Header: Eyebrow + 2-line Heading + Right Subtitle */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-[74px]">
+          <div>
+            {/* Eyebrow at y=1726 */}
+            <div className="flex items-center gap-2 mb-[18px]">
+              <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#BD634A]">
+                02 /
+              </span>
+              <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#172536]">
+                TOOLS FOR NOTICING
+              </span>
+            </div>
+
+            {/* Display Heading at y=1772 */}
+            <h2 className="font-instrument text-6xl sm:text-7xl lg:text-[92px] leading-[0.92] text-[#172536] tracking-[-0.02em]">
+              <span className="block">Four ways to</span>
+              <span className="block italic mt-[2px]">find your way.</span>
+            </h2>
           </div>
-          <h2 className="font-public-serif text-3xl sm:text-4xl lg:text-5xl text-[#172536] tracking-tight">
-            Four ways to find your way.
-          </h2>
+
+          {/* Right Subtitle at x=1040..1294 */}
+          <div className="max-w-[254px] lg:mb-[6px] text-[#172536]/80 font-public-sans text-[13.5px] leading-relaxed">
+            <p>
+              A few thoughtful tools for the life unfolding right in front of you. These are illustrative page samples.
+            </p>
+          </div>
         </div>
 
-        {/* 4 Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Card 1: Track */}
-          <div className="lift-card bg-[#F4EFE4] rounded-lg p-6 border border-[#172536]/15 flex flex-col justify-between shadow-sm">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="font-public-condensed text-xs uppercase tracking-[0.2em] font-bold text-[#BD634A]">
+        {/* 4 Cards Layout: 3 Columns (Left Card 1: 420px, Center Stack: 395px, Right Card 3: 358px) */}
+        <div className="flex flex-col lg:flex-row items-start justify-between gap-6 lg:gap-0 w-full">
+          {/* Card 1: Track (w=[420px], h=[685px], starts at x=82) */}
+          <div
+            className="w-full lg:w-[420px] h-[685px] bg-[#E6E3D5] border border-[#172536]/15 p-7 flex flex-col justify-between relative shadow-sm shrink-0"
+            style={{
+              clipPath: 'polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 0 100%)',
+            }}
+          >
+            <div>
+              {/* Card Header */}
+              <div className="flex items-baseline justify-between mb-8">
+                <h3 className="font-instrument text-[44px] leading-none text-[#172536]">
                   Track
+                </h3>
+                <span className="font-public-condensed text-[11px] uppercase tracking-[0.2em] font-semibold text-[#172536]">
+                  RECORD THE DAY
                 </span>
-                <span className="font-public-sans text-xs text-[#172536]/50">01</span>
               </div>
-              <h3 className="font-public-serif text-xl text-[#172536]">
-                Daily Log & Habits
-              </h3>
-              <p className="font-public-sans text-xs text-[#172536]/70 italic">
-                start with what happened
-              </p>
 
-              {/* Row list visual */}
-              <div className="pt-2 space-y-2 border-t border-[#172536]/10 font-public-sans text-xs">
-                <div className="flex items-center justify-between p-1.5 rounded bg-white/50 border border-[#172536]/5">
-                  <span className="text-[#172536]">Morning daylight</span>
-                  <span className="font-public-hand text-sm text-[#30483D] font-bold">✓ 20m</span>
-                </div>
-                <div className="flex items-center justify-between p-1.5 rounded bg-white/50 border border-[#172536]/5">
-                  <span className="text-[#172536]">Unbroken reading</span>
-                  <span className="font-public-hand text-sm text-[#30483D] font-bold">✓ 35m</span>
-                </div>
-                <div className="flex items-center justify-between p-1.5 rounded bg-white/50 border border-[#172536]/5">
-                  <span className="text-[#172536]">Evening notebook</span>
-                  <span className="font-public-hand text-sm text-[#BD634A] font-bold">✓ 15m</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 mt-4 border-t border-[#172536]/10 flex items-center justify-between text-[11px] font-public-condensed uppercase tracking-wider text-[#B68A53]">
-              <span>Checkboxes & Tallies</span>
-              <span aria-hidden="true">↗</span>
-            </div>
-          </div>
-
-          {/* Card 2: Charts */}
-          <div className="lift-card bg-[#F4EFE4] rounded-lg p-6 border border-[#172536]/15 flex flex-col justify-between shadow-sm">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="font-public-condensed text-xs uppercase tracking-[0.2em] font-bold text-[#BD634A]">
-                  Charts
-                </span>
-                <span className="font-public-sans text-xs text-[#172536]/50">02</span>
-              </div>
-              <h3 className="font-public-serif text-xl text-[#172536]">
-                Hand-drawn Trends
-              </h3>
-              <p className="font-public-sans text-xs text-[#172536]/70 italic">
-                notice the patterns as they form
-              </p>
-
-              {/* Trendline SVG visual */}
-              <div className="pt-2 border-t border-[#172536]/10">
-                <div className="h-28 w-full flex items-center justify-center p-2 bg-white/40 rounded border border-[#172536]/5">
-                  <svg
-                    viewBox="0 0 180 80"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-full h-full text-[#172536]"
-                    aria-label="Hand-drawn trendline chart"
-                    role="img"
-                  >
-                    {/* Grid lines */}
-                    <line x1="10" y1="20" x2="170" y2="20" stroke="#172536" strokeOpacity="0.1" strokeDasharray="2 3" />
-                    <line x1="10" y1="45" x2="170" y2="45" stroke="#172536" strokeOpacity="0.1" strokeDasharray="2 3" />
-                    <line x1="10" y1="70" x2="170" y2="70" stroke="#172536" strokeOpacity="0.2" />
-
-                    {/* Hand-drawn dashed trendline */}
-                    <path
-                      d="M15 62C30 58 45 42 60 48C75 54 90 30 105 34C120 38 135 18 150 24C158 27 165 22 170 20"
-                      stroke="#BD634A"
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                      strokeDasharray="4 3"
-                    />
-
-                    {/* Nodes */}
-                    <circle cx="15" cy="62" r="3" fill="#BD634A" />
-                    <circle cx="60" cy="48" r="3" fill="#BD634A" />
-                    <circle cx="105" cy="34" r="3" fill="#BD634A" />
-                    <circle cx="150" cy="24" r="3.5" fill="#D2A75D" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 mt-4 border-t border-[#172536]/10 flex items-center justify-between text-[11px] font-public-condensed uppercase tracking-wider text-[#B68A53]">
-              <span>Inked Curves</span>
-              <span aria-hidden="true">↗</span>
-            </div>
-          </div>
-
-          {/* Card 3: Ask */}
-          <div className="lift-card bg-[#F4EFE4] rounded-lg p-6 border border-[#172536]/15 flex flex-col justify-between shadow-sm">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="font-public-condensed text-xs uppercase tracking-[0.2em] font-bold text-[#BD634A]">
-                  Ask
-                </span>
-                <span className="font-public-sans text-xs text-[#172536]/50">03</span>
-              </div>
-              <h3 className="font-public-serif text-xl text-[#172536]">
-                Inquiry & Clarity
-              </h3>
-              <p className="font-public-sans text-xs text-[#172536]/70 italic">
-                curiosity over judgment
-              </p>
-
-              {/* Question prompt card visual */}
-              <div className="pt-2 border-t border-[#172536]/10">
-                <div className="p-3 bg-[#172536] text-[#F4EFE4] rounded shadow-inner space-y-2">
-                  <span className="font-public-condensed text-[10px] uppercase tracking-[0.2em] text-[#D2A75D]">
-                    Today's prompt
-                  </span>
-                  <p className="font-public-hand text-sm text-[#F4EFE4] leading-snug">
-                    "What brought you energy today?"
-                  </p>
-                  <div className="text-[10px] font-public-sans text-[#8799A7] flex items-center gap-1">
-                    <span>look a little closer</span>
-                    <span aria-hidden="true">↗</span>
+              {/* 4 Daily Rows */}
+              <div className="border-t border-[#172536]/20">
+                {/* Row 01 */}
+                <div className="py-[18px] border-b border-[#172536]/15 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="font-public-condensed text-xs font-bold text-[#172536]/70">
+                      01
+                    </span>
+                    <span className="font-instrument text-[19px] text-[#172536]">
+                      A morning walk
+                    </span>
                   </div>
+                  <span className="w-[18px] h-[18px] rounded-full border-[1.5px] border-[#172536]/60 shrink-0" />
+                </div>
+
+                {/* Row 02 (Checked) */}
+                <div className="py-[18px] border-b border-[#172536]/15 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="font-public-condensed text-xs font-bold text-[#172536]/70">
+                      02
+                    </span>
+                    <span className="font-instrument text-[19px] text-[#172536]">
+                      Time to make
+                    </span>
+                  </div>
+                  <span className="w-[18px] h-[18px] rounded-full bg-[#6F8576] border-[1.5px] border-[#6F8576] shrink-0" />
+                </div>
+
+                {/* Row 03 */}
+                <div className="py-[18px] border-b border-[#172536]/15 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="font-public-condensed text-xs font-bold text-[#172536]/70">
+                      03
+                    </span>
+                    <span className="font-instrument text-[19px] text-[#172536]">
+                      Something learned
+                    </span>
+                  </div>
+                  <span className="w-[18px] h-[18px] rounded-full border-[1.5px] border-[#172536]/60 shrink-0" />
+                </div>
+
+                {/* Row 04 */}
+                <div className="py-[18px] border-b border-[#172536]/15 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="font-public-condensed text-xs font-bold text-[#172536]/70">
+                      04
+                    </span>
+                    <span className="font-instrument text-[19px] text-[#172536]">
+                      A moment to keep
+                    </span>
+                  </div>
+                  <span className="w-[18px] h-[18px] rounded-full border-[1.5px] border-[#172536]/60 shrink-0" />
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 mt-4 border-t border-[#172536]/10 flex items-center justify-between text-[11px] font-public-condensed uppercase tracking-wider text-[#B68A53]">
-              <span>Reflective Questions</span>
-              <span aria-hidden="true">↗</span>
+            {/* Bottom handwritten note */}
+            <div className="text-right pb-1">
+              <span className="font-public-hand text-[23px] text-[#30483D] leading-none">
+                start with what happened
+              </span>
             </div>
           </div>
 
-          {/* Card 4: Write */}
-          <div className="lift-card bg-[#F4EFE4] rounded-lg p-6 border border-[#172536]/15 flex flex-col justify-between shadow-sm">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="font-public-condensed text-xs uppercase tracking-[0.2em] font-bold text-[#BD634A]">
-                  Write
+          {/* Center Column: Card 2 (Charts) + Card 4 (Write) (w=[395px], starts at x=520) */}
+          <div className="w-full lg:w-[395px] flex flex-col justify-between h-[685px] shrink-0">
+            {/* Card 2: Charts (h=[278px], Slate blue grid) */}
+            <div
+              className="w-full h-[278px] bg-[#778896] border border-[#172536]/15 p-6 flex flex-col justify-between relative shadow-sm shrink-0"
+              style={{
+                backgroundImage:
+                  'linear-gradient(to right, rgba(23, 37, 54, 0.12) 1px, transparent 1px), linear-gradient(to bottom, rgba(23, 37, 54, 0.12) 1px, transparent 1px)',
+                backgroundSize: '24px 24px',
+              }}
+            >
+              {/* Header */}
+              <div className="flex items-baseline justify-between mb-4">
+                <h3 className="font-instrument text-[40px] leading-none text-[#172536]">
+                  Charts
+                </h3>
+                <span className="font-public-condensed text-[11px] uppercase tracking-[0.2em] font-semibold text-[#172536]">
+                  SEE THE PATTERNS
                 </span>
-                <span className="font-public-sans text-xs text-[#172536]/50">04</span>
               </div>
-              <h3 className="font-public-serif text-xl text-[#172536]">
-                Memorable Moments
-              </h3>
-              <p className="font-public-sans text-xs text-[#172536]/70 italic">
-                preserve what would otherwise fade
-              </p>
 
-              {/* Lined stationery card visual */}
-              <div className="pt-2 border-t border-[#172536]/10">
+              {/* Trendline Curve SVG */}
+              <div className="w-full flex-1 flex items-center justify-center">
+                <svg
+                  viewBox="0 0 340 140"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-full h-full text-[#172536]"
+                  aria-label="Hand-drawn trendline curve on grid"
+                  role="img"
+                >
+                  {/* Horizontal dashed guide lines */}
+                  <line x1="10" y1="35" x2="330" y2="35" stroke="#172536" strokeOpacity="0.25" strokeDasharray="3 3" />
+                  <line x1="10" y1="70" x2="330" y2="70" stroke="#172536" strokeOpacity="0.25" strokeDasharray="3 3" />
+                  <line x1="10" y1="105" x2="330" y2="105" stroke="#172536" strokeOpacity="0.25" strokeDasharray="3 3" />
+
+                  {/* Smooth curved trendline */}
+                  <path
+                    d="M 18 95 C 45 92, 60 55, 95 55 C 130 55, 145 88, 180 88 C 215 88, 235 48, 275 48 C 300 48, 315 25, 330 20"
+                    stroke="#172536"
+                    strokeWidth="3.2"
+                    strokeLinecap="round"
+                  />
+
+                  {/* Nodes */}
+                  <circle cx="18" cy="95" r="4.5" fill="#172536" />
+                  <circle cx="180" cy="88" r="4.5" fill="#172536" />
+                  <circle cx="330" cy="20" r="4.5" fill="#172536" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Card 4: Write (h=[309px], Cream card with tilted lined sheet inside) */}
+            <div className="w-full h-[309px] bg-[#F5EFE4] border border-[#172536]/15 p-6 flex flex-col justify-between shadow-sm shrink-0">
+              {/* Header */}
+              <div className="flex items-baseline justify-between mb-3">
+                <h3 className="font-instrument text-[40px] leading-none text-[#172536]">
+                  Write
+                </h3>
+                <span className="font-public-condensed text-[11px] uppercase tracking-[0.2em] font-semibold text-[#172536]">
+                  KEEP WHAT MATTERS
+                </span>
+              </div>
+
+              {/* Tilted lined paper sheet */}
+              <div className="relative mt-1">
                 <div
-                  className="p-3 bg-white/60 rounded border border-[#172536]/10 space-y-2"
+                  className="bg-[#FCFAF5] border border-[#172536]/15 p-5 shadow-sm transform -rotate-1 origin-top-left"
                   style={{
-                    backgroundImage: 'repeating-linear-gradient(transparent, transparent 19px, rgba(23,37,54,0.08) 20px)',
+                    backgroundImage:
+                      'repeating-linear-gradient(transparent, transparent 26px, rgba(23, 37, 54, 0.12) 27px)',
                   }}
                 >
-                  <p className="font-public-hand text-sm text-[#172536] leading-[20px]">
-                    Today, I want to remember the late sun cutting through the pine trees...
-                  </p>
-                  <div className="font-public-script text-xs text-[#BD634A]">
-                    ~ 5:45 PM
+                  <div className="border-b border-dashed border-[#172536]/30 pb-2 mb-3">
+                    <span className="font-public-condensed text-[10.5px] uppercase tracking-[0.22em] font-bold text-[#172536]">
+                      A PAGE FOR THE UNFINISHED THOUGHT
+                    </span>
                   </div>
+
+                  <p className="font-public-hand text-[21px] text-[#5D5061] leading-[27px] pt-1">
+                    Today, I want to remember...
+                  </p>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="pt-4 mt-4 border-t border-[#172536]/10 flex items-center justify-between text-[11px] font-public-condensed uppercase tracking-wider text-[#B68A53]">
-              <span>Handwritten Notes</span>
-              <span aria-hidden="true">↗</span>
+          {/* Card 3: Ask (w=[358px], h=[667px], starts at x=936) */}
+          <div className="w-full lg:w-[358px] h-[667px] bg-[#E4D3C2] border border-[#172536]/15 p-7 flex flex-col justify-between relative shadow-sm shrink-0">
+            {/* Top washi tape tab */}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-[78px] h-[22px] bg-[#CDAE8B] opacity-90 shadow-xs transform -rotate-1 pointer-events-none" />
+
+            <div>
+              {/* Header */}
+              <div className="flex items-baseline justify-between mb-8">
+                <h3 className="font-instrument text-[44px] leading-none text-[#172536]">
+                  Ask
+                </h3>
+                <span className="font-public-condensed text-[11px] uppercase tracking-[0.2em] font-semibold text-[#BD634A]">
+                  REFLECT AND EXPLORE
+                </span>
+              </div>
+
+              {/* Tilted inner question note card */}
+              <div className="bg-[#F6EDE0] border border-[#172536]/15 p-6 shadow-sm transform -rotate-1 origin-top-left mt-2">
+                <span className="block font-public-condensed text-[11px] uppercase tracking-[0.2em] font-bold text-[#BD634A] mb-3">
+                  A QUESTION TO SIT WITH
+                </span>
+
+                <h4 className="font-instrument text-[30px] sm:text-[32px] leading-tight text-[#172536] mb-4">
+                  What felt different today?
+                </h4>
+
+                <div className="w-full border-t border-[#172536]/20 my-4" />
+
+                <p className="font-public-sans text-[13px] text-[#172536]/80 leading-relaxed">
+                  Give yourself room for an honest answer. There is no right way to begin.
+                </p>
+              </div>
+            </div>
+
+            {/* Bottom prompt */}
+            <div className="text-right pb-1">
+              <span className="font-public-hand text-[22px] text-[#BD634A] leading-none">
+                look a little closer ↗
+              </span>
             </div>
           </div>
         </div>
