@@ -710,8 +710,50 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - Re-generated side-by-side comparison images saved to `design-reference/compare/` (`compare-hero.png`, `compare-practice.png`, `compare-viewport-1366x768.png`, `compare-pilot-side-by-side.png`).
   - Computed font checks and copy-diff table documented.
 
+### Phase 8 / Task 14C — Pilot Correction (Hero & Settle into Focus Fidelity)
+- **Scope Completed**: Exact correction pass matching `design-reference/focus-room.png` at 1366×768 across all 9 task items:
+  1. **Hero Vertical Positions & Left Margin (`FocusHero.tsx`)**:
+     - Measured reference y positions: Eyebrow y=219 (rel 128px below nav), H1 y=285 (rel 194px, 57px gap below eyebrow), Paragraph y=538 (rel 447px, 2 lines matching reference), Bottom line y=870 (rel 779px, 72px from bottom).
+     - Matched left text margin strictly to reference `x = 109px` (`lg:pl-[109px]`).
+     - Aligned site: Eyebrow at x=109, y=219; H1 at x=117, y=285; Paragraph at x=109, y=538 (2 lines); Bottom line at x=109, y=870.
+  2. **Photo Panel Border & Fade (`FocusHero.tsx`)**:
+     - Removed hard vertical line `lg:border-l border-[#F4EFE4]/15`.
+     - Photo now fades smoothly into the `#172536` navy with a wide linear gradient overlay (`w-48 sm:w-64 lg:w-72 bg-gradient-to-r from-[#172536] via-[#172536]/85 to-transparent`).
+     - Aligned framing border to reference coordinates: top=117 (rel 26px), bottom=927 (rel 26px), left=792 (rel 12px), right=1340 (rel 26px).
+  3. **Photo Tone (`FocusHero.tsx`)**:
+     - Darkened, cooled and vignetted desk photo using `brightness-[0.72] contrast-[1.04] saturate-[0.80] hue-rotate-[-4deg]`, `#172536/30` multiply overlay, and radial vignette gradient matching reference palette.
+  4. **Orbit Overlay (`FocusHero.tsx`)**:
+     - Solid thin circles (`strokeWidth="1"` and `0.8"`), keeping planet beads.
+     - Positioned the `+` mark at exact reference coordinates (x=1311, y=243 -> rel top 144px, right 50px).
+  5. **Settle into Focus Right Paragraph (`FocusThePractice.tsx`)**:
+     - Narrowed column to `max-w-[245px] lg:ml-auto`, wrapping into exactly 3 lines matching the reference (`x=1037..1256`, lines: "A future home for unhurried work," / "thoughtful pauses, and the simple" / "ritual of beginning.").
+  6. **Timer Dial (`FocusThePractice.tsx`)**:
+     - Thick dark track ring (`r=180`, `strokeWidth="9"`, `#1e3044`).
+     - Thick gold arc (`r=180`, `strokeWidth="9"`, `#B68A53`, 150° clockwise sweep from 12 o'clock).
+     - Thin inner ring (`r=148`) and thin outer ring (`r=218`).
+     - Central soft radial glow (`#1e3852` to `#172536` radialGradient).
+     - Full set of 24 tick marks (4 cardinal ticks extending to r=222, 8 intermediate hour ticks to r=212, 12 minor 15-deg ticks to r=202).
+  7. **Pace Tabs (`FocusThePractice.tsx`)**:
+     - Exact 52px height matching reference (`h-[52px]`).
+     - Inactive tabs given rounded corners (`rounded-[8px]`).
+  8. **Inner Frame around Dial Verification (`FocusThePractice.tsx`)**:
+     - Checked reference `focus-room.png`: Inner frame boxing just the dial is **ABSENT** in the reference.
+     - Removed inner frame div wrapper from timer card.
+  9. **Field Note Card (`FocusThePractice.tsx`)**:
+     - Staggered lower than timer card at both top AND bottom edges: top y=1303 is 14px lower than timer card top (y=1289); bottom y=2127 is 43px lower than timer card bottom (y=2084).
+     - Added authentic inner double border (two concentric chamfered border frames following cut corner).
+     - Matched checklist text size (`text-[15px]`, `py-3.5`).
+     - Matched radar chart size (`max-w-[155px]`) and darker contrast (`strokeOpacity="0.55"`, tobacco `#60432F` polygon fill and stroke).
+- **Verification Deliverables**:
+  - Re-generated 1:1 side-by-side comparison images saved to `design-reference/compare/`:
+    - `compare-viewport-1366x768.png`
+    - `compare-hero.png`
+    - `compare-practice.png`
+    - `compare-pilot-side-by-side.png`
+  - Zero TypeScript/Next.js errors (`npm run build` succeeds cleanly).
+
 ## Next
-- **Task 14B Phase 2:** Focus Room sections beyond pilot scope (Section 02 "The Journey", Section 03 "Reflection", and Footer fidelity against `focus-room.png`).
+- **Task 14D / Pilot Review & Next Sections:** Wait for GO on Section 02 "The Journey", Section 03 "Reflection", and Footer.
 
 ## Open Questions
 - None (All 22 citations confirmed; fix strategy verified).
