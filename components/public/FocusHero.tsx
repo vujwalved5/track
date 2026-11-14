@@ -25,7 +25,7 @@ export function FocusHero() {
               <span className="block mt-1">rhythm.</span>
             </h1>
 
-            <p className="font-public-sans text-base sm:text-lg text-[#F4EFE4]/80 max-w-[415px] leading-relaxed mt-[8px]">
+            <p className="font-public-sans text-base sm:text-lg text-[#F4EFE4]/80 max-w-[440px] leading-relaxed mt-[8px]">
               One focused session at a time. Make space for deep work, then take a proper break.
             </p>
           </div>
@@ -76,37 +76,35 @@ export function FocusHero() {
             +
           </div>
 
-          {/* Subtle Celestial Orbit Overlay with solid thin circles */}
+          {/* Subtle Celestial Orbit Overlay with circles centred on the lamp (measured at x=352, y=158) */}
           <div className="absolute inset-0 pointer-events-none opacity-45 z-[6]">
             <svg
-              viewBox="0 0 574 860"
+              viewBox="0 0 586 862"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
               className="w-full h-full text-[#D2A75D]"
               aria-label="Celestial orbit lines"
               role="img"
             >
-              <g transform="rotate(-22 287 430)">
-                <ellipse
-                  cx="287"
-                  cy="430"
-                  rx="220"
-                  ry="125"
+              <g>
+                <circle
+                  cx="352"
+                  cy="158"
+                  r="160"
                   stroke="currentColor"
                   strokeWidth="1"
                 />
-                <ellipse
-                  cx="287"
-                  cy="430"
-                  rx="160"
-                  ry="85"
+                <circle
+                  cx="352"
+                  cy="158"
+                  r="110"
                   stroke="#F4EFE4"
                   strokeWidth="0.8"
                   opacity="0.6"
                 />
-                <circle cx="450" cy="390" r="3" fill="#D2A75D" />
-                <circle cx="150" cy="470" r="2.5" fill="#BD634A" />
-                <circle cx="360" cy="510" r="2" fill="#F4EFE4" />
+                <circle cx="512" cy="158" r="3" fill="#D2A75D" />
+                <circle cx="274" cy="236" r="2.5" fill="#BD634A" />
+                <circle cx="430" cy="80" r="2" fill="#F4EFE4" />
               </g>
             </svg>
           </div>

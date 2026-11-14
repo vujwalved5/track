@@ -7,10 +7,10 @@ interface PublicFooterProps {
 export function PublicFooter({ current = 'home' }: PublicFooterProps = {}) {
   const isFocusRoom = current === 'focus-room'
 
-  // Focus Room Footer (Preserved 100% byte-for-byte from commit ded0290)
+  // Focus Room Footer
   if (isFocusRoom) {
     return (
-      <footer className="w-full bg-[#172536] text-[#F4EFE4] pt-[71px] pb-[17px] overflow-hidden">
+      <footer className="w-full bg-[#172536] text-[#F4EFE4] pt-[71px] pb-[34px] overflow-hidden">
         <div className="max-w-[1202px] mx-auto px-4 sm:px-6 lg:px-0">
           {/* Top Eyebrows Row */}
           <div className="flex items-center justify-between">
@@ -22,12 +22,9 @@ export function PublicFooter({ current = 'home' }: PublicFooterProps = {}) {
             </span>
           </div>
 
-          {/* Heading + Companion Links Row */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mt-6">
-            <h2 className="font-public-display text-4xl sm:text-6xl lg:text-[92px] text-[#F4EFE4] font-normal leading-[0.98] tracking-tight whitespace-nowrap">
-              Until then, take your time.
-            </h2>
-            <nav className="flex flex-wrap items-center gap-6 sm:gap-7 lg:pt-5 font-public-condensed text-xs uppercase tracking-[0.22em] shrink-0">
+          {/* Right-aligned Companion Nav Links sitting above heading as in design */}
+          <div className="flex justify-end mt-4 mb-1">
+            <nav className="flex flex-wrap items-center gap-6 sm:gap-7 font-public-condensed text-xs uppercase tracking-[0.22em] shrink-0">
               <Link
                 href="/"
                 className="text-[#F4EFE4]/75 hover:text-[#F4EFE4] transition-colors"
@@ -56,13 +53,18 @@ export function PublicFooter({ current = 'home' }: PublicFooterProps = {}) {
             </nav>
           </div>
 
+          {/* Heading - reduced ~25% from 92px to 68px to match design */}
+          <h2 className="font-public-display text-4xl sm:text-5xl lg:text-[68px] text-[#F4EFE4] font-normal leading-[0.98] tracking-tight">
+            Until then, take your time.
+          </h2>
+
           {/* Subtitle Paragraph */}
-          <p className="font-public-sans text-sm sm:text-base text-[#F4EFE4]/80 mt-5 max-w-md leading-relaxed">
+          <p className="font-public-sans text-sm sm:text-base text-[#F4EFE4]/80 mt-4 max-w-md leading-relaxed">
             The Focus Room is being prepared. Your timer and music controls will arrive here.
           </p>
 
           {/* Bottom Divider Line */}
-          <div className="mt-14 mb-8 border-t border-[#F4EFE4]/15 w-full" />
+          <div className="mt-11 mb-8 border-t border-[#F4EFE4]/15 w-full" />
 
           {/* Colophon Bar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-public-condensed text-xs uppercase tracking-[0.22em] text-[#90A0B3]">

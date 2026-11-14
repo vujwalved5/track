@@ -1073,10 +1073,33 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - `design-reference/compare/home-16c-768.png`
   - `design-reference/compare/home-16c-390.png`
 
+### Phase 8 / Task 14E — Focus Room Clean-up & Pixel Alignment
+- **Overview**: Reference `design-reference/focus-room.png` (1366x3727). Scoped clean-up of the Focus Room page across all 7 fixes.
+- **Pre-edit / Post-edit Verification**: Full-page 1366px screenshot diff performed; 0 regressions outside target regions. Shared `PublicFooter.tsx` verified with 0-pixel diff on Home footer across 1366, 768, and 390 viewports.
+- **Measured Table of 7 Fixes**:
+  | Fix # | Feature / Component | Design Reference (`focus-room.png`) | Pre-Edit State | Implementation (14E) | Verification Result |
+  |---|---|---|---|---|---|
+  | 1 | Footer Heading & Nav (`PublicFooter.tsx`) | Heading font height ~80px (font-size ~68-70px); nav links sit right-aligned above heading | Heading was `lg:text-[92px]`, nav links sat inline beside heading | Heading reduced to `lg:text-[68px]`; nav links repositioned right-aligned above heading; `pb-[34px]` aligns footer height to 3727px | Exact match; Home footer diff = 0px at 1366, 768, 390 |
+  | 2 | Hero Paragraph Wrap (`FocusHero.tsx`) | "One focused session at a time. Make space for deep / work, then take a proper break." (Line 1 width: 409px) | Line 1 broke after "for" (`max-w-[415px]`) | Set `max-w-[440px]` allowing natural CSS break after "deep" with 0 manual `<br>` | Exact 2-line break matched |
+  | 3 | Hero Orbit Overlay (`FocusHero.tsx`) | Concentric circles centered on the desk lamp (lamp shade center at page x=1132, y=249 -> rel x=352, y=158) | Tilted ellipses centered at container center `(287, 430)` (`rotate(-22deg)`) | Replaced with concentric circles centered at `(352, 158)` with r=160 and r=110, plus planetary beads | Concentric on lamp matching scan |
+  | 4 | Ambient Focus Card (`FocusTheJourney.tsx`) | Outer border only; padding `p-7 sm:p-8`; no inner nested white frame | Inner nested container with `border border-[#F4EFE4]/12 rounded-[1px]` | Removed inner white border div; card now has clean single frame with `p-7 sm:p-8` matching left card | Single clean border matching reference |
+  | 5 | Radar Chart in Field Note (`FocusThePractice.tsx`) | Width ~240px; dark ink lines (`#172536`); no pink fill | Compact `max-w-[155px]`; terracotta/pink fill (`fill="#BD634A"`); faint brown lines | Enlarged to `max-w-[240px]`; dark ink strokes (`stroke="#172536"`, width 1.2-2px); `fill="none"` | No pink fill, high contrast, matched size |
+  | 6 | Section 03 Background Glow (`FocusReflection.tsx`) | Lighter blue glow on right edge (`#52667b` / `#56697d`, RGB ~82, 102, 123) | Dark navy gradient ending at `#2e4760` (RGB 46, 71, 96) | Gradient updated to `bg-gradient-to-r from-[#172536] via-[#293b4f] to-[#52667b]` | Lighter blue glow rendered on right |
+  | 7 | Timer Arc (`FocusThePractice.tsx`) | Thick gold arc spans from 12 o'clock to near 6 o'clock (~195° span, ends at bottom) | 150° span (`strokeDasharray="471.2 1131"`), bead placed at 3 o'clock | Updated to `strokeDasharray="612.6 1131"` (~195° span); indicator bead placed near 6 o'clock (`cx="203" cy="424"`) | Arc extends from 12 o'clock to near 6 o'clock |
+- **Deliverables Generated**:
+  - `design-reference/compare/focus-14e-full.png` (Full page side-by-side)
+  - `design-reference/compare/focus-14e-fix1-footer.png`
+  - `design-reference/compare/focus-14e-fix2-hero-wrap.png`
+  - `design-reference/compare/focus-14e-fix3-hero-orbit.png`
+  - `design-reference/compare/focus-14e-fix4-ambient-card.png`
+  - `design-reference/compare/focus-14e-fix5-radar-chart.png`
+  - `design-reference/compare/focus-14e-fix6-reflection-glow.png`
+  - `design-reference/compare/focus-14e-fix7-timer-arc.png`
+
 ## Next
-- Public Home page & Focus Room pixel-fidelity parity complete (Tasks 16A, 16B, 16B-FIX, 16C, 16C-CHECK).
-- Changes committed and pushed to remote `origin/main`.
-- Awaiting product owner directive for next phase (e.g. Focus Room timer & audio implementation / Task 17).
+- Focus Room clean-up pass (Task 14E) complete.
+- Home page pixel-fidelity parity preserved (0px footer diff on 1366, 768, 390).
+- Awaiting product owner directive for Task 17 (Focus Room Web Worker timer, audio playback, and persistence).
 
 ## Open Questions
 - None.

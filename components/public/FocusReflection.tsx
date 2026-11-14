@@ -1,6 +1,6 @@
 export function FocusReflection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-r from-[#172536] via-[#1a2d42] to-[#2e4760] text-[#F4EFE4] pt-[104px] pb-[104px] border-b border-[#F4EFE4]/15">
+    <section className="relative overflow-hidden bg-gradient-to-r from-[#172536] via-[#293b4f] to-[#52667b] text-[#F4EFE4] pt-[104px] pb-[104px] border-b border-[#F4EFE4]/15">
       {/* Background Star Specks */}
       <div className="absolute inset-0 pointer-events-none opacity-40">
         <svg

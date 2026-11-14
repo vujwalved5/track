@@ -164,100 +164,97 @@ export function FocusTheJourney() {
             </div>
           </div>
 
-          {/* Right Card: Sound Study / Preview (w = 644px, h = 359px) */}
-          <div className="lg:col-span-7 bg-gradient-to-r from-[#1c3230] via-[#1a2c32] to-[#172536] border border-[#F4EFE4]/15 rounded-[2px] p-3 sm:p-4 relative overflow-hidden flex flex-col justify-between h-[359px]">
-            {/* Inner Framing Border */}
-            <div className="border border-[#F4EFE4]/12 rounded-[1px] p-6 sm:p-7 h-full flex flex-col justify-between">
-              {/* Top Row: Label and Play Button */}
-              <div className="flex items-start justify-between">
-                <div>
-                  <span className="font-public-condensed text-xs uppercase tracking-[0.22em] font-semibold text-[#B68A53] block">
-                    SOUND STUDY / PREVIEW
-                  </span>
-                  <h3 className="font-public-display text-4xl sm:text-[46px] text-[#F4EFE4] font-normal leading-tight mt-3">
-                    Ambient focus
-                  </h3>
-                  <p className="font-public-sans text-sm text-[#F4EFE4]/70 mt-1">
-                    Music player coming soon
-                  </p>
-                </div>
-
-                {/* Circular Gold-Bordered Play Button */}
-                <button
-                  type="button"
-                  aria-label="Play sound preview (static preview)"
-                  aria-disabled="true"
-                  className="w-12 h-12 rounded-full border border-[#B68A53] bg-transparent flex items-center justify-center shrink-0 cursor-default"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M4.5 2.5L11 7L4.5 11.5V2.5Z"
-                      fill="#F4EFE4"
-                      fillOpacity="0.85"
-                    />
-                  </svg>
-                </button>
+          {/* Right Card: Sound Study / Preview (w = 644px, h = 359px) - inner white border removed per Task 14E */}
+          <div className="lg:col-span-7 bg-gradient-to-r from-[#1c3230] via-[#1a2c32] to-[#172536] border border-[#F4EFE4]/15 rounded-[2px] p-7 sm:p-8 relative overflow-hidden flex flex-col justify-between h-[359px]">
+            {/* Top Row: Label and Play Button */}
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="font-public-condensed text-xs uppercase tracking-[0.22em] font-semibold text-[#B68A53] block">
+                  SOUND STUDY / PREVIEW
+                </span>
+                <h3 className="font-public-display text-4xl sm:text-[46px] text-[#F4EFE4] font-normal leading-tight mt-3">
+                  Ambient focus
+                </h3>
+                <p className="font-public-sans text-sm text-[#F4EFE4]/70 mt-1">
+                  Music player coming soon
+                </p>
               </div>
 
-              {/* Middle Row: Waveform & Volume Control */}
-              <div className="flex items-center justify-between gap-4 py-1 mt-2">
-                {/* 27 Mirrored Waveform Bars in Gold */}
-                <div className="flex items-center gap-[3.5px] h-10">
-                  {barHeights.map((h, i) => (
-                    <span
-                      key={i}
-                      className="w-[2.5px] bg-[#B68A53] rounded-full inline-block"
-                      style={{ height: `${h}px` }}
-                    />
-                  ))}
-                </div>
+              {/* Circular Gold-Bordered Play Button */}
+              <button
+                type="button"
+                aria-label="Play sound preview (static preview)"
+                aria-disabled="true"
+                className="w-12 h-12 rounded-full border border-[#B68A53] bg-transparent flex items-center justify-center shrink-0 cursor-default"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M4.5 2.5L11 7L4.5 11.5V2.5Z"
+                    fill="#F4EFE4"
+                    fillOpacity="0.85"
+                  />
+                </svg>
+              </button>
+            </div>
 
-                {/* Developer note hidden per prompt instructions */}
-                <span className="sr-only">WAVEFORM PULSES GENTLY / FUTURE IMPLEMENTATION</span>
-
-                {/* Volume Slider Mockup */}
-                <div className="flex items-center gap-2.5 shrink-0 pt-4">
-                  <span className="font-public-condensed text-xs uppercase tracking-[0.2em] font-semibold text-[#B68A53]">
-                    VOL
-                  </span>
-                  <div className="w-20 sm:w-24 h-[2px] bg-[#8799A7]/40 relative rounded-full">
-                    <div className="h-full bg-[#F4EFE4] rounded-full w-3/4" />
-                    <div className="absolute top-1/2 left-3/4 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[#F4EFE4] rounded-full shadow" />
-                  </div>
-                </div>
+            {/* Middle Row: Waveform & Volume Control */}
+            <div className="flex items-center justify-between gap-4 py-1 mt-2">
+              {/* 27 Mirrored Waveform Bars in Gold */}
+              <div className="flex items-center gap-[3.5px] h-10">
+                {barHeights.map((h, i) => (
+                  <span
+                    key={i}
+                    className="w-[2.5px] bg-[#B68A53] rounded-full inline-block"
+                    style={{ height: `${h}px` }}
+                  />
+                ))}
               </div>
 
-              {/* Bottom Row: 3 Sound Chips */}
-              <div className="flex flex-wrap items-center gap-2.5 pt-2">
-                <button
-                  type="button"
-                  aria-disabled="true"
-                  className="font-public-condensed text-xs uppercase tracking-[0.16em] px-3.5 py-1.5 border border-[#F4EFE4]/20 rounded-[2px] text-[#F4EFE4]/80 bg-white/[0.02] cursor-default"
-                >
-                  RAIN & NATURE
-                </button>
-                <button
-                  type="button"
-                  aria-disabled="true"
-                  className="font-public-condensed text-xs uppercase tracking-[0.16em] px-3.5 py-1.5 border border-[#F4EFE4]/20 rounded-[2px] text-[#F4EFE4]/80 bg-white/[0.02] cursor-default"
-                >
-                  SOFT PIANO
-                </button>
-                <button
-                  type="button"
-                  aria-disabled="true"
-                  className="font-public-condensed text-xs uppercase tracking-[0.16em] px-3.5 py-1.5 border border-[#F4EFE4]/20 rounded-[2px] text-[#F4EFE4]/80 bg-white/[0.02] cursor-default"
-                >
-                  DEEP FOCUS
-                </button>
+              {/* Developer note hidden per prompt instructions */}
+              <span className="sr-only">WAVEFORM PULSES GENTLY / FUTURE IMPLEMENTATION</span>
+
+              {/* Volume Slider Mockup */}
+              <div className="flex items-center gap-2.5 shrink-0 pt-4">
+                <span className="font-public-condensed text-xs uppercase tracking-[0.2em] font-semibold text-[#B68A53]">
+                  VOL
+                </span>
+                <div className="w-20 sm:w-24 h-[2px] bg-[#8799A7]/40 relative rounded-full">
+                  <div className="h-full bg-[#F4EFE4] rounded-full w-3/4" />
+                  <div className="absolute top-1/2 left-3/4 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[#F4EFE4] rounded-full shadow" />
+                </div>
               </div>
+            </div>
+
+            {/* Bottom Row: 3 Sound Chips */}
+            <div className="flex flex-wrap items-center gap-2.5 pt-2">
+              <button
+                type="button"
+                aria-disabled="true"
+                className="font-public-condensed text-xs uppercase tracking-[0.16em] px-3.5 py-1.5 border border-[#F4EFE4]/20 rounded-[2px] text-[#F4EFE4]/80 bg-white/[0.02] cursor-default"
+              >
+                RAIN & NATURE
+              </button>
+              <button
+                type="button"
+                aria-disabled="true"
+                className="font-public-condensed text-xs uppercase tracking-[0.16em] px-3.5 py-1.5 border border-[#F4EFE4]/20 rounded-[2px] text-[#F4EFE4]/80 bg-white/[0.02] cursor-default"
+              >
+                SOFT PIANO
+              </button>
+              <button
+                type="button"
+                aria-disabled="true"
+                className="font-public-condensed text-xs uppercase tracking-[0.16em] px-3.5 py-1.5 border border-[#F4EFE4]/20 rounded-[2px] text-[#F4EFE4]/80 bg-white/[0.02] cursor-default"
+              >
+                DEEP FOCUS
+              </button>
             </div>
           </div>
         </div>
