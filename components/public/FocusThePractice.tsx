@@ -1,6 +1,6 @@
 export function FocusThePractice() {
   return (
-    <section id="practice" className="pt-14 pb-20 lg:pt-16 lg:pb-24 border-b border-[#F4EFE4]/15 bg-[#172536] text-[#F4EFE4] overflow-hidden">
+    <section id="practice" className="pt-14 pb-4 lg:pt-16 lg:pb-4 bg-[#172536] text-[#F4EFE4] overflow-hidden">
       <div className="max-w-[1366px] mx-auto px-6 sm:px-14 lg:px-[84px]">
         {/* Top Header Row / Divider */}
         <div className="flex items-center justify-between pb-3.5 border-b border-[#F4EFE4]/15">

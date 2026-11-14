@@ -752,8 +752,39 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
     - `compare-pilot-side-by-side.png`
   - Zero TypeScript/Next.js errors (`npm run build` succeeds cleanly).
 
+### Phase 6 / Task 14D — Public Focus Room (Sections 02, 03 & Public Footer 1:1 Pixel Match)
+- Section 02 "The Journey" (`components/public/FocusTheJourney.tsx`):
+  - Eyebrows: "02 / THE JOURNEY" (left, gold `#B68A53`) and "ONE MOMENT AT A TIME" (right, muted blue `#90A0B3`) in Barlow Condensed `text-xs uppercase tracking-[0.25em]`.
+  - Section divider rule at y=2291.
+  - Left Card ("THE PATH AHEAD / CONCEPT", h=359px): Session 1 of 4 in Italiana 46px, 4-node progression wave with glowing amber Node 1 (`#D2A75D`) and subtle connecting dashed arc, faint celestial circle in background, handwritten note "Stay with the next small thing." in Caveat.
+  - Right Card ("SOUND STUDY / PREVIEW", h=359px): Ambient focus in Italiana 46px, circular play button, 27-bar mirrored waveform in brass `#B68A53`, volume slider with indicator, sound chips "RAIN & NATURE", "SOFT PIANO", "DEEP FOCUS". Non-functional controls marked `aria-disabled="true"`. Waveform dev note hidden with `sr-only`.
+- Section 03 "Reflection" (`components/public/FocusReflection.tsx`):
+  - Deep night sky gradient (`#172536` via `#1a2d42` to `#2e4760`) with ambient star specks.
+  - Eyebrow: "A NOTE FOR THE MARGIN / 03" at y=2892 in Barlow Condensed.
+  - Main display heading: "Give one thing your / full attention." in Italiana 104px leading-[1.04].
+  - Cream paper slip tilted at -1.5deg with handwritten cursive "the rest can wait a little." in Caveat.
+  - Right-side concentric celestial orbital ellipses tilted at -18° with gold planet bead (`#B68A53`).
+  - Section bottom divider rule at y=3337.
+- Public Footer (`components/public/PublicFooter.tsx`):
+  - Conditional branch tailored for Focus Room:
+    - Top row: "TRACK / FOCUS ROOM" and "COMPANION PAGES / DESIGN PREVIEW" in Barlow Condensed.
+    - Display heading: "Until then, take your time." in Italiana 92px (`whitespace-nowrap`), companion navigation links (HOME, JOURNAL, FOCUS ROOM ↑, ABOUT).
+    - Subtitle copy: "The Focus Room is being prepared. Your timer and music controls will arrive here." in DM Sans.
+    - Divider rule at y=3661.
+    - Colophon bar: "TRACK © 2026" and "AN ATLAS OF EVERYDAY / NIGHT STUDY 02".
+  - Clean separation from Home page footer.
+- Deliverables generated in `design-reference/compare/`:
+  - `site_full_1366x3727.png` (exact 1366×3727 full-page screenshot)
+  - `compare-journey.png` (Section 02 1:1 side-by-side comparison)
+  - `compare-reflection.png` (Section 03 1:1 side-by-side comparison)
+  - `compare-footer.png` (Footer 1:1 side-by-side comparison)
+  - `compare-focus-room-full.png` (Full page 1:1 side-by-side comparison)
+  - Viewport screenshots for desktop: `site-1440.png`, `site-1280.png`, `site-2560.png`, `site-1366.png`.
+  - Zero overflow on desktop viewports (`scrollWidth <= innerWidth`).
+- Zero build errors (`npm run build` succeeds cleanly).
+
 ## Next
-- **Task 14D / Pilot Review & Next Sections:** Wait for GO on Section 02 "The Journey", Section 03 "Reflection", and Footer.
+- **Task 15 / Home Page Fidelity**: STOP and wait for GO before starting the Home page (`/`, `components/public/HomeHero.tsx`, etc.).
 
 ## Open Questions
 - None (All 22 citations confirmed; fix strategy verified).

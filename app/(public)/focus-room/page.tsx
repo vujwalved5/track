@@ -14,10 +14,10 @@ export const metadata: Metadata = {
 
 export default function FocusRoomPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-[#172536] text-[#F4EFE4]">
+    <div className="flex flex-col bg-[#172536] text-[#F4EFE4]">
       <PublicNav current="focus-room" theme="ink" />
 
-      <main className="flex-1 w-full">
+      <main className="w-full">
         {/* 1. Hero Section */}
         <FocusHero />
 
