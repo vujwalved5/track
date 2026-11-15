@@ -1214,9 +1214,15 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - `tmp_cdp_*/` (Headless browser temp profiles)
 - `.agents/teamwork/` (Agent metadata)
 
+## What is Finished (Recent)
+- Task F1: Fixed stuck sign-in navigation in `components/book/ClosedBook.tsx` (removed unauthenticated prefetch before auth, preserved 1100ms cover animation, added 4s silent fail-safe timer calling `window.location.assign('/home')` if route is stuck, added unmount timer cleanup, and guaranteed error path state resets).
+- Task F2: Restricted Service Worker caching in `app/sw.ts` to full-page navigations (`request.mode === 'navigate'`), excluded Next.js RSC requests (`_rsc` query param or `RSC` header), renamed cache to `'mm-book-month-pages-v2'`, and added activation cleanup targeting legacy `'mm-book-month-pages'`.
+- Task F3: Fixed sign-out race condition and re-entry in `components/book/OpenBook.tsx`, `components/book/MobileBook.tsx`, and `components/desk/HomeDesk.tsx`. Preserved 450ms key turn and 900ms cover close animations; at 900ms, navigation awaits `signOut()` and `clearAllLocalCaches()` with a 3-second fail-safe timer; cancels only the 3s fail-safe on unmount; added single-navigation guard ref; resets `isClosing` and stays on book if `signOut()` errors.
+- Task F4: Fixed stuck loading state in the five chart widgets (`BarChartWidget.tsx`, `DonutWidget.tsx`, `GoalBarWidget.tsx`, `LineGraphWidget.tsx`, and `ScatterPlotWidget.tsx`). Wrapped all entry fetches in `try / catch / finally` with `setLoading(false)` guaranteed in `finally`, cleared entries and logged `console.error` in `catch` to render existing empty state, and protected state resets and loading clears with `if (!cancelled)` against unmount/stale runs.
+- README & Docs: Added comprehensive `README.md` with features, tech stack, getting started, env var placeholders, and project structure; generated redacted WebP screenshots in `docs/screenshots/` (login cover, home desk, open book spread, month setup wizard, widget library) all under 400 KB.
+
 ## Next
-- Task 18 Overnight Fixes complete on branch `overnight-fixes` (uncommitted).
-- User morning review of public pages (Home 16D wide desktop, Focus Room 14E visual polish, timer, and sound player).
+- Next task from BOOK_LAG_AUDIT.md or product backlog as directed by user.
 
 ## Open Questions
 - None.
