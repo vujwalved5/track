@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   FocusSettings,
   ScheduleSegment,
@@ -24,6 +24,7 @@ import {
 export type SessionStatus = 'setup' | 'running' | 'paused' | 'finished';
 
 const SETTINGS_STORAGE_KEY = 'track.focus.settings.v1';
+const TASK_STORAGE_KEY = 'track.focus.task.v1';
 
 export function loadStoredSettings(): FocusSettings {
   if (typeof window === 'undefined') return DEFAULT_FOCUS_SETTINGS;
@@ -70,6 +71,21 @@ export interface UseFocusSessionReturn {
   segmentProgress: number;    // 0..1 remaining in current segment
   overallProgress: number;    // 0..1 completed across total study time
 
+  // Task state
+  taskText: string;
+  setTaskText: (text: string) => void;
+
+  // Checklist gate state
+  checklist: {
+    clearDesk: boolean;
+    chooseTask: boolean;
+    takeBreath: boolean;
+    skipped: boolean;
+  };
+  toggleChecklistItem: (key: 'clearDesk' | 'chooseTask' | 'takeBreath') => void;
+  skipChecklist: () => void;
+  isChecklistCleared: boolean;
+
   // Settings & Schedule
   settings: FocusSettings;
   schedule: ScheduleSummary;
@@ -104,18 +120,23 @@ export interface UseFocusSessionReturn {
 }
 
 export function useFocusSession(): UseFocusSessionReturn {
-  // 1. Settings state
   const [settings, setSettings] = useState<FocusSettings>(DEFAULT_FOCUS_SETTINGS);
   const [audioSettings, setAudioSettings] = useState<AudioSettings>(DEFAULT_AUDIO_SETTINGS);
+  const [taskText, setTaskTextState] = useState<string>('');
 
-  // 2. Session state
+  const [checklist, setChecklist] = useState({
+    clearDesk: false,
+    chooseTask: false,
+    takeBreath: false,
+    skipped: false,
+  });
+
   const [status, setStatus] = useState<SessionStatus>('setup');
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState<number>(0);
   const [remainingSeconds, setRemainingSeconds] = useState<number>(DEFAULT_FOCUS_SETTINGS.studyMin * 60);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState<boolean>(false);
   const [speedMultiplier, setSpeedMultiplier] = useState<number>(1);
 
-  // Refs for tick loop & audio
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const targetTimestampRef = useRef<number | null>(null);
   const remainingSecondsRef = useRef<number>(DEFAULT_FOCUS_SETTINGS.studyMin * 60);
@@ -127,13 +148,11 @@ export function useFocusSession(): UseFocusSessionReturn {
   statusRef.current = status;
   segmentIndexRef.current = currentSegmentIndex;
 
-  // Compute live schedule
   const schedule = useMemo(() => {
     return buildSchedule(settings);
   }, [settings]);
   scheduleRef.current = schedule;
 
-  // Hydration effect: load settings, audio config, and url speed
   useEffect(() => {
     const loadedSettings = loadStoredSettings();
     setSettings(loadedSettings);
@@ -145,7 +164,11 @@ export function useFocusSession(): UseFocusSessionReturn {
     const ambient = getAmbientEngine();
     ambient.setVolume(loadedAudio.volume);
 
-    // Dev-only speed multiplier: ?speed=60 inert in production builds
+    try {
+      const savedTask = localStorage.getItem(TASK_STORAGE_KEY);
+      if (savedTask) setTaskTextState(savedTask);
+    } catch {}
+
     if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const speedParam = params.get('speed');
@@ -162,7 +185,26 @@ export function useFocusSession(): UseFocusSessionReturn {
     }
   }, []);
 
-  // Sync remaining seconds when in setup mode and studyMin changes
+  const setTaskText = useCallback((text: string) => {
+    setTaskTextState(text);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(TASK_STORAGE_KEY, text);
+      } catch {}
+    }
+  }, []);
+
+  const toggleChecklistItem = useCallback((key: 'clearDesk' | 'chooseTask' | 'takeBreath') => {
+    setChecklist((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+  const skipChecklist = useCallback(() => {
+    setChecklist((prev) => ({ ...prev, skipped: true }));
+  }, []);
+
+  const isChecklistCleared =
+    checklist.skipped || (checklist.clearDesk && checklist.chooseTask && checklist.takeBreath);
+
   useEffect(() => {
     if (status === 'setup') {
       const firstSegmentSeconds = (schedule.segments[0]?.minutes ?? settings.studyMin) * 60;
@@ -171,16 +213,13 @@ export function useFocusSession(): UseFocusSessionReturn {
     }
   }, [status, settings.studyMin, schedule.segments]);
 
-  // Current segment info
   const currentSegment: ScheduleSegment | null = schedule.segments[currentSegmentIndex] ?? null;
   const phase: SessionPhase = currentSegment?.phase ?? 'focus';
   const totalSegments = schedule.segments.length;
 
-  // Current focus block number (e.g. 2 for "BLOCK 2 OF 5")
   const currentBlockNumber = useMemo(() => {
     if (!currentSegment) return 1;
     if (currentSegment.blockNumber) return currentSegment.blockNumber;
-    // If on a break, block number is the one just finished
     let count = 0;
     for (let i = 0; i <= currentSegmentIndex; i++) {
       if (schedule.segments[i]?.phase === 'focus') count++;
@@ -190,7 +229,6 @@ export function useFocusSession(): UseFocusSessionReturn {
 
   const totalFocusBlocks = schedule.focusBlocks;
 
-  // Completed study minutes calculation
   const studiedMinutes = useMemo(() => {
     let completed = 0;
     for (let i = 0; i < currentSegmentIndex; i++) {
@@ -199,7 +237,6 @@ export function useFocusSession(): UseFocusSessionReturn {
         completed += seg.minutes;
       }
     }
-    // Add elapsed part of active focus segment
     if (currentSegment?.phase === 'focus') {
       const segTotalSec = currentSegment.minutes * 60;
       const elapsedSec = Math.max(0, segTotalSec - remainingSeconds);
@@ -208,7 +245,6 @@ export function useFocusSession(): UseFocusSessionReturn {
     return Math.min(schedule.totalStudyMinutes, completed);
   }, [currentSegmentIndex, currentSegment, remainingSeconds, schedule.segments, schedule.totalStudyMinutes]);
 
-  // Progress computations
   const segmentTotalSeconds = (currentSegment?.minutes ?? settings.studyMin) * 60;
   const segmentProgress = segmentTotalSeconds > 0
     ? Math.max(0, Math.min(1, remainingSeconds / segmentTotalSeconds))
@@ -218,14 +254,12 @@ export function useFocusSession(): UseFocusSessionReturn {
     ? Math.max(0, Math.min(1, studiedMinutes / schedule.totalStudyMinutes))
     : 0;
 
-  // Formatted timer string MM:SS
   const formattedTime = useMemo(() => {
     const mins = Math.floor(remainingSeconds / 60);
     const secs = remainingSeconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }, [remainingSeconds]);
 
-  // Document title updates while running
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
@@ -247,7 +281,6 @@ export function useFocusSession(): UseFocusSessionReturn {
     };
   }, [status, phase, formattedTime]);
 
-  // Helper to clear interval
   const clearIntervalTimer = useCallback(() => {
     if (intervalRef.current !== null) {
       clearInterval(intervalRef.current);
@@ -255,10 +288,9 @@ export function useFocusSession(): UseFocusSessionReturn {
     }
   }, []);
 
-  // Update Settings
   const updateSettings = useCallback(
     (changes: Partial<FocusSettings>) => {
-      if (status !== 'setup') return; // Settings locked during running/paused
+      if (status !== 'setup') return;
       setSettings((prev) => {
         const next = { ...prev, ...changes };
         saveStoredSettings(next);
@@ -268,7 +300,6 @@ export function useFocusSession(): UseFocusSessionReturn {
     [status]
   );
 
-  // Apply Presets (25/5, 50/10, 90/10)
   const applyPreset = useCallback(
     (studyMin: number, breakMin: 5 | 10, totalStudyMin?: number) => {
       if (status !== 'setup') return;
@@ -285,7 +316,6 @@ export function useFocusSession(): UseFocusSessionReturn {
     [status]
   );
 
-  // Advance to next segment or finish
   const advanceSegment = useCallback(
     (fromIndex: number) => {
       const sched = scheduleRef.current;
@@ -299,15 +329,12 @@ export function useFocusSession(): UseFocusSessionReturn {
         setRemainingSeconds(nextSeconds);
         remainingSecondsRef.current = nextSeconds;
 
-        // Set target timestamp for next segment
         const now = Date.now();
         const durationMs = (nextSeconds * 1000) / speedMultiplier;
         targetTimestampRef.current = now + durationMs;
 
-        // Play segment chime
         playChime('segment', audioSettings.chimeMuted);
 
-        // Music break-ducking
         const ambient = getAmbientEngine();
         if (nextSeg.phase === 'break' && audioSettings.pauseInBreaks) {
           ambient.fadeOut(300);
@@ -315,7 +342,6 @@ export function useFocusSession(): UseFocusSessionReturn {
           ambient.fadeIn(300);
         }
       } else {
-        // Last segment finished!
         clearIntervalTimer();
         targetTimestampRef.current = null;
         setStatus('finished');
@@ -323,10 +349,8 @@ export function useFocusSession(): UseFocusSessionReturn {
         setRemainingSeconds(0);
         remainingSecondsRef.current = 0;
 
-        // Play finished chime
         playChime('finished', audioSettings.chimeMuted);
 
-        // Pause ambient music
         const ambient = getAmbientEngine();
         ambient.fadeOut(300);
       }
@@ -334,11 +358,10 @@ export function useFocusSession(): UseFocusSessionReturn {
     [audioSettings.chimeMuted, audioSettings.pauseInBreaks, clearIntervalTimer, speedMultiplier]
   );
 
-  // START action
   const start = useCallback(() => {
     if (status !== 'setup') return;
+    if (!isChecklistCleared) return;
 
-    // User gesture initializes AudioContext
     getSharedAudioContext();
 
     const sched = scheduleRef.current;
@@ -360,15 +383,13 @@ export function useFocusSession(): UseFocusSessionReturn {
     statusRef.current = 'running';
     setIsResetConfirmOpen(false);
 
-    // Start ambient music if active
     const ambient = getAmbientEngine();
     if (audioSettings.sound !== 'off') {
       ambient.setSound(audioSettings.sound);
       ambient.resume();
     }
-  }, [status, speedMultiplier, audioSettings.sound]);
+  }, [status, isChecklistCleared, speedMultiplier, audioSettings.sound]);
 
-  // PAUSE action
   const pause = useCallback(() => {
     if (status !== 'running') return;
 
@@ -384,12 +405,10 @@ export function useFocusSession(): UseFocusSessionReturn {
     setStatus('paused');
     statusRef.current = 'paused';
 
-    // Pause ambient music
     const ambient = getAmbientEngine();
     ambient.pause();
   }, [status, speedMultiplier, clearIntervalTimer]);
 
-  // RESUME action
   const resume = useCallback(() => {
     if (status !== 'paused') return;
 
@@ -400,7 +419,6 @@ export function useFocusSession(): UseFocusSessionReturn {
     setStatus('running');
     statusRef.current = 'running';
 
-    // Resume ambient music
     const ambient = getAmbientEngine();
     if (audioSettings.sound !== 'off') {
       const currentPhase = scheduleRef.current.segments[segmentIndexRef.current]?.phase ?? 'focus';
@@ -410,7 +428,6 @@ export function useFocusSession(): UseFocusSessionReturn {
     }
   }, [status, speedMultiplier, audioSettings.sound, audioSettings.pauseInBreaks]);
 
-  // Toggle PAUSE / RESUME
   const togglePauseResume = useCallback(() => {
     if (status === 'running') {
       pause();
@@ -419,7 +436,6 @@ export function useFocusSession(): UseFocusSessionReturn {
     }
   }, [status, pause, resume]);
 
-  // SKIP action: ends current segment immediately (short tick, no chime)
   const skip = useCallback(() => {
     if (status !== 'running' && status !== 'paused') return;
 
@@ -427,7 +443,6 @@ export function useFocusSession(): UseFocusSessionReturn {
     advanceSegment(segmentIndexRef.current);
   }, [status, audioSettings.chimeMuted, advanceSegment]);
 
-  // RESET flow with inline confirm
   const openResetConfirm = useCallback(() => {
     setIsResetConfirmOpen(true);
   }, []);
@@ -449,7 +464,6 @@ export function useFocusSession(): UseFocusSessionReturn {
     setRemainingSeconds(initialSeconds);
     remainingSecondsRef.current = initialSeconds;
 
-    // Pause / reset audio
     const ambient = getAmbientEngine();
     ambient.pause();
 
@@ -458,7 +472,6 @@ export function useFocusSession(): UseFocusSessionReturn {
     }
   }, [clearIntervalTimer, settings.studyMin]);
 
-  // 250ms drift-free tick loop
   useEffect(() => {
     if (status !== 'running') {
       clearIntervalTimer();
@@ -472,7 +485,6 @@ export function useFocusSession(): UseFocusSessionReturn {
       const msRemaining = (targetTimestampRef.current - now) * speedMultiplier;
 
       if (msRemaining <= 0) {
-        // Current segment completed
         advanceSegment(segmentIndexRef.current);
         return;
       }
@@ -490,7 +502,6 @@ export function useFocusSession(): UseFocusSessionReturn {
     };
   }, [status, speedMultiplier, advanceSegment, clearIntervalTimer]);
 
-  // Audio settings mutators
   const setSoundId = useCallback((id: AmbientSoundId) => {
     setAudioSettings((prev) => {
       const next = { ...prev, sound: id };
@@ -548,6 +559,14 @@ export function useFocusSession(): UseFocusSessionReturn {
     segmentProgress,
     overallProgress,
 
+    taskText,
+    setTaskText,
+
+    checklist,
+    toggleChecklistItem,
+    skipChecklist,
+    isChecklistCleared,
+
     settings,
     schedule,
     updateSettings,
@@ -575,4 +594,19 @@ export function useFocusSession(): UseFocusSessionReturn {
 
     speedMultiplier,
   };
+}
+
+const FocusSessionContext = createContext<UseFocusSessionReturn | null>(null);
+
+export function FocusSessionProvider({ children }: { children: React.ReactNode }) {
+  const session = useFocusSession();
+  return React.createElement(FocusSessionContext.Provider, { value: session }, children);
+}
+
+export function useFocusSessionContext(): UseFocusSessionReturn {
+  const ctx = useContext(FocusSessionContext);
+  if (!ctx) {
+    throw new Error('useFocusSessionContext must be used within FocusSessionProvider');
+  }
+  return ctx;
 }
