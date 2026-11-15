@@ -77,7 +77,7 @@ function BreathingGuide() {
 }
 
 // Side Panel Content for Design B ("Dial-First")
-// Order: task, sound (vertical list of five rows with line-style SVG waveforms), checklist, progress, breathing, compass
+// Order: task, sound (vertical list of five rows with line-style SVG waveforms), checklist, progress, breathing, radar
 function DialFirstSidePanel() {
   const {
     taskText,
@@ -88,6 +88,8 @@ function DialFirstSidePanel() {
     setVolume,
     pauseMusicInBreaks,
     setPauseMusicInBreaks,
+    chimeMuted,
+    setChimeMuted,
     checklist,
     toggleChecklistItem,
     skipChecklist,
@@ -130,94 +132,99 @@ function DialFirstSidePanel() {
           >
             {/* 1. TASK SECTION (FIRST IN DESIGN B) */}
             <div>
-              <span className="font-public-condensed text-[11px] uppercase tracking-[0.22em] font-semibold text-[#60432F]">
-                TODAY&apos;S INTENTION
+              <span className="font-public-condensed text-[11px] uppercase tracking-[0.25em] font-semibold text-[#60432F] block">
+                01 / INTENTION & TASK
               </span>
-              <div className="mt-1.5">
+              <h3 className="font-public-display text-2xl sm:text-3xl text-[#172536] tracking-tight font-normal mt-1 antialiased">
+                Today&apos;s Focus
+              </h3>
+              <div className="mt-2.5">
                 <input
                   type="text"
                   value={taskText}
                   onChange={(e) => setTaskText(e.target.value)}
-                  placeholder="I will focus on..."
-                  maxLength={120}
-                  className="w-full bg-transparent border-b border-[#172536]/30 pb-1 text-[#172536] font-public-sans text-xs focus:border-[#172536] focus:outline-none placeholder:text-[#172536]/40"
+                  placeholder="Define your single task..."
+                  className="w-full px-3 py-1.5 text-xs font-public-sans bg-transparent border border-[#172536]/25 rounded-[2px] text-[#172536] placeholder-[#172536]/40 focus:outline-none focus:border-[#B68A53]"
                 />
               </div>
             </div>
 
-            {/* 2. SOUND SECTION: VERTICAL LIST OF 5 ROWS WITH WAVEFORMS (SECOND IN DESIGN B) */}
+            {/* 2. SOUND CONTROLS SECTION: VERTICAL LIST OF 5 ROWS WITH LINE-STYLE SVG WAVEFORMS */}
             <div className="pt-2 border-t border-[#172536]/18">
-              <span className="font-public-condensed text-[11px] uppercase tracking-[0.22em] font-semibold text-[#60432F] mb-2 block">
-                AMBIENT SOUND
-              </span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-public-condensed text-[11px] uppercase tracking-[0.22em] font-semibold text-[#60432F]">
+                  02 / AMBIENT SOUND (5 MODES)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setChimeMuted(!chimeMuted)}
+                  className="font-public-sans text-[11px] text-[#60432F] hover:text-[#172536] cursor-pointer"
+                >
+                  {chimeMuted ? 'Chime muted' : 'Chime on'}
+                </button>
+              </div>
 
-              {/* Five full-width sound rows with SVG waveforms */}
-              <div className="flex flex-col gap-1 mb-3">
+              {/* Vertical list of 5 rows with line waveforms */}
+              <div className="flex flex-col gap-1.5" role="radiogroup" aria-label="Ambient sound tracks">
                 {sounds.map((s) => {
                   const isSelected = soundId === s.id;
                   return (
                     <button
                       key={s.id}
                       type="button"
+                      role="radio"
+                      aria-checked={isSelected}
                       onClick={() => setSoundId(s.id)}
-                      className={`flex items-center justify-between p-1.5 rounded-[2px] transition-all text-left cursor-pointer ${
+                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-[2px] transition-all text-left cursor-pointer ${
                         isSelected
-                          ? 'bg-[#172536] text-[#F4EFE4] shadow-sm'
-                          : 'bg-transparent text-[#172536]/80 hover:bg-[#172536]/8 border border-transparent'
+                          ? 'bg-[#172536] text-[#F4EFE4] shadow'
+                          : 'bg-[#172536]/5 text-[#172536]/80 hover:bg-[#172536]/10 border border-[#172536]/10'
                       }`}
                     >
-                      <div className="flex flex-col">
-                        <span className="font-public-condensed text-xs uppercase tracking-wider font-bold">
-                          {s.label}
-                        </span>
+                      <div className="flex items-center gap-2">
                         <span
-                          className={`font-public-sans text-[10px] ${
-                            isSelected ? 'text-[#F4EFE4]/70' : 'text-[#172536]/60'
+                          className={`w-3 h-3 rounded-full border flex items-center justify-center ${
+                            isSelected ? 'border-[#B68A53] bg-[#B68A53]' : 'border-[#172536]/40'
                           }`}
-                        >
-                          {s.desc}
-                        </span>
+                        />
+                        <div>
+                          <span className="font-public-condensed text-xs uppercase tracking-wider font-bold">
+                            {s.label}
+                          </span>
+                          <span className={`block text-[10px] font-public-sans ${isSelected ? 'text-[#F4EFE4]/60' : 'text-[#172536]/50'}`}>
+                            {s.desc}
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Small line-style SVG waveform */}
-                      <div className="w-12 h-4 shrink-0 flex items-center justify-center opacity-80">
+                      {/* Small line-style SVG waveform (no emoji) */}
+                      <svg width="48" height="18" viewBox="0 0 48 18" fill="none" className="shrink-0" aria-hidden="true">
                         {s.id === 'off' ? (
-                          <svg viewBox="0 0 48 16" className="w-full h-full stroke-current fill-none">
-                            <line x1="2" y1="8" x2="46" y2="8" strokeWidth="1" strokeDasharray="2 3" />
-                          </svg>
+                          <line x1="2" y1="9" x2="46" y2="9" stroke={isSelected ? '#F4EFE4' : '#172536'} strokeWidth="1" strokeDasharray="2 3" opacity="0.4" />
                         ) : s.id === 'brown' ? (
-                          <svg viewBox="0 0 48 16" className="w-full h-full stroke-current fill-none">
-                            <path d="M2 10 Q14 2 24 10 T46 10" strokeWidth="1.5" />
-                          </svg>
+                          <path d="M2 9 Q8 4, 14 9 T26 9 T38 9 T46 9" stroke={isSelected ? '#B68A53' : '#172536'} strokeWidth="1.5" fill="none" />
                         ) : s.id === 'pink' ? (
-                          <svg viewBox="0 0 48 16" className="w-full h-full stroke-current fill-none">
-                            <path d="M2 8 L8 4 L14 12 L20 6 L26 10 L32 4 L38 12 L46 8" strokeWidth="1.2" />
-                          </svg>
+                          <path d="M2 9 Q6 3, 10 9 T18 9 T26 3 T34 9 T42 5 T46 9" stroke={isSelected ? '#B68A53' : '#172536'} strokeWidth="1.2" fill="none" />
                         ) : s.id === 'white' ? (
-                          <svg viewBox="0 0 48 16" className="w-full h-full stroke-current fill-none">
-                            <path
-                              d="M2 8 L6 2 L10 14 L14 4 L18 12 L22 3 L26 13 L30 5 L34 11 L38 4 L42 12 L46 8"
-                              strokeWidth="1"
-                            />
-                          </svg>
+                          <path d="M2 9 L5 4 L8 14 L12 2 L16 16 L20 4 L24 14 L28 3 L32 15 L36 5 L40 13 L44 4 L46 9" stroke={isSelected ? '#B68A53' : '#172536'} strokeWidth="1" fill="none" />
                         ) : (
-                          /* RAIN */
-                          <svg viewBox="0 0 48 16" className="w-full h-full stroke-current fill-none">
-                            <line x1="6" y1="3" x2="4" y2="13" strokeWidth="1.2" strokeLinecap="round" />
-                            <line x1="16" y1="2" x2="14" y2="14" strokeWidth="1.5" strokeLinecap="round" />
-                            <line x1="26" y1="4" x2="24" y2="12" strokeWidth="1" strokeLinecap="round" />
-                            <line x1="36" y1="2" x2="34" y2="14" strokeWidth="1.5" strokeLinecap="round" />
-                            <line x1="44" y1="5" x2="42" y2="11" strokeWidth="1.2" strokeLinecap="round" />
-                          </svg>
+                          /* Rain */
+                          <g stroke={isSelected ? '#B68A53' : '#172536'} strokeWidth="1.2">
+                            <line x1="6" y1="3" x2="4" y2="8" />
+                            <line x1="16" y1="7" x2="14" y2="13" />
+                            <line x1="26" y1="2" x2="24" y2="9" />
+                            <line x1="36" y1="6" x2="34" y2="12" />
+                            <line x1="44" y1="3" x2="42" y2="8" />
+                          </g>
                         )}
-                      </div>
+                      </svg>
                     </button>
                   );
                 })}
               </div>
 
-              {/* Volume Slider & Pause in breaks toggle */}
-              <div className="flex flex-col gap-2">
+              {/* Volume & Break Ducking */}
+              <div className="flex flex-col gap-2 mt-2.5">
                 <div className="flex items-center gap-3">
                   <span className="font-public-condensed text-[11px] uppercase tracking-wider text-[#60432F] font-semibold">
                     VOL
@@ -237,7 +244,7 @@ function DialFirstSidePanel() {
                   </span>
                 </div>
 
-                <label className="flex items-center gap-2 cursor-pointer font-public-sans text-xs text-[#172536]/80 mt-0.5">
+                <label className="flex items-center gap-2 cursor-pointer font-public-sans text-xs text-[#172536]/80">
                   <input
                     type="checkbox"
                     checked={pauseMusicInBreaks}
@@ -249,24 +256,24 @@ function DialFirstSidePanel() {
               </div>
             </div>
 
-            {/* 3. CHECKLIST SECTION (THIRD IN DESIGN B) */}
+            {/* 3. CHECKLIST SECTION */}
             <div className="pt-2 border-t border-[#172536]/18">
-              <div className="flex items-center justify-between">
-                <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#60432F]">
-                  FIELD NOTE / A SMALL RITUAL
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="font-public-condensed text-[11px] uppercase tracking-[0.22em] font-semibold text-[#60432F]">
+                  03 / PRE-SESSION RITUAL
                 </span>
                 {!isChecklistCleared && (
                   <button
                     type="button"
                     onClick={skipChecklist}
-                    className="font-public-condensed text-[11px] uppercase tracking-wider text-[#60432F]/70 hover:text-[#60432F] transition-colors underline cursor-pointer"
+                    className="font-public-sans text-[11px] text-[#B68A53] hover:underline cursor-pointer"
                   >
-                    Skip ritual
+                    Skip checklist
                   </button>
                 )}
               </div>
 
-              <div className="mt-2 font-public-sans text-[13px] text-[#172536] flex flex-col gap-1.5">
+              <div className="font-public-sans text-xs text-[#172536] flex flex-col">
                 <button
                   type="button"
                   onClick={() => toggleChecklistItem('clearDesk')}
@@ -308,7 +315,7 @@ function DialFirstSidePanel() {
                 <button
                   type="button"
                   onClick={() => toggleChecklistItem('takeBreath')}
-                  className="border-t border-[#172536]/18 py-1.5 flex items-center gap-2.5 text-left w-full hover:bg-[#172536]/5 transition-colors cursor-pointer px-1 rounded-sm"
+                  className="border-t border-b border-[#172536]/18 py-1.5 flex items-center gap-2.5 text-left w-full hover:bg-[#172536]/5 transition-colors cursor-pointer px-1 rounded-sm"
                 >
                   <span
                     className={`w-3.5 h-3.5 rounded-full border border-[#172536]/55 flex items-center justify-center shrink-0 ${
@@ -384,9 +391,8 @@ export function DialFirstLayout({ knobNode }: DialFirstLayoutProps) {
     formattedTime,
     segmentProgress,
     currentSegmentIndex,
+    taskText,
     isChecklistCleared,
-    activePill,
-    setActivePill,
     settings,
     schedule,
     updateSettings,
@@ -400,6 +406,9 @@ export function DialFirstLayout({ knobNode }: DialFirstLayoutProps) {
     cancelResetConfirm,
     confirmReset,
   } = useFocusSessionContext();
+
+  // Active pill state in setup mode: 'study' | 'break' | 'total'
+  const [activePill, setActivePill] = useState<'study' | 'break' | 'total'>('study');
 
   // Total session circumference: radius 180 -> 2 * PI * 180 ≈ 1130.97
   const C = 1131;
@@ -432,9 +441,7 @@ export function DialFirstLayout({ knobNode }: DialFirstLayoutProps) {
   const currentSeg = schedule.segments[currentSegmentIndex];
   let beadAngleDeg = -90;
   if (currentSeg) {
-    const segStartMins = sessionArcs[currentSegmentIndex]?.offset
-      ? (sessionArcs[currentSegmentIndex].offset / C) * totalMins
-      : 0;
+    const segStartMins = sessionArcs[currentSegmentIndex]?.offset ? (sessionArcs[currentSegmentIndex].offset / C) * totalMins : 0;
     const elapsedInSeg = currentSeg.minutes * (1 - segmentProgress);
     const currentMinsTotal = segStartMins + elapsedInSeg;
     beadAngleDeg = -90 + (currentMinsTotal / totalMins) * 360;
@@ -469,6 +476,7 @@ export function DialFirstLayout({ knobNode }: DialFirstLayoutProps) {
   const handlePillClick = (pill: 'study' | 'break' | 'total') => {
     if (status !== 'setup') return;
     if (pill === 'break') {
+      // BREAK toggles 5/10 on tap
       setActivePill('break');
       updateSettings({ breakMin: settings.breakMin === 5 ? 10 : 5 });
     } else {
@@ -494,43 +502,55 @@ export function DialFirstLayout({ knobNode }: DialFirstLayoutProps) {
           aria-hidden="true"
         />
 
-        {/* Main Timer Card */}
+        {/* Main Timer Card — DESIGN B: "DIAL-FIRST" */}
         <div className="relative rounded-[2px] bg-[#172536] border border-[#B68A53]/30 p-5 sm:p-6 lg:p-7 shadow-2xl flex flex-col justify-between">
-          {/* Top Header Row with Presets and LayoutKnob */}
-          <div className="flex items-start justify-between gap-3 pb-4 border-b border-[#F4EFE4]/15">
-            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1.5 sm:gap-4 flex-1 min-w-0">
+          {/* Top Header Row with Presets as three small links and Layout Knob */}
+          <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#F4EFE4]/15">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 flex-1 min-w-0">
               <span className="font-public-condensed text-xs uppercase tracking-[0.22em] font-semibold text-[#B68A53] shrink-0">
                 FOCUS SESSION / {status === 'setup' ? 'DIAL-FIRST' : status.toUpperCase()}
               </span>
 
               {/* Presets as three small links */}
-              <div className="flex flex-wrap items-center gap-2 text-xs font-public-condensed uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-xs font-public-condensed uppercase tracking-wider">
                 <span className="text-[#F4EFE4]/50">PRESETS:</span>
                 <button
                   type="button"
+                  disabled={status !== 'setup'}
                   onClick={() => applyPreset(25, 5, 120)}
-                  disabled={status !== 'setup'}
-                  className="text-[#B68A53] hover:underline cursor-pointer disabled:opacity-50 disabled:no-underline"
+                  className={`hover:underline cursor-pointer transition-colors ${
+                    settings.studyMin === 25 && settings.breakMin === 5
+                      ? 'text-[#B68A53] font-bold underline'
+                      : 'text-[#F4EFE4]/80'
+                  }`}
                 >
-                  STANDARD 25/5
+                  25/5
                 </button>
-                <span className="text-[#F4EFE4]/30" aria-hidden="true">/</span>
+                <span className="text-[#F4EFE4]/30">·</span>
                 <button
                   type="button"
-                  onClick={() => applyPreset(50, 10, 120)}
                   disabled={status !== 'setup'}
-                  className="text-[#B68A53] hover:underline cursor-pointer disabled:opacity-50 disabled:no-underline"
+                  onClick={() => applyPreset(50, 10, 180)}
+                  className={`hover:underline cursor-pointer transition-colors ${
+                    settings.studyMin === 50 && settings.breakMin === 10
+                      ? 'text-[#B68A53] font-bold underline'
+                      : 'text-[#F4EFE4]/80'
+                  }`}
                 >
-                  DEEP 50/10
+                  50/10
                 </button>
-                <span className="text-[#F4EFE4]/30" aria-hidden="true">/</span>
+                <span className="text-[#F4EFE4]/30">·</span>
                 <button
                   type="button"
-                  onClick={() => applyPreset(15, 5, 60)}
                   disabled={status !== 'setup'}
-                  className="text-[#B68A53] hover:underline cursor-pointer disabled:opacity-50 disabled:no-underline"
+                  onClick={() => applyPreset(90, 10, 180)}
+                  className={`hover:underline cursor-pointer transition-colors ${
+                    settings.studyMin === 90 && settings.breakMin === 10
+                      ? 'text-[#B68A53] font-bold underline'
+                      : 'text-[#F4EFE4]/80'
+                  }`}
                 >
-                  SPRINT 15/5
+                  90/10
                 </button>
               </div>
             </div>
@@ -539,221 +559,232 @@ export function DialFirstLayout({ knobNode }: DialFirstLayoutProps) {
             {knobNode && <div className="shrink-0">{knobNode}</div>}
           </div>
 
-          {/* Visual Timer Dial Area (Dial-First segmented ring) */}
-          <div className="py-4 sm:py-6 flex flex-col items-center justify-center relative my-auto">
-            <div className="relative w-[300px] h-[300px] sm:w-[380px] sm:h-[380px] lg:w-[420px] lg:h-[420px] flex items-center justify-center">
+          {/* Visual Timer Dial Area with Proportional Session Ring */}
+          <div className="py-6 sm:py-8 flex flex-col items-center justify-center relative my-auto">
+            <div className="relative w-[340px] h-[340px] sm:w-[440px] sm:h-[440px] lg:w-[480px] lg:h-[480px] flex items-center justify-center">
               <svg
                 viewBox="0 0 500 500"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-full h-full text-[#B68A53]"
-                aria-label={`Dial showing session breakdown`}
+                aria-label={`Dial-First timer showing ${formattedTime}`}
                 role="img"
               >
                 <defs>
-                  <radialGradient id="dial-glow-b" cx="50%" cy="50%" r="50%">
+                  <radialGradient id="dial-b-glow" cx="50%" cy="50%" r="50%">
                     <stop offset="0%" stopColor="#1e3852" stopOpacity="0.55" />
                     <stop offset="65%" stopColor="#1e3852" stopOpacity="0.18" />
                     <stop offset="100%" stopColor="#172536" stopOpacity="0" />
                   </radialGradient>
                 </defs>
 
-                {/* Soft central radial glow */}
-                <circle cx="250" cy="250" r="185" fill="url(#dial-glow-b)" />
+                {/* Radial glow */}
+                <circle cx="250" cy="250" r="185" fill="url(#dial-b-glow)" />
 
-                {/* Background Track Ring */}
-                <circle cx="250" cy="250" r="180" stroke="#101b27" strokeWidth="14" />
+                {/* Thin inner reference ring */}
+                <circle cx="250" cy="250" r="148" stroke="#F4EFE4" strokeOpacity="0.12" strokeWidth="1" />
 
-                {/* Proportional Segment Arcs */}
-                {sessionArcs.map((arc) => {
-                  const strokeWidth = arc.isCurrent ? 14 : 10;
-                  let strokeColor = arc.seg.phase === 'focus' ? '#B68A53' : '#1e3852';
+                {/* Base background ring */}
+                <circle cx="250" cy="250" r="180" stroke="#1e3044" strokeWidth="9" />
 
-                  if (status === 'setup') {
-                    strokeColor = arc.seg.phase === 'focus' ? '#B68A53' : '#2a4d6f';
-                  } else {
-                    if (arc.isCompleted) {
-                      strokeColor = '#B68A53';
-                    } else if (arc.isCurrent) {
-                      strokeColor = arc.seg.phase === 'focus' ? '#D2A75D' : '#3a6692';
-                    } else {
-                      strokeColor = arc.seg.phase === 'focus' ? '#B68A5333' : '#1e385233';
+                {/* PROPORTIONAL SESSION ARCS (Gold = Focus, Thin Dim = Breaks) */}
+                {sessionArcs.map(({ seg, idx, arcLength, offset, isCurrent, isCompleted, isUpcoming }) => {
+                  const isFocus = seg.phase === 'focus';
+                  const strokeWidth = isFocus ? 9 : 4;
+                  // Leave a tiny 2px visual gap between adjacent arcs
+                  const displayArc = Math.max(1, arcLength - 2);
+
+                  let strokeColor = isFocus ? '#B68A53' : '#8799A7';
+                  let opacity = isFocus ? 1 : 0.45;
+
+                  if (status !== 'setup') {
+                    if (isCompleted) {
+                      strokeColor = isFocus ? '#B68A53' : '#8799A7';
+                      opacity = isFocus ? 0.9 : 0.35;
+                    } else if (isCurrent) {
+                      strokeColor = isFocus ? '#D2A75D' : '#8799A7';
+                      opacity = 1;
+                    } else if (isUpcoming) {
+                      opacity = 0.25;
                     }
                   }
 
-                  const gap = 2;
-                  const dashLength = Math.max(0, arc.arcLength - gap);
-                  const strokeDasharray = `${dashLength} ${C - dashLength}`;
-                  const strokeDashoffset = -arc.offset;
-
                   return (
                     <circle
-                      key={`arc-${arc.idx}`}
+                      key={seg.id}
                       cx="250"
                       cy="250"
                       r="180"
                       stroke={strokeColor}
                       strokeWidth={strokeWidth}
-                      strokeDasharray={strokeDasharray}
-                      strokeDashoffset={strokeDashoffset}
-                      strokeLinecap="butt"
+                      strokeDasharray={`${displayArc} ${C - displayArc}`}
+                      strokeDashoffset={-offset}
+                      opacity={opacity}
+                      strokeLinecap="round"
                       transform="rotate(-90 250 250)"
                       className="transition-all duration-300"
                     />
                   );
                 })}
 
-                {/* Dynamic Orbit Bead (shown in running/paused/finished) */}
+                {/* Active segment sweeping overlay when running / paused */}
+                {status !== 'setup' && currentSeg && (
+                  <circle
+                    cx="250"
+                    cy="250"
+                    r="180"
+                    stroke={currentSeg.phase === 'focus' ? '#F4EFE4' : '#BD634A'}
+                    strokeWidth="9"
+                    strokeDasharray={`${Math.max(1, (sessionArcs[currentSegmentIndex]?.arcLength || 0) * (1 - segmentProgress))} ${C}`}
+                    strokeDashoffset={-(sessionArcs[currentSegmentIndex]?.offset || 0)}
+                    strokeLinecap="round"
+                    transform="rotate(-90 250 250)"
+                    className="motion-safe:transition-all motion-safe:duration-200"
+                  />
+                )}
+
+                {/* Orbit bead on active position */}
                 {status !== 'setup' && (
                   <circle
                     cx={beadX}
                     cy={beadY}
-                    r="7.5"
+                    r="5"
                     fill="#F4EFE4"
-                    stroke="#B68A53"
-                    strokeWidth="3.5"
-                    className="transition-[cx,cy] duration-300 ease-out"
+                    className="motion-safe:transition-[cx,cy] motion-safe:duration-200 motion-reduce:transition-none"
                   />
                 )}
+
+                {/* Dial markings */}
+                <circle cx="250" cy="250" r="218" stroke="#F4EFE4" strokeOpacity="0.1" strokeWidth="1" />
+                <line x1="250.0" y1="58.0" x2="250.0" y2="28.0" stroke="#B68A53" strokeWidth="1.5" strokeLinecap="round" />
+                <line x1="442.0" y1="250.0" x2="472.0" y2="250.0" stroke="#B68A53" strokeWidth="1.5" strokeLinecap="round" />
+                <line x1="250.0" y1="442.0" x2="250.0" y2="472.0" stroke="#B68A53" strokeWidth="1.5" strokeLinecap="round" />
+                <line x1="58.0" y1="250.0" x2="28.0" y2="250.0" stroke="#B68A53" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
 
-              {/* Central Display: Mode Dependent */}
+              {/* Center Time Readout, Center Label, Pills, and Preview */}
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-                {status === 'setup' ? (
-                  <div className="flex flex-col items-center gap-2 max-w-[280px]">
-                    <span className="font-public-condensed text-[11px] sm:text-xs uppercase tracking-[0.25em] text-[#B68A53] font-semibold mb-1">
-                      CLICK PILL TO ADJUST
+                {/* Digits */}
+                <span className="font-public-display text-7xl sm:text-8xl lg:text-[104px] font-normal leading-none tracking-tight text-[#F4EFE4] antialiased">
+                  {formattedTime}
+                </span>
+
+                {/* Centre label: FOCUS 1 OF 5 / BREAK 1 OF 4 */}
+                <span className="font-public-condensed text-xs uppercase tracking-[0.28em] text-[#B68A53] font-semibold mt-2">
+                  {centerLabel}
+                </span>
+
+                {/* Task text if active */}
+                {status !== 'setup' && taskText && (
+                  <span className="font-public-sans text-xs text-[#F4EFE4]/70 mt-1 max-w-[220px] truncate">
+                    &ldquo;{taskText}&rdquo;
+                  </span>
+                )}
+
+                {/* THREE INLINE PILL CONTROLS: STUDY 25, BREAK 5, TOTAL 2H */}
+                <div className="flex items-center gap-2 mt-4" role="group" aria-label="Dial parameter controls">
+                  {/* Pill 1: STUDY */}
+                  <button
+                    type="button"
+                    disabled={status !== 'setup'}
+                    onClick={() => handlePillClick('study')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        handlePillStep(1);
+                      } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        handlePillStep(-1);
+                      }
+                    }}
+                    className={`px-3 py-1 rounded-full font-public-condensed text-xs uppercase tracking-wider transition-all ${
+                      status === 'setup' ? 'cursor-pointer' : 'cursor-default'
+                    } ${
+                      status === 'setup' && activePill === 'study'
+                        ? 'ring-2 ring-[#B68A53] bg-[#B68A53]/20 text-[#F4EFE4] font-bold shadow'
+                        : 'bg-[#101b27] text-[#F4EFE4]/80 border border-[#F4EFE4]/20'
+                    }`}
+                  >
+                    STUDY {settings.studyMin}
+                  </button>
+
+                  {/* Pill 2: BREAK (toggles 5/10) */}
+                  <button
+                    type="button"
+                    disabled={status !== 'setup'}
+                    onClick={() => handlePillClick('break')}
+                    className={`px-3 py-1 rounded-full font-public-condensed text-xs uppercase tracking-wider transition-all ${
+                      status === 'setup' ? 'cursor-pointer' : 'cursor-default'
+                    } ${
+                      status === 'setup' && activePill === 'break'
+                        ? 'ring-2 ring-[#B68A53] bg-[#B68A53]/20 text-[#F4EFE4] font-bold shadow'
+                        : 'bg-[#101b27] text-[#F4EFE4]/80 border border-[#F4EFE4]/20'
+                    }`}
+                  >
+                    BREAK {settings.breakMin}
+                  </button>
+
+                  {/* Pill 3: TOTAL */}
+                  <button
+                    type="button"
+                    disabled={status !== 'setup'}
+                    onClick={() => handlePillClick('total')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        handlePillStep(1);
+                      } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        handlePillStep(-1);
+                      }
+                    }}
+                    className={`px-3 py-1 rounded-full font-public-condensed text-xs uppercase tracking-wider transition-all ${
+                      status === 'setup' ? 'cursor-pointer' : 'cursor-default'
+                    } ${
+                      status === 'setup' && activePill === 'total'
+                        ? 'ring-2 ring-[#B68A53] bg-[#B68A53]/20 text-[#F4EFE4] font-bold shadow'
+                        : 'bg-[#101b27] text-[#F4EFE4]/80 border border-[#F4EFE4]/20'
+                    }`}
+                  >
+                    TOTAL {formatHoursMins(settings.totalStudyMin)}
+                  </button>
+                </div>
+
+                {/* Minus / Plus Stepper Buttons for active pill in setup mode */}
+                {status === 'setup' && (
+                  <div className="flex items-center gap-3 mt-2 animate-fade-in">
+                    <button
+                      type="button"
+                      onClick={() => handlePillStep(-1)}
+                      aria-label={`Decrease active ${activePill}`}
+                      className="w-7 h-7 rounded-full bg-[#101b27] border border-[#F4EFE4]/25 text-[#F4EFE4] hover:bg-[#F4EFE4]/15 flex items-center justify-center font-bold text-sm cursor-pointer transition-colors"
+                    >
+                      &minus;
+                    </button>
+                    <span className="font-public-sans text-[11px] text-[#F4EFE4]/60 uppercase tracking-wider">
+                      ADJUST {activePill.toUpperCase()}
                     </span>
-
-                    {/* 3 Clickable Pills */}
-                    <div className="flex flex-col gap-1.5 w-full">
-                      {/* FOCUS pill */}
-                      <button
-                        type="button"
-                        onClick={() => handlePillClick('study')}
-                        className={`w-full py-1.5 px-3 rounded-[2px] font-public-condensed text-xs uppercase tracking-wider font-bold transition-all cursor-pointer flex items-center justify-between border ${
-                          activePill === 'study'
-                            ? 'bg-[#B68A53] text-[#172536] border-[#B68A53]'
-                            : 'bg-[#101b27]/80 text-[#F4EFE4]/80 border-[#F4EFE4]/15 hover:border-[#F4EFE4]/40'
-                        }`}
-                      >
-                        <span>FOCUS</span>
-                        <span>{settings.studyMin} MIN</span>
-                      </button>
-
-                      {/* BREAK pill (Toggles 5 / 10 on tap) */}
-                      <button
-                        type="button"
-                        onClick={() => handlePillClick('break')}
-                        className={`w-full py-1.5 px-3 rounded-[2px] font-public-condensed text-xs uppercase tracking-wider font-bold transition-all cursor-pointer flex items-center justify-between border ${
-                          activePill === 'break'
-                            ? 'bg-[#B68A53] text-[#172536] border-[#B68A53]'
-                            : 'bg-[#101b27]/80 text-[#F4EFE4]/80 border-[#F4EFE4]/15 hover:border-[#F4EFE4]/40'
-                        }`}
-                      >
-                        <span>BREAK</span>
-                        <span>{settings.breakMin} MIN (TAP TO TOGGLE)</span>
-                      </button>
-
-                      {/* TOTAL TARGET pill */}
-                      <button
-                        type="button"
-                        onClick={() => handlePillClick('total')}
-                        className={`w-full py-1.5 px-3 rounded-[2px] font-public-condensed text-xs uppercase tracking-wider font-bold transition-all cursor-pointer flex items-center justify-between border ${
-                          activePill === 'total'
-                            ? 'bg-[#B68A53] text-[#172536] border-[#B68A53]'
-                            : 'bg-[#101b27]/80 text-[#F4EFE4]/80 border-[#F4EFE4]/15 hover:border-[#F4EFE4]/40'
-                        }`}
-                      >
-                        <span>TOTAL TARGET</span>
-                        <span>{formatHoursMins(settings.totalStudyMin)}</span>
-                      </button>
-                    </div>
-
-                    {/* Stepper Buttons for the active pill */}
-                    <div className="flex items-center gap-2 mt-2">
-                      <button
-                        type="button"
-                        onClick={() => handlePillStep(-1)}
-                        aria-label={`Decrease ${activePill}`}
-                        className="w-8 h-8 rounded-[2px] bg-[#101b27] border border-[#F4EFE4]/20 flex items-center justify-center text-[#F4EFE4] hover:bg-[#F4EFE4]/10 transition-colors font-bold"
-                      >
-                        -
-                      </button>
-                      <span className="font-public-condensed text-[11px] uppercase tracking-wider text-[#F4EFE4]/60 px-2 min-w-[70px] text-center">
-                        ADJUST {activePill.toUpperCase()}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handlePillStep(1)}
-                        aria-label={`Increase ${activePill}`}
-                        className="w-8 h-8 rounded-[2px] bg-[#101b27] border border-[#F4EFE4]/20 flex items-center justify-center text-[#F4EFE4] hover:bg-[#F4EFE4]/10 transition-colors font-bold"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  /* Running, Paused, or Finished View */
-                  <div className="flex flex-col items-center justify-center text-center select-none pointer-events-none">
-                    <span className="font-public-condensed text-[11px] sm:text-xs uppercase tracking-[0.25em] text-[#B68A53] font-semibold">
-                      {centerLabel}
-                    </span>
-
-                    <span className="font-public-display text-5xl sm:text-6xl lg:text-7xl font-normal text-[#F4EFE4] tracking-tight my-1 antialiased tabular-nums">
-                      {formattedTime}
-                    </span>
-
-                    <span className="font-public-condensed text-[10px] sm:text-xs uppercase tracking-[0.22em] text-[#F4EFE4]/60">
-                      {status === 'finished'
-                        ? 'ALL BLOCKS COMPLETE'
-                        : phase === 'focus'
-                        ? 'STUDY INTERVAL'
-                        : 'REST INTERVAL'}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handlePillStep(1)}
+                      aria-label={`Increase active ${activePill}`}
+                      className="w-7 h-7 rounded-full bg-[#101b27] border border-[#F4EFE4]/25 text-[#F4EFE4] hover:bg-[#F4EFE4]/15 flex items-center justify-center font-bold text-sm cursor-pointer transition-colors"
+                    >
+                      +
+                    </button>
                   </div>
                 )}
+
+                {/* Preview ENDS ABOUT under the pills */}
+                <div className="font-public-condensed text-xs uppercase tracking-[0.2em] text-[#B68A53] font-medium mt-3">
+                  ENDS ABOUT {schedule.endsAt}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Schedule Preview Bar */}
-          <div className="pt-3 pb-3 border-t border-[#F4EFE4]/15">
-            <div className="flex items-center justify-between text-[11px] font-public-condensed uppercase tracking-wider text-[#F4EFE4]/60 mb-2">
-              <span>SCHEDULE BREAKDOWN</span>
-              <span>
-                {schedule.focusBlocks} BLOCKS ({schedule.totalStudyMinutes}M) + {schedule.breaks} BREAKS (
-                {schedule.totalMinutes - schedule.totalStudyMinutes}M) = {schedule.totalMinutes}M TOTAL
-              </span>
-            </div>
-
-            <div className="w-full h-3 bg-[#101b27] rounded-[2px] flex overflow-hidden border border-[#F4EFE4]/10 p-[1px] gap-[1px]">
-              {schedule.segments.map((seg, idx) => {
-                const widthPercent = (seg.minutes / Math.max(1, schedule.totalMinutes)) * 100;
-                const isCurrent = idx === currentSegmentIndex && status !== 'setup';
-                const isCompleted = idx < currentSegmentIndex && status !== 'setup';
-
-                let bg = seg.phase === 'focus' ? 'bg-[#B68A53]/50' : 'bg-[#1e3852]';
-                if (isCompleted) {
-                  bg = 'bg-[#B68A53]';
-                } else if (isCurrent) {
-                  bg = 'bg-[#F4EFE4] animate-pulse';
-                }
-
-                return (
-                  <div
-                    key={`bar-${seg.phase}-${idx}`}
-                    style={{ width: `${widthPercent}%` }}
-                    className={`h-full ${bg} transition-colors relative group`}
-                    title={`${seg.phase === 'focus' ? 'Focus' : 'Break'}: ${seg.minutes} min`}
-                  />
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Bottom Action Controls */}
-          <div className="pt-4 border-t border-[#F4EFE4]/15 flex items-center justify-center gap-3">
+          {/* BOTTOM CONTROLS: START (PAUSE/RESUME), SKIP, RESET WITH INLINE CONFIRM */}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-3 border-t border-[#F4EFE4]/15 min-h-[48px]">
             {isResetConfirmOpen ? (
               <div className="flex items-center gap-3 p-1.5 rounded-[2px] bg-[#101b27] border border-[#BD634A]/40 animate-fade-in">
                 <span className="font-public-condensed text-xs uppercase tracking-[0.16em] text-[#F4EFE4]/80 px-2">
@@ -849,7 +880,7 @@ export function DialFirstLayout({ knobNode }: DialFirstLayoutProps) {
         </div>
       </div>
 
-      {/* Right Column: DialFirstSidePanel (Task, Sound List with waveforms, Checklist, Progress, Breathing, Compass) */}
+      {/* Right Column: DialFirstSidePanel */}
       <DialFirstSidePanel />
     </div>
   );
