@@ -1,44 +1,58 @@
 'use client';
 
-import { useFocusTimer, PRESET_CONFIG, PresetKey } from './hooks/useFocusTimer';
+import { useFocusSession } from './hooks/useFocusSession';
 
 export interface FocusTimerProps {
   className?: string;
-  initialPreset?: PresetKey;
 }
 
-const PRESET_KEYS: PresetKey[] = ['focus', 'shortBreak', 'longBreak'];
-
-export function FocusTimer({ className, initialPreset }: FocusTimerProps) {
+export function FocusTimer({ className }: FocusTimerProps) {
   const {
-    isRunning,
-    isFinished,
-    activePreset,
-    progress,
+    status,
+    phase,
+    currentBlockNumber,
+    totalFocusBlocks,
+    formattedTime,
+    segmentProgress,
+    settings,
+    schedule,
+    applyPreset,
     start,
     pause,
-    reset,
-    setPreset,
-    formattedTime,
-  } = useFocusTimer({ initialPreset });
+    resume,
+    skip,
+    isResetConfirmOpen,
+    openResetConfirm,
+    cancelResetConfirm,
+    confirmReset,
+  } = useFocusSession();
 
-  // Compute dynamic arc stroke-dasharray based on remaining progress (0..1)
+  // Dynamic arc stroke-dasharray based on remaining progress (0..1)
   // At progress = 1: dash length is 612.6 (195 degrees of radius 180 circle, circumference ~1131)
-  const arcDashLength = (progress * 612.6).toFixed(1);
+  const arcDashLength = (segmentProgress * 612.6).toFixed(1);
   const strokeDasharray = `${arcDashLength} 1131`;
 
-  // Compute dynamic orbit bead position on the tip of the gold arc
+  // Dynamic orbit bead position on the tip of the gold arc
   // Formula: angle = -90 + progress * 195 degrees
-  // At progress = 1: angle = 105 deg -> (203.4, 423.9) matching static design (203, 424)
-  const angleDeg = -90 + progress * 195;
+  const angleDeg = -90 + segmentProgress * 195;
   const angleRad = (angleDeg * Math.PI) / 180;
   const beadX = Number((250 + 180 * Math.cos(angleRad)).toFixed(1));
   const beadY = Number((250 + 180 * Math.sin(angleRad)).toFixed(1));
 
   // Center display label
-  const sessionTitle = isFinished
-    ? 'SESSION COMPLETE'
-    : PRESET_CONFIG[activePreset].title;
+  let sessionTitle = 'FOCUS SESSION';
+  if (status === 'finished') {
+    sessionTitle = 'SESSION COMPLETE';
+  } else if (status === 'running' || status === 'paused') {
+    sessionTitle = `${phase === 'focus' ? 'FOCUS' : 'BREAK'} ${currentBlockNumber} OF ${totalFocusBlocks}`;
+  } else {
+    sessionTitle = `${settings.studyMin} MIN FOCUS / ${schedule.focusBlocks} BLOCKS`;
+  }
+
+  // Active preset determination
+  const is25_5 = settings.studyMin === 25 && settings.breakMin === 5;
+  const is50_10 = settings.studyMin === 50 && settings.breakMin === 10;
+  const is90_10 = settings.studyMin === 90 && settings.breakMin === 10;
 
   return (
     <div className={className ?? 'lg:col-span-8 relative flex flex-col'}>
@@ -53,7 +67,10 @@ export function FocusTimer({ className, initialPreset }: FocusTimerProps) {
         {/* Top row: Session label */}
         <div className="flex items-center justify-between gap-3 pb-5 border-b border-[#F4EFE4]/15">
           <span className="font-public-condensed text-xs uppercase tracking-[0.22em] font-semibold text-[#B68A53]">
-            FOCUS SESSION / 01
+            FOCUS SESSION / {status.toUpperCase()}
+          </span>
+          <span className="font-public-condensed text-xs uppercase tracking-[0.18em] text-[#F4EFE4]/60">
+            {schedule.endsAt ? `ENDS ABOUT ${schedule.endsAt}` : ''}
           </span>
         </div>
 
@@ -90,7 +107,7 @@ export function FocusTimer({ className, initialPreset }: FocusTimerProps) {
                 cx="250"
                 cy="250"
                 r="180"
-                stroke="#B68A53"
+                stroke={phase === 'break' ? '#8799A7' : '#B68A53'}
                 strokeWidth="9"
                 strokeDasharray={strokeDasharray}
                 strokeLinecap="round"
@@ -103,7 +120,7 @@ export function FocusTimer({ className, initialPreset }: FocusTimerProps) {
                 cx={beadX}
                 cy={beadY}
                 r="5"
-                fill="#B68A53"
+                fill={phase === 'break' ? '#8799A7' : '#B68A53'}
                 className="motion-safe:transition-[cx,cy] motion-safe:duration-200 motion-reduce:transition-none"
               />
 
@@ -114,13 +131,13 @@ export function FocusTimer({ className, initialPreset }: FocusTimerProps) {
               {/* Thin outer ring */}
               <circle cx="250" cy="250" r="218" stroke="#F4EFE4" strokeOpacity="0.12" strokeWidth="1" />
 
-              {/* 4 Cardinal Ticks (0, 90, 180, 270 deg) extending outward to outer ring */}
+              {/* 4 Cardinal Ticks (0, 90, 180, 270 deg) */}
               <line x1="250.0" y1="58.0" x2="250.0" y2="28.0" stroke="#B68A53" strokeWidth="1.5" strokeLinecap="round" />
               <line x1="442.0" y1="250.0" x2="472.0" y2="250.0" stroke="#B68A53" strokeWidth="1.5" strokeLinecap="round" />
               <line x1="250.0" y1="442.0" x2="250.0" y2="472.0" stroke="#B68A53" strokeWidth="1.5" strokeLinecap="round" />
               <line x1="58.0" y1="250.0" x2="28.0" y2="250.0" stroke="#B68A53" strokeWidth="1.5" strokeLinecap="round" />
 
-              {/* 8 Intermediate Hour Ticks (30, 60, 120, 150, 210, 240, 300, 330 deg) */}
+              {/* 8 Intermediate Hour Ticks */}
               <line x1="346.0" y1="83.7" x2="356.0" y2="66.4" stroke="#F4EFE4" strokeOpacity="0.4" strokeWidth="1" strokeLinecap="round" />
               <line x1="416.3" y1="154.0" x2="433.6" y2="144.0" stroke="#F4EFE4" strokeOpacity="0.4" strokeWidth="1" strokeLinecap="round" />
               <line x1="416.3" y1="346.0" x2="433.6" y2="356.0" stroke="#F4EFE4" strokeOpacity="0.4" strokeWidth="1" strokeLinecap="round" />
@@ -129,20 +146,6 @@ export function FocusTimer({ className, initialPreset }: FocusTimerProps) {
               <line x1="83.7" y1="346.0" x2="66.4" y2="356.0" stroke="#F4EFE4" strokeOpacity="0.4" strokeWidth="1" strokeLinecap="round" />
               <line x1="83.7" y1="154.0" x2="66.4" y2="144.0" stroke="#F4EFE4" strokeOpacity="0.4" strokeWidth="1" strokeLinecap="round" />
               <line x1="154.0" y1="83.7" x2="144.0" y2="66.4" stroke="#F4EFE4" strokeOpacity="0.4" strokeWidth="1" strokeLinecap="round" />
-
-              {/* 12 Minor Ticks (every 15 deg) */}
-              <line x1="299.7" y1="64.5" x2="302.3" y2="54.9" stroke="#F4EFE4" strokeOpacity="0.22" strokeWidth="0.8" strokeLinecap="round" />
-              <line x1="385.8" y1="114.2" x2="392.8" y2="107.2" stroke="#F4EFE4" strokeOpacity="0.22" strokeWidth="0.8" strokeLinecap="round" />
-              <line x1="435.5" y1="200.3" x2="445.1" y2="197.7" stroke="#F4EFE4" strokeOpacity="0.22" strokeWidth="0.8" strokeLinecap="round" />
-              <line x1="435.5" y1="299.7" x2="445.1" y2="302.3" stroke="#F4EFE4" strokeOpacity="0.22" strokeWidth="0.8" strokeLinecap="round" />
-              <line x1="385.8" y1="385.8" x2="392.8" y2="392.8" stroke="#F4EFE4" strokeOpacity="0.22" strokeWidth="0.8" strokeLinecap="round" />
-              <line x1="299.7" y1="435.5" x2="302.3" y2="445.1" stroke="#F4EFE4" strokeOpacity="0.22" strokeWidth="0.8" strokeLinecap="round" />
-              <line x1="200.3" y1="435.5" x2="197.7" y2="445.1" stroke="#F4EFE4" strokeOpacity="0.22" strokeWidth="0.8" strokeLinecap="round" />
-              <line x1="114.2" y1="385.8" x2="107.2" y2="392.8" stroke="#F4EFE4" strokeOpacity="0.22" strokeWidth="0.8" strokeLinecap="round" />
-              <line x1="64.5" y1="299.7" x2="54.9" y2="302.3" stroke="#F4EFE4" strokeOpacity="0.22" strokeWidth="0.8" strokeLinecap="round" />
-              <line x1="64.5" y1="200.3" x2="54.9" y2="197.7" stroke="#F4EFE4" strokeOpacity="0.22" strokeWidth="0.8" strokeLinecap="round" />
-              <line x1="114.2" y1="114.2" x2="107.2" y2="107.2" stroke="#F4EFE4" strokeOpacity="0.22" strokeWidth="0.8" strokeLinecap="round" />
-              <line x1="200.3" y1="64.5" x2="197.7" y2="54.9" stroke="#F4EFE4" strokeOpacity="0.22" strokeWidth="0.8" strokeLinecap="round" />
             </svg>
 
             {/* Center Time & Session Label */}
@@ -160,96 +163,197 @@ export function FocusTimer({ className, initialPreset }: FocusTimerProps) {
             </div>
           </div>
 
-          {/* Action Buttons: START, PAUSE, RESET */}
-          <div className="flex items-center gap-3 mt-4 sm:mt-6">
-            <button
-              type="button"
-              onClick={start}
-              aria-label="Start focus timer"
-              className={`w-28 sm:w-32 py-2.5 rounded-[2px] font-public-condensed text-xs uppercase tracking-[0.22em] font-bold shadow transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53] focus-visible:ring-offset-2 focus-visible:ring-offset-[#172536] ${
-                isRunning
-                  ? 'bg-[#B68A53] text-[#172536] opacity-90'
-                  : 'bg-[#B68A53] text-[#172536] hover:bg-[#D2A75D]'
-              }`}
-            >
-              START
-            </button>
-            <button
-              type="button"
-              onClick={pause}
-              aria-label="Pause focus timer"
-              className="w-28 sm:w-32 py-2.5 rounded-[2px] bg-[#172536] border border-[#F4EFE4]/30 text-[#F4EFE4] font-public-condensed text-xs uppercase tracking-[0.22em] font-medium transition-colors cursor-pointer hover:bg-[#1e3044] hover:border-[#F4EFE4]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53] focus-visible:ring-offset-2 focus-visible:ring-offset-[#172536]"
-            >
-              PAUSE
-            </button>
-            <button
-              type="button"
-              onClick={reset}
-              aria-label="Reset focus timer"
-              className="w-28 sm:w-32 py-2.5 rounded-[2px] bg-[#172536] border border-[#F4EFE4]/30 text-[#F4EFE4]/80 font-public-condensed text-xs uppercase tracking-[0.22em] font-medium transition-colors cursor-pointer hover:bg-[#1e3044] hover:text-[#F4EFE4] hover:border-[#F4EFE4]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53] focus-visible:ring-offset-2 focus-visible:ring-offset-[#172536]"
-            >
-              RESET
-            </button>
+          {/* Action Buttons: START, PAUSE/RESUME, SKIP, RESET with Inline Confirm */}
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-4 sm:mt-6 min-h-[48px]">
+            {isResetConfirmOpen ? (
+              <div className="flex items-center gap-3 p-1.5 rounded-[2px] bg-[#101b27] border border-[#BD634A]/40 animate-fade-in">
+                <span className="font-public-condensed text-xs uppercase tracking-[0.16em] text-[#F4EFE4]/80 px-2">
+                  Reset session?
+                </span>
+                <button
+                  type="button"
+                  onClick={confirmReset}
+                  className="px-3.5 py-1.5 rounded-[2px] bg-[#BD634A] text-[#F4EFE4] font-public-condensed text-xs uppercase tracking-[0.16em] font-bold hover:bg-[#d67055] transition-colors cursor-pointer"
+                >
+                  Reset
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelResetConfirm}
+                  className="px-3.5 py-1.5 rounded-[2px] bg-transparent border border-[#F4EFE4]/30 text-[#F4EFE4]/80 font-public-condensed text-xs uppercase tracking-[0.16em] hover:text-[#F4EFE4] hover:border-[#F4EFE4]/60 transition-colors cursor-pointer"
+                >
+                  Keep going
+                </button>
+              </div>
+            ) : status === 'setup' ? (
+              <button
+                type="button"
+                onClick={start}
+                aria-label="Start focus session"
+                className="w-32 sm:w-36 py-2.5 rounded-[2px] font-public-condensed text-xs uppercase tracking-[0.22em] font-bold shadow transition-colors cursor-pointer bg-[#B68A53] text-[#172536] hover:bg-[#D2A75D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53] focus-visible:ring-offset-2 focus-visible:ring-offset-[#172536]"
+              >
+                START
+              </button>
+            ) : status === 'finished' ? (
+              <button
+                type="button"
+                onClick={confirmReset}
+                aria-label="Start new session"
+                className="w-36 py-2.5 rounded-[2px] font-public-condensed text-xs uppercase tracking-[0.22em] font-bold shadow transition-colors cursor-pointer bg-[#B68A53] text-[#172536] hover:bg-[#D2A75D]"
+              >
+                NEW SESSION
+              </button>
+            ) : (
+              <>
+                {/* PAUSE / RESUME button */}
+                {status === 'running' ? (
+                  <button
+                    type="button"
+                    onClick={pause}
+                    aria-label="Pause focus timer"
+                    className="w-28 sm:w-32 py-2.5 rounded-[2px] bg-[#172536] border border-[#B68A53] text-[#B68A53] font-public-condensed text-xs uppercase tracking-[0.22em] font-bold transition-colors cursor-pointer hover:bg-[#B68A53]/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53]"
+                  >
+                    PAUSE
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={resume}
+                    aria-label="Resume focus timer"
+                    className="w-28 sm:w-32 py-2.5 rounded-[2px] bg-[#B68A53] text-[#172536] font-public-condensed text-xs uppercase tracking-[0.22em] font-bold transition-colors cursor-pointer hover:bg-[#D2A75D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53]"
+                  >
+                    RESUME
+                  </button>
+                )}
+
+                {/* SKIP button */}
+                <button
+                  type="button"
+                  onClick={skip}
+                  aria-label="Skip to next segment"
+                  className="w-28 sm:w-32 py-2.5 rounded-[2px] bg-[#172536] border border-[#F4EFE4]/30 text-[#F4EFE4] font-public-condensed text-xs uppercase tracking-[0.22em] font-medium transition-colors cursor-pointer hover:bg-[#1e3044] hover:border-[#F4EFE4]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53]"
+                >
+                  SKIP
+                </button>
+
+                {/* RESET button */}
+                <button
+                  type="button"
+                  onClick={openResetConfirm}
+                  aria-label="Reset focus timer"
+                  className="w-28 sm:w-32 py-2.5 rounded-[2px] bg-[#172536] border border-[#F4EFE4]/30 text-[#F4EFE4]/80 font-public-condensed text-xs uppercase tracking-[0.22em] font-medium transition-colors cursor-pointer hover:bg-[#1e3044] hover:text-[#F4EFE4] hover:border-[#F4EFE4]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53]"
+                >
+                  RESET
+                </button>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Bottom Section: CHOOSE YOUR PACE + Tabs matching reference 52px height and rounded inactive corners */}
+        {/* Bottom Section: Presets (25/5, 50/10, 90/10) */}
         <div className="pt-5 mt-4 border-t border-[#F4EFE4]/15">
           <div className="flex items-center justify-between mb-2.5">
             <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#B68A53]">
-              CHOOSE YOUR PACE
+              PRESET SHORTCUTS
             </span>
             <span className="font-public-condensed text-xs uppercase tracking-[0.2em] font-semibold text-[#B68A53]">
               01 — 03
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" role="tablist" aria-label="Timer presets">
-            {PRESET_KEYS.map((key) => {
-              const preset = PRESET_CONFIG[key];
-              const isActive = activePreset === key;
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" role="tablist" aria-label="Timer preset shortcuts">
+            {/* Preset 1: 25 / 5 */}
+            <div className="flex flex-col">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={is25_5}
+                disabled={status !== 'setup'}
+                onClick={() => applyPreset(25, 5, 120)}
+                className={`w-full h-[52px] flex items-center justify-center font-public-condensed text-xs uppercase tracking-[0.18em] font-bold text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53] ${
+                  status !== 'setup' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                } ${
+                  is25_5
+                    ? 'bg-[#F4EFE4] text-[#172536]'
+                    : 'rounded-[8px] bg-[#172536] text-[#F4EFE4]/80 border border-[#F4EFE4]/20 hover:border-[#F4EFE4]/40 hover:text-[#F4EFE4]'
+                }`}
+                style={
+                  is25_5
+                    ? { clipPath: 'polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }
+                    : undefined
+                }
+              >
+                FOCUS 25 / 5 MIN
+              </button>
+              <div
+                className={`w-full h-[2px] mt-1 transition-opacity ${
+                  is25_5 ? 'bg-[#B68A53] opacity-100' : 'bg-transparent opacity-0'
+                }`}
+                aria-hidden="true"
+              />
+            </div>
 
-              return (
-                <div key={key} className="flex flex-col">
-                  {isActive ? (
-                    /* Active tab with cut bottom-left corner and gold underline */
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected="true"
-                      tabIndex={0}
-                      onClick={() => setPreset(key)}
-                      className="w-full h-[52px] flex items-center justify-center bg-[#F4EFE4] text-[#172536] font-public-condensed text-xs uppercase tracking-[0.18em] font-bold text-center cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53] focus-visible:ring-offset-2 focus-visible:ring-offset-[#172536]"
-                      style={{
-                        clipPath: 'polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px))',
-                      }}
-                    >
-                      {preset.label}
-                    </button>
-                  ) : (
-                    /* Inactive tab with 52px height and rounded-[8px] corners matching reference */
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected="false"
-                      tabIndex={0}
-                      onClick={() => setPreset(key)}
-                      className="w-full h-[52px] flex items-center justify-center rounded-[8px] bg-[#172536] text-[#F4EFE4]/80 border border-[#F4EFE4]/20 font-public-condensed text-xs uppercase tracking-[0.18em] font-medium text-center cursor-pointer transition-colors hover:border-[#F4EFE4]/40 hover:text-[#F4EFE4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53] focus-visible:ring-offset-2 focus-visible:ring-offset-[#172536]"
-                    >
-                      {preset.label}
-                    </button>
-                  )}
+            {/* Preset 2: 50 / 10 */}
+            <div className="flex flex-col">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={is50_10}
+                disabled={status !== 'setup'}
+                onClick={() => applyPreset(50, 10, 180)}
+                className={`w-full h-[52px] flex items-center justify-center font-public-condensed text-xs uppercase tracking-[0.18em] font-bold text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53] ${
+                  status !== 'setup' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                } ${
+                  is50_10
+                    ? 'bg-[#F4EFE4] text-[#172536]'
+                    : 'rounded-[8px] bg-[#172536] text-[#F4EFE4]/80 border border-[#F4EFE4]/20 hover:border-[#F4EFE4]/40 hover:text-[#F4EFE4]'
+                }`}
+                style={
+                  is50_10
+                    ? { clipPath: 'polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }
+                    : undefined
+                }
+              >
+                EXTENDED 50 / 10 MIN
+              </button>
+              <div
+                className={`w-full h-[2px] mt-1 transition-opacity ${
+                  is50_10 ? 'bg-[#B68A53] opacity-100' : 'bg-transparent opacity-0'
+                }`}
+                aria-hidden="true"
+              />
+            </div>
 
-                  {/* Underline bar: gold when active, transparent spacer when inactive to ensure uniform column heights */}
-                  <div
-                    className={`w-full h-[2px] mt-1 transition-opacity ${
-                      isActive ? 'bg-[#B68A53] opacity-100' : 'bg-transparent opacity-0'
-                    }`}
-                    aria-hidden="true"
-                  />
-                </div>
-              );
-            })}
+            {/* Preset 3: 90 / 10 */}
+            <div className="flex flex-col">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={is90_10}
+                disabled={status !== 'setup'}
+                onClick={() => applyPreset(90, 10, 180)}
+                className={`w-full h-[52px] flex items-center justify-center font-public-condensed text-xs uppercase tracking-[0.18em] font-bold text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53] ${
+                  status !== 'setup' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                } ${
+                  is90_10
+                    ? 'bg-[#F4EFE4] text-[#172536]'
+                    : 'rounded-[8px] bg-[#172536] text-[#F4EFE4]/80 border border-[#F4EFE4]/20 hover:border-[#F4EFE4]/40 hover:text-[#F4EFE4]'
+                }`}
+                style={
+                  is90_10
+                    ? { clipPath: 'polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }
+                    : undefined
+                }
+              >
+                DEEP DIVE 90 / 10 MIN
+              </button>
+              <div
+                className={`w-full h-[2px] mt-1 transition-opacity ${
+                  is90_10 ? 'bg-[#B68A53] opacity-100' : 'bg-transparent opacity-0'
+                }`}
+                aria-hidden="true"
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -1,0 +1,578 @@
+'use client';
+
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import {
+  FocusSettings,
+  ScheduleSegment,
+  ScheduleSummary,
+  SessionPhase,
+  DEFAULT_FOCUS_SETTINGS,
+  buildSchedule,
+} from '@/lib/focusSchedule';
+import {
+  AmbientSoundId,
+  AudioSettings,
+  DEFAULT_AUDIO_SETTINGS,
+  loadAudioSettings,
+  saveAudioSettings,
+  getAmbientEngine,
+  getSharedAudioContext,
+  playChime,
+  playSkipTick,
+} from '@/lib/ambient';
+
+export type SessionStatus = 'setup' | 'running' | 'paused' | 'finished';
+
+const SETTINGS_STORAGE_KEY = 'track.focus.settings.v1';
+
+export function loadStoredSettings(): FocusSettings {
+  if (typeof window === 'undefined') return DEFAULT_FOCUS_SETTINGS;
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!raw) return DEFAULT_FOCUS_SETTINGS;
+    const parsed = JSON.parse(raw);
+    const studyMin =
+      typeof parsed.studyMin === 'number' && parsed.studyMin >= 5 && parsed.studyMin <= 120
+        ? parsed.studyMin
+        : DEFAULT_FOCUS_SETTINGS.studyMin;
+    const breakMin: 5 | 10 = parsed.breakMin === 10 ? 10 : 5;
+    const totalStudyMin =
+      typeof parsed.totalStudyMin === 'number' && parsed.totalStudyMin >= 15 && parsed.totalStudyMin <= 480
+        ? parsed.totalStudyMin
+        : DEFAULT_FOCUS_SETTINGS.totalStudyMin;
+
+    return { studyMin, breakMin, totalStudyMin };
+  } catch {
+    return DEFAULT_FOCUS_SETTINGS;
+  }
+}
+
+export function saveStoredSettings(settings: FocusSettings): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+  } catch {}
+}
+
+export interface UseFocusSessionReturn {
+  // Session states
+  status: SessionStatus;
+  phase: SessionPhase;
+  currentSegmentIndex: number;
+  currentSegment: ScheduleSegment | null;
+  totalSegments: number;
+  currentBlockNumber: number; // e.g. 2 in "BLOCK 2 OF 5"
+  totalFocusBlocks: number;   // e.g. 5
+  studiedMinutes: number;     // completed focus minutes
+  totalTargetStudyMinutes: number; // target total study minutes
+  remainingSeconds: number;   // remaining in active segment
+  formattedTime: string;      // MM:SS
+  segmentProgress: number;    // 0..1 remaining in current segment
+  overallProgress: number;    // 0..1 completed across total study time
+
+  // Settings & Schedule
+  settings: FocusSettings;
+  schedule: ScheduleSummary;
+  updateSettings: (changes: Partial<FocusSettings>) => void;
+  applyPreset: (studyMin: number, breakMin: 5 | 10, totalStudyMin?: number) => void;
+
+  // Controls
+  start: () => void;
+  pause: () => void;
+  resume: () => void;
+  togglePauseResume: () => void;
+  skip: () => void;
+
+  // Reset with inline confirm
+  isResetConfirmOpen: boolean;
+  openResetConfirm: () => void;
+  cancelResetConfirm: () => void;
+  confirmReset: () => void;
+
+  // Audio controls
+  soundId: AmbientSoundId;
+  setSoundId: (id: AmbientSoundId) => void;
+  volume: number;
+  setVolume: (v: number) => void;
+  pauseMusicInBreaks: boolean;
+  setPauseMusicInBreaks: (v: boolean) => void;
+  chimeMuted: boolean;
+  setChimeMuted: (v: boolean) => void;
+
+  // Speed multiplier
+  speedMultiplier: number;
+}
+
+export function useFocusSession(): UseFocusSessionReturn {
+  // 1. Settings state
+  const [settings, setSettings] = useState<FocusSettings>(DEFAULT_FOCUS_SETTINGS);
+  const [audioSettings, setAudioSettings] = useState<AudioSettings>(DEFAULT_AUDIO_SETTINGS);
+
+  // 2. Session state
+  const [status, setStatus] = useState<SessionStatus>('setup');
+  const [currentSegmentIndex, setCurrentSegmentIndex] = useState<number>(0);
+  const [remainingSeconds, setRemainingSeconds] = useState<number>(DEFAULT_FOCUS_SETTINGS.studyMin * 60);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState<boolean>(false);
+  const [speedMultiplier, setSpeedMultiplier] = useState<number>(1);
+
+  // Refs for tick loop & audio
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const targetTimestampRef = useRef<number | null>(null);
+  const remainingSecondsRef = useRef<number>(DEFAULT_FOCUS_SETTINGS.studyMin * 60);
+  const originalTitleRef = useRef<string>('');
+  const statusRef = useRef<SessionStatus>('setup');
+  const segmentIndexRef = useRef<number>(0);
+  const scheduleRef = useRef<ScheduleSummary>(buildSchedule(DEFAULT_FOCUS_SETTINGS));
+
+  statusRef.current = status;
+  segmentIndexRef.current = currentSegmentIndex;
+
+  // Compute live schedule
+  const schedule = useMemo(() => {
+    return buildSchedule(settings);
+  }, [settings]);
+  scheduleRef.current = schedule;
+
+  // Hydration effect: load settings, audio config, and url speed
+  useEffect(() => {
+    const loadedSettings = loadStoredSettings();
+    setSettings(loadedSettings);
+    setRemainingSeconds(loadedSettings.studyMin * 60);
+    remainingSecondsRef.current = loadedSettings.studyMin * 60;
+
+    const loadedAudio = loadAudioSettings();
+    setAudioSettings(loadedAudio);
+    const ambient = getAmbientEngine();
+    ambient.setVolume(loadedAudio.volume);
+
+    // Dev-only speed multiplier: ?speed=60 inert in production builds
+    if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const speedParam = params.get('speed');
+      if (speedParam) {
+        const parsedSpeed = parseFloat(speedParam);
+        if (!isNaN(parsedSpeed) && parsedSpeed > 0) {
+          setSpeedMultiplier(parsedSpeed);
+        }
+      }
+    }
+
+    if (typeof document !== 'undefined') {
+      originalTitleRef.current = document.title;
+    }
+  }, []);
+
+  // Sync remaining seconds when in setup mode and studyMin changes
+  useEffect(() => {
+    if (status === 'setup') {
+      const firstSegmentSeconds = (schedule.segments[0]?.minutes ?? settings.studyMin) * 60;
+      setRemainingSeconds(firstSegmentSeconds);
+      remainingSecondsRef.current = firstSegmentSeconds;
+    }
+  }, [status, settings.studyMin, schedule.segments]);
+
+  // Current segment info
+  const currentSegment: ScheduleSegment | null = schedule.segments[currentSegmentIndex] ?? null;
+  const phase: SessionPhase = currentSegment?.phase ?? 'focus';
+  const totalSegments = schedule.segments.length;
+
+  // Current focus block number (e.g. 2 for "BLOCK 2 OF 5")
+  const currentBlockNumber = useMemo(() => {
+    if (!currentSegment) return 1;
+    if (currentSegment.blockNumber) return currentSegment.blockNumber;
+    // If on a break, block number is the one just finished
+    let count = 0;
+    for (let i = 0; i <= currentSegmentIndex; i++) {
+      if (schedule.segments[i]?.phase === 'focus') count++;
+    }
+    return Math.max(1, count);
+  }, [currentSegment, currentSegmentIndex, schedule.segments]);
+
+  const totalFocusBlocks = schedule.focusBlocks;
+
+  // Completed study minutes calculation
+  const studiedMinutes = useMemo(() => {
+    let completed = 0;
+    for (let i = 0; i < currentSegmentIndex; i++) {
+      const seg = schedule.segments[i];
+      if (seg && seg.phase === 'focus') {
+        completed += seg.minutes;
+      }
+    }
+    // Add elapsed part of active focus segment
+    if (currentSegment?.phase === 'focus') {
+      const segTotalSec = currentSegment.minutes * 60;
+      const elapsedSec = Math.max(0, segTotalSec - remainingSeconds);
+      completed += Math.floor(elapsedSec / 60);
+    }
+    return Math.min(schedule.totalStudyMinutes, completed);
+  }, [currentSegmentIndex, currentSegment, remainingSeconds, schedule.segments, schedule.totalStudyMinutes]);
+
+  // Progress computations
+  const segmentTotalSeconds = (currentSegment?.minutes ?? settings.studyMin) * 60;
+  const segmentProgress = segmentTotalSeconds > 0
+    ? Math.max(0, Math.min(1, remainingSeconds / segmentTotalSeconds))
+    : 0;
+
+  const overallProgress = schedule.totalStudyMinutes > 0
+    ? Math.max(0, Math.min(1, studiedMinutes / schedule.totalStudyMinutes))
+    : 0;
+
+  // Formatted timer string MM:SS
+  const formattedTime = useMemo(() => {
+    const mins = Math.floor(remainingSeconds / 60);
+    const secs = remainingSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }, [remainingSeconds]);
+
+  // Document title updates while running
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    if (status === 'running') {
+      const label = phase === 'focus' ? 'FOCUS' : 'BREAK';
+      document.title = `[${label}] ${formattedTime} — TRACK`;
+    } else if (status === 'finished') {
+      document.title = 'Session Finished — TRACK';
+    } else {
+      if (originalTitleRef.current) {
+        document.title = originalTitleRef.current;
+      }
+    }
+
+    return () => {
+      if (originalTitleRef.current && typeof document !== 'undefined') {
+        document.title = originalTitleRef.current;
+      }
+    };
+  }, [status, phase, formattedTime]);
+
+  // Helper to clear interval
+  const clearIntervalTimer = useCallback(() => {
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  // Update Settings
+  const updateSettings = useCallback(
+    (changes: Partial<FocusSettings>) => {
+      if (status !== 'setup') return; // Settings locked during running/paused
+      setSettings((prev) => {
+        const next = { ...prev, ...changes };
+        saveStoredSettings(next);
+        return next;
+      });
+    },
+    [status]
+  );
+
+  // Apply Presets (25/5, 50/10, 90/10)
+  const applyPreset = useCallback(
+    (studyMin: number, breakMin: 5 | 10, totalStudyMin?: number) => {
+      if (status !== 'setup') return;
+      setSettings((prev) => {
+        const next: FocusSettings = {
+          studyMin,
+          breakMin,
+          totalStudyMin: totalStudyMin ?? prev.totalStudyMin,
+        };
+        saveStoredSettings(next);
+        return next;
+      });
+    },
+    [status]
+  );
+
+  // Advance to next segment or finish
+  const advanceSegment = useCallback(
+    (fromIndex: number) => {
+      const sched = scheduleRef.current;
+      const nextIndex = fromIndex + 1;
+
+      if (nextIndex < sched.segments.length) {
+        const nextSeg = sched.segments[nextIndex];
+        const nextSeconds = nextSeg.minutes * 60;
+        setCurrentSegmentIndex(nextIndex);
+        segmentIndexRef.current = nextIndex;
+        setRemainingSeconds(nextSeconds);
+        remainingSecondsRef.current = nextSeconds;
+
+        // Set target timestamp for next segment
+        const now = Date.now();
+        const durationMs = (nextSeconds * 1000) / speedMultiplier;
+        targetTimestampRef.current = now + durationMs;
+
+        // Play segment chime
+        playChime('segment', audioSettings.chimeMuted);
+
+        // Music break-ducking
+        const ambient = getAmbientEngine();
+        if (nextSeg.phase === 'break' && audioSettings.pauseInBreaks) {
+          ambient.fadeOut(300);
+        } else if (nextSeg.phase === 'focus' && audioSettings.pauseInBreaks) {
+          ambient.fadeIn(300);
+        }
+      } else {
+        // Last segment finished!
+        clearIntervalTimer();
+        targetTimestampRef.current = null;
+        setStatus('finished');
+        statusRef.current = 'finished';
+        setRemainingSeconds(0);
+        remainingSecondsRef.current = 0;
+
+        // Play finished chime
+        playChime('finished', audioSettings.chimeMuted);
+
+        // Pause ambient music
+        const ambient = getAmbientEngine();
+        ambient.fadeOut(300);
+      }
+    },
+    [audioSettings.chimeMuted, audioSettings.pauseInBreaks, clearIntervalTimer, speedMultiplier]
+  );
+
+  // START action
+  const start = useCallback(() => {
+    if (status !== 'setup') return;
+
+    // User gesture initializes AudioContext
+    getSharedAudioContext();
+
+    const sched = scheduleRef.current;
+    if (sched.segments.length === 0) return;
+
+    const firstSegment = sched.segments[0];
+    const initialSeconds = firstSegment.minutes * 60;
+
+    setCurrentSegmentIndex(0);
+    segmentIndexRef.current = 0;
+    setRemainingSeconds(initialSeconds);
+    remainingSecondsRef.current = initialSeconds;
+
+    const now = Date.now();
+    const durationMs = (initialSeconds * 1000) / speedMultiplier;
+    targetTimestampRef.current = now + durationMs;
+
+    setStatus('running');
+    statusRef.current = 'running';
+    setIsResetConfirmOpen(false);
+
+    // Start ambient music if active
+    const ambient = getAmbientEngine();
+    if (audioSettings.sound !== 'off') {
+      ambient.setSound(audioSettings.sound);
+      ambient.resume();
+    }
+  }, [status, speedMultiplier, audioSettings.sound]);
+
+  // PAUSE action
+  const pause = useCallback(() => {
+    if (status !== 'running') return;
+
+    clearIntervalTimer();
+    if (targetTimestampRef.current !== null) {
+      const now = Date.now();
+      const msRemaining = Math.max(0, (targetTimestampRef.current - now) * speedMultiplier);
+      const secRemaining = Math.max(0, Math.ceil(msRemaining / 1000));
+      setRemainingSeconds(secRemaining);
+      remainingSecondsRef.current = secRemaining;
+    }
+    targetTimestampRef.current = null;
+    setStatus('paused');
+    statusRef.current = 'paused';
+
+    // Pause ambient music
+    const ambient = getAmbientEngine();
+    ambient.pause();
+  }, [status, speedMultiplier, clearIntervalTimer]);
+
+  // RESUME action
+  const resume = useCallback(() => {
+    if (status !== 'paused') return;
+
+    const now = Date.now();
+    const durationMs = (remainingSecondsRef.current * 1000) / speedMultiplier;
+    targetTimestampRef.current = now + durationMs;
+
+    setStatus('running');
+    statusRef.current = 'running';
+
+    // Resume ambient music
+    const ambient = getAmbientEngine();
+    if (audioSettings.sound !== 'off') {
+      const currentPhase = scheduleRef.current.segments[segmentIndexRef.current]?.phase ?? 'focus';
+      if (!(currentPhase === 'break' && audioSettings.pauseInBreaks)) {
+        ambient.resume();
+      }
+    }
+  }, [status, speedMultiplier, audioSettings.sound, audioSettings.pauseInBreaks]);
+
+  // Toggle PAUSE / RESUME
+  const togglePauseResume = useCallback(() => {
+    if (status === 'running') {
+      pause();
+    } else if (status === 'paused') {
+      resume();
+    }
+  }, [status, pause, resume]);
+
+  // SKIP action: ends current segment immediately (short tick, no chime)
+  const skip = useCallback(() => {
+    if (status !== 'running' && status !== 'paused') return;
+
+    playSkipTick(audioSettings.chimeMuted);
+    advanceSegment(segmentIndexRef.current);
+  }, [status, audioSettings.chimeMuted, advanceSegment]);
+
+  // RESET flow with inline confirm
+  const openResetConfirm = useCallback(() => {
+    setIsResetConfirmOpen(true);
+  }, []);
+
+  const cancelResetConfirm = useCallback(() => {
+    setIsResetConfirmOpen(false);
+  }, []);
+
+  const confirmReset = useCallback(() => {
+    clearIntervalTimer();
+    targetTimestampRef.current = null;
+    setStatus('setup');
+    statusRef.current = 'setup';
+    setCurrentSegmentIndex(0);
+    segmentIndexRef.current = 0;
+    setIsResetConfirmOpen(false);
+
+    const initialSeconds = (scheduleRef.current.segments[0]?.minutes ?? settings.studyMin) * 60;
+    setRemainingSeconds(initialSeconds);
+    remainingSecondsRef.current = initialSeconds;
+
+    // Pause / reset audio
+    const ambient = getAmbientEngine();
+    ambient.pause();
+
+    if (originalTitleRef.current && typeof document !== 'undefined') {
+      document.title = originalTitleRef.current;
+    }
+  }, [clearIntervalTimer, settings.studyMin]);
+
+  // 250ms drift-free tick loop
+  useEffect(() => {
+    if (status !== 'running') {
+      clearIntervalTimer();
+      return;
+    }
+
+    const tick = () => {
+      if (targetTimestampRef.current === null) return;
+
+      const now = Date.now();
+      const msRemaining = (targetTimestampRef.current - now) * speedMultiplier;
+
+      if (msRemaining <= 0) {
+        // Current segment completed
+        advanceSegment(segmentIndexRef.current);
+        return;
+      }
+
+      const secRemaining = Math.max(0, Math.ceil(msRemaining / 1000));
+      setRemainingSeconds(secRemaining);
+      remainingSecondsRef.current = secRemaining;
+    };
+
+    tick();
+    intervalRef.current = setInterval(tick, 250);
+
+    return () => {
+      clearIntervalTimer();
+    };
+  }, [status, speedMultiplier, advanceSegment, clearIntervalTimer]);
+
+  // Audio settings mutators
+  const setSoundId = useCallback((id: AmbientSoundId) => {
+    setAudioSettings((prev) => {
+      const next = { ...prev, sound: id };
+      saveAudioSettings(next);
+      const ambient = getAmbientEngine();
+      ambient.setSound(id);
+      if (statusRef.current === 'running') {
+        const curPhase = scheduleRef.current.segments[segmentIndexRef.current]?.phase ?? 'focus';
+        if (!(curPhase === 'break' && next.pauseInBreaks)) {
+          ambient.resume();
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  const setVolume = useCallback((v: number) => {
+    setAudioSettings((prev) => {
+      const next = { ...prev, volume: v };
+      saveAudioSettings(next);
+      const ambient = getAmbientEngine();
+      ambient.setVolume(v);
+      return next;
+    });
+  }, []);
+
+  const setPauseMusicInBreaks = useCallback((v: boolean) => {
+    setAudioSettings((prev) => {
+      const next = { ...prev, pauseInBreaks: v };
+      saveAudioSettings(next);
+      return next;
+    });
+  }, []);
+
+  const setChimeMuted = useCallback((v: boolean) => {
+    setAudioSettings((prev) => {
+      const next = { ...prev, chimeMuted: v };
+      saveAudioSettings(next);
+      return next;
+    });
+  }, []);
+
+  return {
+    status,
+    phase,
+    currentSegmentIndex,
+    currentSegment,
+    totalSegments,
+    currentBlockNumber,
+    totalFocusBlocks,
+    studiedMinutes,
+    totalTargetStudyMinutes: schedule.totalStudyMinutes,
+    remainingSeconds,
+    formattedTime,
+    segmentProgress,
+    overallProgress,
+
+    settings,
+    schedule,
+    updateSettings,
+    applyPreset,
+
+    start,
+    pause,
+    resume,
+    togglePauseResume,
+    skip,
+
+    isResetConfirmOpen,
+    openResetConfirm,
+    cancelResetConfirm,
+    confirmReset,
+
+    soundId: audioSettings.sound,
+    setSoundId,
+    volume: audioSettings.volume,
+    setVolume,
+    pauseMusicInBreaks: audioSettings.pauseInBreaks,
+    setPauseMusicInBreaks,
+    chimeMuted: audioSettings.chimeMuted,
+    setChimeMuted,
+
+    speedMultiplier,
+  };
+}
