@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Cormorant_Garamond } from 'next/font/google'
@@ -27,6 +27,16 @@ export function ClosedBook() {
   const [isOpening, setIsOpening] = useState(false)
   const [isReducedMotion, setIsReducedMotion] = useState(false)
 
+  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const failSafeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (openTimerRef.current) clearTimeout(openTimerRef.current)
+      if (failSafeTimerRef.current) clearTimeout(failSafeTimerRef.current)
+    }
+  }, [])
+
   const currentYear = new Date().getFullYear()
 
   const switchMode = (newMode: 'open' | 'begin') => {
@@ -42,6 +52,9 @@ export function ClosedBook() {
     setConfirmationMessage(null)
     setPasswordError(false)
 
+    if (openTimerRef.current) clearTimeout(openTimerRef.current)
+    if (failSafeTimerRef.current) clearTimeout(failSafeTimerRef.current)
+
     if (!email.trim()) {
       setErrorMessage('Please enter an email address.')
       return
@@ -55,13 +68,13 @@ export function ClosedBook() {
       }
 
       setIsSubmitting(true)
-      router.prefetch('/home')
 
       try {
         const { session, error } = await signUp(email, password)
 
         if (error) {
           setIsSubmitting(false)
+          setIsOpening(false)
           setErrorMessage(error.message || 'Could not create account.')
           return
         }
@@ -71,6 +84,7 @@ export function ClosedBook() {
         if (session) {
           // Email confirmation is off — open the book and land on /home
           const targetUrl = '/home'
+          router.prefetch(targetUrl)
 
           const prefersReducedMotion =
             typeof window !== 'undefined' &&
@@ -79,24 +93,42 @@ export function ClosedBook() {
           setIsOpening(true)
           if (prefersReducedMotion) {
             setIsReducedMotion(true)
-            setTimeout(() => {
+            openTimerRef.current = setTimeout(() => {
               router.push(targetUrl)
+              failSafeTimerRef.current = setTimeout(() => {
+                if (
+                  typeof window !== 'undefined' &&
+                  window.location.pathname !== '/home'
+                ) {
+                  window.location.assign('/home')
+                }
+              }, 4000)
             }, 200)
             return
           }
 
           // Router.push after the 1100ms swing ends
-          setTimeout(() => {
+          openTimerRef.current = setTimeout(() => {
             router.push(targetUrl)
+            failSafeTimerRef.current = setTimeout(() => {
+              if (
+                typeof window !== 'undefined' &&
+                window.location.pathname !== '/home'
+              ) {
+                window.location.assign('/home')
+              }
+            }, 4000)
           }, 1100)
         } else {
           // Confirmation is on — show ink message, do not open cover
+          setIsOpening(false)
           setConfirmationMessage(
             'Check your email to confirm, then open the book.'
           )
         }
       } catch (err: unknown) {
         setIsSubmitting(false)
+        setIsOpening(false)
         const message =
           err instanceof Error ? err.message : 'Could not create account.'
         setErrorMessage(message)
@@ -109,19 +141,20 @@ export function ClosedBook() {
       }
 
       setIsSubmitting(true)
-      router.prefetch('/home')
 
       try {
         const { user, error } = await signIn(email, password)
 
         if (error || !user) {
           setIsSubmitting(false)
+          setIsOpening(false)
           setErrorMessage(error?.message || 'Invalid email or password.')
           return
         }
 
         // Successful sign in — route to /home
         const targetUrl = '/home'
+        router.prefetch(targetUrl)
 
         const prefersReducedMotion =
           typeof window !== 'undefined' &&
@@ -130,18 +163,35 @@ export function ClosedBook() {
         setIsOpening(true)
         if (prefersReducedMotion) {
           setIsReducedMotion(true)
-          setTimeout(() => {
+          openTimerRef.current = setTimeout(() => {
             router.push(targetUrl)
+            failSafeTimerRef.current = setTimeout(() => {
+              if (
+                typeof window !== 'undefined' &&
+                window.location.pathname !== '/home'
+              ) {
+                window.location.assign('/home')
+              }
+            }, 4000)
           }, 200)
           return
         }
 
         // Router.push after the 1100ms swing ends
-        setTimeout(() => {
+        openTimerRef.current = setTimeout(() => {
           router.push(targetUrl)
+          failSafeTimerRef.current = setTimeout(() => {
+            if (
+              typeof window !== 'undefined' &&
+              window.location.pathname !== '/home'
+            ) {
+              window.location.assign('/home')
+            }
+          }, 4000)
         }, 1100)
       } catch (err: unknown) {
         setIsSubmitting(false)
+        setIsOpening(false)
         const message =
           err instanceof Error ? err.message : 'Invalid email or password.'
         setErrorMessage(message)

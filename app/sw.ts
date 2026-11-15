@@ -31,9 +31,15 @@ const serwist = new Serwist({
   runtimeCaching: [
     // 1. Book month spreads (NetworkFirst so latest is fetched when online, cached version used offline)
     {
-      matcher: ({ url }) => url.pathname.startsWith('/book/'),
+      matcher: ({ request, url }) => {
+        if (!url.pathname.startsWith('/book/')) return false
+        if (request.mode !== 'navigate') return false
+        if (url.searchParams.has('_rsc')) return false
+        if (request.headers.get('RSC')) return false
+        return true
+      },
       handler: new NetworkFirst({
-        cacheName: 'mm-book-month-pages',
+        cacheName: 'mm-book-month-pages-v2',
         networkTimeoutSeconds: 5,
         plugins: [
           new ExpirationPlugin({
@@ -87,6 +93,11 @@ const serwist = new Serwist({
       }),
     },
   ],
+})
+
+// Purge legacy v1 book cache on activate (TASK F2)
+self.addEventListener('activate', (event: ExtendableEvent) => {
+  event.waitUntil(caches.delete('mm-book-month-pages'))
 })
 
 // Listen for sign-out cache clearance (Correction 2: Privacy / L11)

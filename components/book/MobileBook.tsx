@@ -172,37 +172,101 @@ export function MobileBook({
     }
   }, [])
 
+  const failSafeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasNavigatedRef = useRef(false)
+
+  useEffect(() => {
+    return () => {
+      if (failSafeTimerRef.current) {
+        clearTimeout(failSafeTimerRef.current)
+      }
+    }
+  }, [])
+
+  const navigateToLogin = useCallback(() => {
+    if (hasNavigatedRef.current) return
+    hasNavigatedRef.current = true
+    window.location.replace('/login')
+  }, [])
+
   // Mobile reverse cover-close & sign-out (Task 15 / Section 5.3)
   const handleLockBook = useCallback(async () => {
     if (isClosing) return
     setIsClosing(true)
+    hasNavigatedRef.current = false
 
     if (prefersReducedMotion) {
       setTimeout(async () => {
+        failSafeTimerRef.current = setTimeout(() => {
+          navigateToLogin()
+        }, 3000)
+
         try {
-          await signOut()
+          const res = await signOut()
+          if (failSafeTimerRef.current) {
+            clearTimeout(failSafeTimerRef.current)
+            failSafeTimerRef.current = null
+          }
+          if (res?.error) {
+            console.error('Sign-out error:', res.error)
+            setIsClosing(false)
+            return
+          }
+          navigateToLogin()
         } catch (err) {
+          if (failSafeTimerRef.current) {
+            clearTimeout(failSafeTimerRef.current)
+            failSafeTimerRef.current = null
+          }
           console.error('Sign-out error:', err)
+          setIsClosing(false)
         }
-        window.location.replace('/login')
       }, 150)
       return
     }
 
     // Midpoint: sign out & clear caches
-    setTimeout(async () => {
-      try {
-        await signOut()
-      } catch (err) {
-        console.error('Sign-out error:', err)
-      }
-    }, 450)
+    const signOutPromise = new Promise<{ error: any }>((resolve) => {
+      setTimeout(async () => {
+        try {
+          const res = await signOut()
+          resolve(res || { error: null })
+        } catch (err) {
+          resolve({ error: err })
+        }
+      }, 450)
+    })
 
-    // Complete 900ms reverse close: full navigation to /login
-    setTimeout(() => {
-      window.location.replace('/login')
+    // Complete 900ms reverse close: wait for signOut to finish (up to 3s fail-safe), then navigate
+    setTimeout(async () => {
+      failSafeTimerRef.current = setTimeout(() => {
+        navigateToLogin()
+      }, 3000)
+
+      try {
+        const res = await signOutPromise
+        if (failSafeTimerRef.current) {
+          clearTimeout(failSafeTimerRef.current)
+          failSafeTimerRef.current = null
+        }
+
+        if (res?.error) {
+          console.error('Sign-out error:', res.error)
+          setIsClosing(false)
+          return
+        }
+
+        navigateToLogin()
+      } catch (err) {
+        if (failSafeTimerRef.current) {
+          clearTimeout(failSafeTimerRef.current)
+          failSafeTimerRef.current = null
+        }
+        console.error('Sign-out error:', err)
+        setIsClosing(false)
+      }
     }, 900)
-  }, [isClosing, prefersReducedMotion])
+  }, [isClosing, prefersReducedMotion, navigateToLogin])
 
   // Navigate to previous page or previous month
   const handleTurnBack = useCallback(() => {

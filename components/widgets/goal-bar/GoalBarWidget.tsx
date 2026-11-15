@@ -119,10 +119,20 @@ export function GoalBarDesktop({
         return
       }
       setLoading(true)
-      const res = await getWidgetEntriesWithCache(sourceWidgetId)
-      if (!cancelled) {
-        setEntries(res.success && res.data ? res.data : [])
-        setLoading(false)
+      try {
+        const res = await getWidgetEntriesWithCache(sourceWidgetId)
+        if (!cancelled) {
+          setEntries(res.success && res.data ? res.data : [])
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Failed to load widget entries:', err)
+          setEntries([])
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
       }
     }
     fetchSource()

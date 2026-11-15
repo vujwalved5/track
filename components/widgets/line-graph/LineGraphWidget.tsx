@@ -126,14 +126,24 @@ export function LineGraphDesktop({
         return
       }
       setLoading(true)
-      const res = await getWidgetEntriesWithCache(sourceWidgetId)
-      if (!cancelled) {
-        if (res.success && res.data) {
-          setEntries(res.data)
-        } else {
+      try {
+        const res = await getWidgetEntriesWithCache(sourceWidgetId)
+        if (!cancelled) {
+          if (res.success && res.data) {
+            setEntries(res.data)
+          } else {
+            setEntries([])
+          }
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Failed to load widget entries:', err)
           setEntries([])
         }
-        setLoading(false)
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
       }
     }
     fetchSourceData()

@@ -129,6 +129,23 @@ export function OpenBook({
   const [isClosing, setIsClosing] = useState(false)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
 
+  const failSafeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasNavigatedRef = useRef(false)
+
+  useEffect(() => {
+    return () => {
+      if (failSafeTimerRef.current) {
+        clearTimeout(failSafeTimerRef.current)
+      }
+    }
+  }, [])
+
+  const navigateToLogin = useCallback(() => {
+    if (hasNavigatedRef.current) return
+    hasNavigatedRef.current = true
+    router.replace('/login')
+  }, [router])
+
   // Tactile Reverse Cover-Closing & Sign-Out (Task 15 / Section 5.3)
   const handleLockBook = useCallback(async () => {
     if (isClosing) return
@@ -138,34 +155,81 @@ export function OpenBook({
     setActiveConfigWidgetId(null)
     setPickedWidgetDef(null)
     setIsClosing(true)
+    hasNavigatedRef.current = false
 
     if (prefersReducedMotion) {
       setTimeout(async () => {
+        failSafeTimerRef.current = setTimeout(() => {
+          navigateToLogin()
+        }, 3000)
+
         try {
-          await signOut()
+          const res = await signOut()
+          if (failSafeTimerRef.current) {
+            clearTimeout(failSafeTimerRef.current)
+            failSafeTimerRef.current = null
+          }
+          if (res?.error) {
+            console.error('Sign-out error:', res.error)
+            setIsClosing(false)
+            return
+          }
+          navigateToLogin()
         } catch (err) {
+          if (failSafeTimerRef.current) {
+            clearTimeout(failSafeTimerRef.current)
+            failSafeTimerRef.current = null
+          }
           console.error('Sign-out error:', err)
+          setIsClosing(false)
         }
-        router.replace('/login')
       }, 150)
       return
     }
 
     // Motion enabled: 900ms 3D reverse cover-closing sequence
     // Midpoint (450ms): sign out and clear local caches
-    setTimeout(async () => {
-      try {
-        await signOut()
-      } catch (err) {
-        console.error('Sign-out error:', err)
-      }
-    }, 450)
+    const signOutPromise = new Promise<{ error: any }>((resolve) => {
+      setTimeout(async () => {
+        try {
+          const res = await signOut()
+          resolve(res || { error: null })
+        } catch (err) {
+          resolve({ error: err })
+        }
+      }, 450)
+    })
 
-    // Complete sequence (900ms): full navigation to /login preventing back cache restore
-    setTimeout(() => {
-      router.replace('/login')
+    // Complete sequence (900ms): wait for signOut to finish (up to 3s fail-safe), then navigate
+    setTimeout(async () => {
+      failSafeTimerRef.current = setTimeout(() => {
+        navigateToLogin()
+      }, 3000)
+
+      try {
+        const res = await signOutPromise
+        if (failSafeTimerRef.current) {
+          clearTimeout(failSafeTimerRef.current)
+          failSafeTimerRef.current = null
+        }
+
+        if (res?.error) {
+          console.error('Sign-out error:', res.error)
+          setIsClosing(false)
+          return
+        }
+
+        navigateToLogin()
+      } catch (err) {
+        if (failSafeTimerRef.current) {
+          clearTimeout(failSafeTimerRef.current)
+          failSafeTimerRef.current = null
+        }
+        console.error('Sign-out error:', err)
+        setIsClosing(false)
+      }
     }, 900)
-  }, [isClosing, prefersReducedMotion])
+  }, [isClosing, prefersReducedMotion, navigateToLogin])
 
   // Viewport detection (Correction 7: exactly ONE tree, null avoids hydration mismatch)
   const [isDesktop, setIsDesktop] = useState<boolean | null>(null)

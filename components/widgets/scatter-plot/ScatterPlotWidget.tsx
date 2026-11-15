@@ -111,15 +111,26 @@ function ScatterPlotDesktopInner({
         return
       }
       setLoading(true)
-      const [res1, res2] = await Promise.all([
-        getWidgetEntriesWithCache(source1Id),
-        getWidgetEntriesWithCache(source2Id),
-      ])
+      try {
+        const [res1, res2] = await Promise.all([
+          getWidgetEntriesWithCache(source1Id),
+          getWidgetEntriesWithCache(source2Id),
+        ])
 
-      if (!cancelled) {
-        setEntries1(res1.success && res1.data ? res1.data : [])
-        setEntries2(res2.success && res2.data ? res2.data : [])
-        setLoading(false)
+        if (!cancelled) {
+          setEntries1(res1.success && res1.data ? res1.data : [])
+          setEntries2(res2.success && res2.data ? res2.data : [])
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Failed to load widget entries:', err)
+          setEntries1([])
+          setEntries2([])
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
       }
     }
     fetchBoth()
