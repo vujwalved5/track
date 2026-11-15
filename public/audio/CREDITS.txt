@@ -1,0 +1,37 @@
+AUDIO ASSET CREDITS & LICENSING
+==================================
+
+All audio assets utilized in the Memorable Moments Focus Room Sound Player are verified CC0 / Public Domain dedications under 3MB in file size, requiring no attribution or commercial restrictions.
+
+1. Rain & Nature: /audio/rain.ogg
+---------------------------------
+- Title: Rain (1).ogg
+- Source: Wikimedia Commons / PDSounds
+- Page URL: https://commons.wikimedia.org/wiki/File:Rain_(1).ogg
+- Direct URL: https://upload.wikimedia.org/wikipedia/commons/0/0e/Rain_(1).ogg
+- Author: ezwa (PDSounds)
+- License: CC0 1.0 Universal / Public Domain Dedication
+- File Size: 585,522 bytes (~572 KB)
+- Duration: 44.95 seconds
+- Audio Format: Ogg Vorbis (audio/ogg)
+
+2. Soft Piano: /audio/piano.ogg
+--------------------------------
+- Title: Nocturne in E-flat major, Op. 9, No. 2 (Frédéric Chopin)
+- Source: Wikimedia Commons / Musopen
+- Page URL: https://commons.wikimedia.org/wiki/File:Chopin_Nocturne_No._2_in_E_Flat_Major,_Op._9.ogg
+- Direct URL: https://upload.wikimedia.org/wikipedia/commons/0/04/Chopin_Nocturne_No._2_in_E_Flat_Major,_Op._9.ogg
+- Composer: Frédéric Chopin (1810–1849)
+- Performer: Peter Johnston (Musopen)
+- License: Creative Commons CC0 1.0 Universal Public Domain Dedication
+- File Size: 2,193,822 bytes (~2.09 MB)
+- Duration: 4 minutes 19 seconds
+- Audio Format: Ogg Vorbis (audio/ogg)
+
+3. Deep Focus: Procedural Brownian / Pink Noise
+-----------------------------------------------
+- Implementation: In-memory synthesis via Web Audio API AudioBuffer
+- Source: Procedural generation algorithm (leaky integrator Brownian noise filter)
+- File Size: 0 KB (zero network requests, purely client-side synthesized)
+- Duration: 6.0 seconds seamless loop buffer
+- License: Dedicated to Public Domain

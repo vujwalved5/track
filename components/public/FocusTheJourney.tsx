@@ -1,4 +1,11 @@
+'use client'
+
+import { useSoundPlayer } from './hooks/useSoundPlayer'
+
 export function FocusTheJourney() {
+  const { activeTrack, isPlaying, volume, togglePlay, selectTrack, setVolume } =
+    useSoundPlayer()
+
   // Waveform bar heights (symmetrical around midline)
   const barHeights = [
     12, 28, 22, 34, 30, 26, 20, 32, 24, 14, 18, 30, 12, 34, 18, 14, 10, 32, 12, 8, 24, 28, 12, 16, 12, 26, 16,
@@ -175,44 +182,77 @@ export function FocusTheJourney() {
                 <h3 className="font-public-display text-4xl sm:text-[46px] text-[#F4EFE4] font-normal leading-tight mt-3">
                   Ambient focus
                 </h3>
-                <p className="font-public-sans text-sm text-[#F4EFE4]/70 mt-1">
-                  Music player coming soon
-                </p>
               </div>
 
               {/* Circular Gold-Bordered Play Button */}
               <button
                 type="button"
-                aria-label="Play sound preview (static preview)"
-                aria-disabled="true"
-                className="w-12 h-12 rounded-full border border-[#B68A53] bg-transparent flex items-center justify-center shrink-0 cursor-default"
+                aria-label={isPlaying ? 'Pause ambient focus sound' : 'Play ambient focus sound'}
+                onClick={togglePlay}
+                className="w-12 h-12 rounded-full border border-[#B68A53] bg-transparent hover:bg-[#B68A53]/10 active:scale-95 transition-all flex items-center justify-center shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B68A53] focus-visible:ring-offset-2 focus-visible:ring-offset-[#172536]"
               >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M4.5 2.5L11 7L4.5 11.5V2.5Z"
-                    fill="#F4EFE4"
-                    fillOpacity="0.85"
-                  />
-                </svg>
+                {isPlaying ? (
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <rect
+                      x="3.5"
+                      y="2.5"
+                      width="2.5"
+                      height="9"
+                      rx="0.5"
+                      fill="#F4EFE4"
+                      fillOpacity="0.9"
+                    />
+                    <rect
+                      x="8"
+                      y="2.5"
+                      width="2.5"
+                      height="9"
+                      rx="0.5"
+                      fill="#F4EFE4"
+                      fillOpacity="0.9"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M4.5 2.5L11 7L4.5 11.5V2.5Z"
+                      fill="#F4EFE4"
+                      fillOpacity="0.85"
+                    />
+                  </svg>
+                )}
               </button>
             </div>
 
             {/* Middle Row: Waveform & Volume Control */}
             <div className="flex items-center justify-between gap-4 py-1 mt-2">
               {/* 27 Mirrored Waveform Bars in Gold */}
-              <div className="flex items-center gap-[3.5px] h-10">
+              <div className="flex items-center gap-[3.5px] h-10" aria-hidden="true">
                 {barHeights.map((h, i) => (
                   <span
                     key={i}
-                    className="w-[2.5px] bg-[#B68A53] rounded-full inline-block"
-                    style={{ height: `${h}px` }}
+                    className={`w-[2.5px] bg-[#B68A53] rounded-full inline-block transition-opacity duration-300 ${
+                      isPlaying ? 'motion-safe:animate-pulse' : 'opacity-80'
+                    }`}
+                    style={{
+                      height: `${h}px`,
+                      animationDelay: isPlaying ? `${(i % 5) * 150}ms` : undefined,
+                      animationDuration: isPlaying ? '1.8s' : undefined,
+                    }}
                   />
                 ))}
               </div>
@@ -220,38 +260,82 @@ export function FocusTheJourney() {
               {/* Developer note hidden per prompt instructions */}
               <span className="sr-only">WAVEFORM PULSES GENTLY / FUTURE IMPLEMENTATION</span>
 
-              {/* Volume Slider Mockup */}
+              {/* Volume Slider */}
               <div className="flex items-center gap-2.5 shrink-0 pt-4">
-                <span className="font-public-condensed text-xs uppercase tracking-[0.2em] font-semibold text-[#B68A53]">
+                <label
+                  htmlFor="focus-room-sound-volume"
+                  className="font-public-condensed text-xs uppercase tracking-[0.2em] font-semibold text-[#B68A53] cursor-pointer"
+                >
                   VOL
-                </span>
-                <div className="w-20 sm:w-24 h-[2px] bg-[#8799A7]/40 relative rounded-full">
-                  <div className="h-full bg-[#F4EFE4] rounded-full w-3/4" />
-                  <div className="absolute top-1/2 left-3/4 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[#F4EFE4] rounded-full shadow" />
+                </label>
+                <div className="relative flex items-center w-20 sm:w-24 h-6 focus-within:ring-1 focus-within:ring-[#B68A53] focus-within:ring-offset-1 focus-within:ring-offset-[#172536] rounded-sm">
+                  <div className="w-full h-[2px] bg-[#8799A7]/40 relative rounded-full pointer-events-none">
+                    <div
+                      className="h-full bg-[#F4EFE4] rounded-full"
+                      style={{ width: `${Math.round(volume * 100)}%` }}
+                    />
+                    <div
+                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[#F4EFE4] rounded-full shadow"
+                      style={{ left: `${Math.round(volume * 100)}%` }}
+                    />
+                  </div>
+                  <input
+                    id="focus-room-sound-volume"
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={volume}
+                    onChange={(e) => setVolume(parseFloat(e.target.value))}
+                    aria-label="Volume"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
                 </div>
               </div>
             </div>
 
             {/* Bottom Row: 3 Sound Chips */}
-            <div className="flex flex-wrap items-center gap-2.5 pt-2">
+            <div
+              className="flex flex-wrap items-center gap-2.5 pt-2"
+              role="radiogroup"
+              aria-label="Ambient sound track"
+            >
               <button
                 type="button"
-                aria-disabled="true"
-                className="font-public-condensed text-xs uppercase tracking-[0.16em] px-3.5 py-1.5 border border-[#F4EFE4]/20 rounded-[2px] text-[#F4EFE4]/80 bg-white/[0.02] cursor-default"
+                role="radio"
+                aria-checked={activeTrack === 'rain'}
+                onClick={() => selectTrack('rain')}
+                className={`font-public-condensed text-xs uppercase tracking-[0.16em] px-3.5 py-1.5 rounded-[2px] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#B68A53] ${
+                  activeTrack === 'rain'
+                    ? 'border border-[#B68A53] text-[#F4EFE4] bg-[#B68A53]/20 font-semibold shadow-sm'
+                    : 'border border-[#F4EFE4]/20 text-[#F4EFE4]/70 bg-white/[0.02] hover:border-[#F4EFE4]/40 hover:text-[#F4EFE4]'
+                }`}
               >
                 RAIN & NATURE
               </button>
               <button
                 type="button"
-                aria-disabled="true"
-                className="font-public-condensed text-xs uppercase tracking-[0.16em] px-3.5 py-1.5 border border-[#F4EFE4]/20 rounded-[2px] text-[#F4EFE4]/80 bg-white/[0.02] cursor-default"
+                role="radio"
+                aria-checked={activeTrack === 'piano'}
+                onClick={() => selectTrack('piano')}
+                className={`font-public-condensed text-xs uppercase tracking-[0.16em] px-3.5 py-1.5 rounded-[2px] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#B68A53] ${
+                  activeTrack === 'piano'
+                    ? 'border border-[#B68A53] text-[#F4EFE4] bg-[#B68A53]/20 font-semibold shadow-sm'
+                    : 'border border-[#F4EFE4]/20 text-[#F4EFE4]/70 bg-white/[0.02] hover:border-[#F4EFE4]/40 hover:text-[#F4EFE4]'
+                }`}
               >
                 SOFT PIANO
               </button>
               <button
                 type="button"
-                aria-disabled="true"
-                className="font-public-condensed text-xs uppercase tracking-[0.16em] px-3.5 py-1.5 border border-[#F4EFE4]/20 rounded-[2px] text-[#F4EFE4]/80 bg-white/[0.02] cursor-default"
+                role="radio"
+                aria-checked={activeTrack === 'focus'}
+                onClick={() => selectTrack('focus')}
+                className={`font-public-condensed text-xs uppercase tracking-[0.16em] px-3.5 py-1.5 rounded-[2px] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#B68A53] ${
+                  activeTrack === 'focus'
+                    ? 'border border-[#B68A53] text-[#F4EFE4] bg-[#B68A53]/20 font-semibold shadow-sm'
+                    : 'border border-[#F4EFE4]/20 text-[#F4EFE4]/70 bg-white/[0.02] hover:border-[#F4EFE4]/40 hover:text-[#F4EFE4]'
+                }`}
               >
                 DEEP FOCUS
               </button>

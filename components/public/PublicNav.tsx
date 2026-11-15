@@ -168,8 +168,13 @@ export function PublicNav({ current = 'home', theme = 'chalk' }: PublicNavProps)
         </div>
       </div>
 
-      {/* Desktop Home Nav Layout (>= 768px) - 100% byte-for-byte identical to 1366px reference build */}
-      <div className="hidden md:flex w-full max-w-[1202px] mx-auto px-6 lg:px-0 items-center justify-between relative">
+      {/* Desktop Home Nav Layout (>= 768px).
+           At 768px: w-full px-6 ensures stacked/tablet layout fits without overflow.
+           At lg: (>= 1024px): min(1240px, 100vw − 164px) — same formula as hero.
+           At 1366px: 1202px (unchanged). At 1920px: 1240px (logo at x≈340, CTA right ≈ 1580). */}
+      <div
+        className="hidden md:flex w-full px-6 lg:px-0 items-center justify-between relative max-w-full lg:max-w-[min(1240px,calc(100%-164px))] mx-auto"
+      >
         {/* Brand */}
         <div className="flex items-center gap-5 sm:gap-6 z-10">
           <Link

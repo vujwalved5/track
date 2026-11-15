@@ -3,20 +3,29 @@ import Link from 'next/link'
 
 export function HomeHero() {
   return (
-    <section className="relative w-full overflow-hidden bg-[#F4EFE4] min-h-[870px] lg:h-[870px] bg-[radial-gradient(circle,#e9e2d6_0.65px,transparent_0.65px)] [background-size:6px_6px]">
-      {/* Vertical 'FIELD NOTES / 01' at exact design coordinates (x=19..26, y=173..275 rel to hero) */}
+    <section className="relative w-full overflow-hidden bg-[#F4EFE4] min-h-[870px] lg:h-[870px] 2xl:h-[950px] 2xl:min-h-[950px] bg-[radial-gradient(circle,#e9e2d6_0.65px,transparent_0.65px)] [background-size:6px_6px]">
+      {/* Vertical 'FIELD NOTES / 01' — anchored to the centred container's left edge.
+          At 1366px: container = 1202px, margin-left = (1366-1202)/2 = 82px, clamped to 19px ✓
+          At 1920px: container = 1240px, margin-left = (1920-1240)/2 = 340px, 340-77 = 263px ✓ */}
       <div
-        className="hidden lg:block absolute left-[19px] top-[173px] font-public-condensed text-[11px] uppercase tracking-[0.25em] text-[#60432F] [writing-mode:vertical-rl] rotate-180 font-semibold select-none pointer-events-none z-20"
+        className="hidden lg:block absolute top-[173px] font-public-condensed text-[11px] uppercase tracking-[0.25em] text-[#60432F] [writing-mode:vertical-rl] rotate-180 font-semibold select-none pointer-events-none z-20"
+        style={{ left: 'max(19px, calc((100% - min(1240px, 100% - 164px)) / 2 - 77px))' }}
         aria-hidden="true"
       >
         FIELD NOTES / 01
       </div>
 
-      <div className="w-full max-w-[1202px] mx-auto px-6 lg:px-0 h-full relative">
+      {/* Centred text container:
+          At mobile/tablet (< 1024px): w-full px-6 max-w-full
+          At desktop (>= 1024px): min(1240px, 100vw − 164px)
+          → 1202px at 1366 (identical to baseline), 1240px at 1920 (logo at x≈340) */}
+      <div
+        className="w-full h-full relative px-6 lg:px-0 max-w-full lg:max-w-[min(1240px,calc(100%-164px))] mx-auto"
+      >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start h-full">
-          {/* Left Column: Copy & Actions */}
+          {/* Left Column: Copy & Actions — col-span-6 keeps it inside the left half of the container */}
           <div className="lg:col-span-6 z-10 lg:pt-[116px] flex flex-col">
-            {/* Eyebrow with short terracotta rule at exact design y=116..128 (rel to hero) */}
+            {/* Eyebrow */}
             <div className="flex items-center gap-3">
               <span className="w-[35px] h-px bg-[#BD634A]" aria-hidden="true" />
               <span className="font-public-condensed text-[14px] lg:text-xs uppercase tracking-[0.25em] font-semibold text-[#60432F]">
@@ -24,7 +33,7 @@ export function HomeHero() {
               </span>
             </div>
 
-            {/* Display Heading - 3 stacked lines with Instrument Serif starting at exact design y=199 rel to hero */}
+            {/* Display Heading */}
             <h1 className="font-instrument select-none font-normal mt-[36px]">
               <span className="block text-[#172536] text-6xl sm:text-7xl lg:text-[158px] leading-[0.88] tracking-[-0.02em]">
                 Make
@@ -37,12 +46,12 @@ export function HomeHero() {
               </span>
             </h1>
 
-            {/* Subparagraph at exact design y=598 rel to hero */}
+            {/* Subparagraph */}
             <p className="font-public-sans text-base sm:text-[17px] text-[#172536]/80 max-w-[430px] leading-[1.55] -mt-[10px]">
               An open invitation to pay attention. To the little things, the long way round, and all the days in between.
             </p>
 
-            {/* CTA Buttons at exact design y=674 rel to hero */}
+            {/* CTA Buttons */}
             <div className="flex flex-wrap items-center gap-3.5 mt-[31px]">
               <Link
                 href="/login"
@@ -86,7 +95,7 @@ export function HomeHero() {
               </Link>
             </div>
 
-            {/* Bottom scroll prompt at exact design y=779 rel to hero in dark navy */}
+            {/* Scroll prompt */}
             <div className="flex items-center gap-4 mt-[56px] pt-1 text-[#172536]">
               <span className="font-public-condensed text-[14px] lg:text-[11px] uppercase tracking-[0.25em] font-bold">
                 A MAP OF YOUR DAYS
@@ -114,15 +123,26 @@ export function HomeHero() {
         </div>
       </div>
 
-      {/* Right Tall Panel: Cup-and-Magazine Photo bleeding off the right at x=710 */}
-      <div className="relative lg:absolute lg:top-0 lg:bottom-0 lg:left-[710px] lg:right-0 h-[450px] lg:h-[870px] bg-[#211b16] overflow-hidden z-10 mt-8 lg:mt-0">
+      {/* Right Tall Photo Panel — 691px wide, left edge = calc(50% + 27px).
+          Verification:
+            1366px viewport: 50% = 683px, + 27px = 710px ✓ (matches prior design exactly)
+            1920px viewport: 50% = 960px, + 27px = 987px ≈ design x=989 ✓
+          Right edge at 1920: 987 + 691 = 1678px ≈ design 1680 ✓
+          Cream strip to right: 1920 - 1678 = 242px (matches the ~240px cream gap in design).
+          At widths > 1920 the panel still starts at calc(50% + 27px) with fixed 691px width —
+          the cream strip grows wider, text is never covered.
+          On mobile (< 1024px) the lg:absolute class is inactive; the panel reverts to static
+          flow with w-full and h-[450px] via the non-prefixed classes. */}
+      <div
+        className="relative lg:absolute lg:top-0 lg:bottom-0 left-0 lg:left-[calc(50%+27px)] w-full lg:w-[691px] h-[450px] lg:h-[870px] 2xl:h-[950px] bg-[#211b16] overflow-hidden z-10 mt-8 lg:mt-0"
+      >
         <Image
           src="/welcome/hero-desk-crop.jpg"
           alt="Coffee mug beside an open magazine in soft daylight, capturing quiet morning focus."
           fill
           priority
           className="object-cover object-center"
-          sizes="(max-width: 1024px) 100vw, 656px"
+          sizes="(max-width: 1024px) 100vw, 691px"
         />
 
         {/* Thin inset frame line */}
@@ -131,9 +151,12 @@ export function HomeHero() {
           aria-hidden="true"
         />
 
-        {/* Tilted Polaroid of landscape at top right matching reference coordinates (clipped at x=1366 edge) */}
+        {/* Polaroid — anchored from right with enough inset so it stays within the 691px panel.
+            At design: polaroid right edge is x≈1680 (panel right), so right-[0px] in panel.
+            Width=295px, rotated 7.5°. We place it at right=[8px] from panel edge so it is
+            never cropped at any viewport. top-[5px] matches original. */}
         <div
-          className="absolute top-[5px] right-[-36px] bg-[#ede8df] p-3 pb-7 shadow-xl rounded-[2px] w-[295px] rotate-[7.5deg] z-20 lift-card"
+          className="absolute top-[5px] right-[8px] bg-[#ede8df] p-3 pb-7 shadow-xl rounded-[2px] w-[295px] rotate-[7.5deg] z-20 lift-card"
         >
           <div className="relative w-full h-[210px] bg-[#172536]/10 overflow-hidden">
             <Image
@@ -149,7 +172,7 @@ export function HomeHero() {
           </div>
         </div>
 
-        {/* Narrower and taller Tilted Taped Paper Note matching reference coordinates: x=784 (left: 74px in panel), y=442 rel to hero */}
+        {/* Tilted Taped Paper Note at x=784 (left: 74px in panel), y=442 rel to hero */}
         <div
           className="absolute top-[442px] left-[74px] bg-[#F4EFE4]/95 backdrop-blur-[0.5px] p-7 pt-8 shadow-2xl rounded-[2px] border border-[#B68A53]/25 w-[316px] min-h-[345px] rotate-[-5deg] z-30 lift-card"
         >
@@ -189,7 +212,7 @@ export function HomeHero() {
           </div>
         </div>
 
-        {/* Vertical 'OBSERVATIONS FROM THE EVERYDAY / TRACK' inside frame at right photo edge at exact design y=502 rel to hero */}
+        {/* Vertical 'OBSERVATIONS FROM THE EVERYDAY / TRACK' at right photo edge */}
         <div
           className="hidden lg:block absolute right-[32px] top-[502px] font-public-condensed text-[11px] uppercase tracking-[0.28em] text-white [writing-mode:vertical-rl] rotate-180 font-semibold select-none pointer-events-none z-20 whitespace-nowrap leading-none"
           aria-hidden="true"

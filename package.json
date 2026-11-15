@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "node scripts/build-sw.js && next build",
     "build:sw": "node scripts/build-sw.js",
+    "lint": "tsc --noEmit",
     "start": "next start"
   },
   "dependencies": {
