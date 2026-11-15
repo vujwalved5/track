@@ -1,245 +1,127 @@
-# TEAM_SPEC.md — Focus Room Architecture & Specification
+# TEAM SPEC: Switchable Focus Timer (The Ledger & Dial-First)
 
-This specification governs the implementation of the Focus Room timer engine and its three alternative design implementations. Every engineer and designer must adhere to the conventions, APIs, and constraints defined here.
+## 1. Branch Diffs (core vs design-a vs design-b)
 
----
+### Comparison Summary
+All three branches diverge from `feature/focus-timer-core` exclusively across four files:
+- `components/public/hooks/useFocusSession.ts`
+- `components/public/FocusThePractice.tsx`
+- `components/public/FocusTimer.tsx`
+- `next.config.js`
 
-## 1. File Map
+### A. `feature/focus-timer-design-a` ("The Ledger")
+- **`components/public/hooks/useFocusSession.ts`**:
+  - Adds task state (`taskText`, `setTaskText`, persisted in `localStorage` under `track.focus.task.v1`).
+  - Adds checklist state (`clearDesk`, `chooseTask`, `takeBreath`, `skipped`, `toggleChecklistItem`, `skipChecklist`, `isChecklistCleared`).
+  - Gates `start()` action: only proceeds if `isChecklistCleared` is true.
+  - Adds `FocusSessionProvider` and `useFocusSessionContext`.
+- **`components/public/FocusThePractice.tsx`**:
+  - Wraps section with `<FocusSessionProvider>`.
+  - Header displays `01 / THE PRACTICE` and `DESIGN A: THE LEDGER`.
+  - Includes `BreathingGuide`: animated 4-stage box breathing guide (Inhale, Hold, Exhale, Rest at 4s intervals), active only when `status === 'running' && phase === 'break'`.
+  - Includes `LedgerSidePanel`: order of elements is Checklist -> Task input -> Progress bar -> Breathing guide -> Ambient sound controls (pill buttons + volume + pause-in-breaks checkbox) -> Shrunk habit compass SVG.
+- **`components/public/FocusTimer.tsx`**:
+  - Presents "The Ledger" layout:
+    - Header: `FOCUS SESSION / THE LEDGER` and Live Preview line (`X FOCUS BLOCKS / Y BREAKS / ENDS ABOUT HH:MM`).
+    - Dial: 180° / 195° arc gauge with radial glow, orbit bead, central timer readout, and stepper controls below dial (Study stepper ±5m, Total stepper ±15m, Break toggle 5m/10m).
+    - Schedule preview bar with proportional segments.
+    - Action controls: Start (checklist gated), Pause/Resume, Skip, Reset (with inline confirmation), New Session.
+  - Owns NO internal state (all driven by session context).
+- **`next.config.js`**:
+  - Adds `turbopack: { root: path.resolve(__dirname, '..') }`.
 
-| Path | Purpose | Owners |
-|---|---|---|
-| `lib/focusSchedule.ts` | Pure schedule calculation engine (block division, remainder logic, summary). | Core Engineer |
-| `lib/ambient.ts` | Web Audio sound generator (brown, pink, white, rain), volume, 300ms fades, chimes, audio persistence. | Core Engineer |
-| `components/public/hooks/useFocusSession.ts` | Primary React hook orchestrating timer state, drift-free timestamp ticks, auto-start, audio triggers, settings persistence. | Core Engineer |
-| `components/public/FocusTimer.tsx` | Base timer dial component; replaced / customized per design branch. | Core / Designers |
-| `components/public/FocusThePractice.tsx` | Section 01 container holding timer card (left) and cream side panel (right). | Core / Designers |
-| `components/public/FocusTheJourney.tsx` | Ambient sound preview card in Section 02. | Core (shared) |
+### B. `feature/focus-timer-design-b` ("Dial-First")
+- **`components/public/hooks/useFocusSession.ts`**:
+  - Identical in interface and functionality to Design A's hook.
+- **`components/public/FocusThePractice.tsx`**:
+  - Wraps section with `<FocusSessionProvider>`.
+  - Header displays `01 / THE PRACTICE` and `DESIGN B: DIAL-FIRST`.
+  - Includes `BreathingGuide` (same 4-stage box breathing).
+  - Includes `DialFirstSidePanel`: order of elements is Task input -> Ambient sound controls (vertical list of 5 sounds with custom SVG waveforms + volume + pause-in-breaks) -> Checklist -> Progress bar -> Breathing guide -> Shrunk habit compass SVG.
+- **`components/public/FocusTimer.tsx`**:
+  - Presents "Dial-First" layout:
+    - Header: `FOCUS SESSION / DIAL-FIRST` and Presets row (`PRESETS: STANDARD 25/5 / DEEP 50/10 / SPRINT 15/5`).
+    - Dial: Full 360° circular dial segmented proportionally for every block and break in the schedule.
+    - Owns local state: `activePill` (`'study' | 'break' | 'total'`).
+    - Inside the dial in setup mode: displays 3 interactive pills for Study, Break, and Total with `+` / `-` increment/decrement buttons below. In running/paused/finished mode: shows block counter, live countdown, and phase label.
+    - Schedule preview bar and Action controls with inline reset confirmation.
+- **`next.config.js`**:
+  - Identical to Design A.
 
-### Branch Target Files for Designers
-- **Designer A ("The Ledger")** on branch `feature/focus-timer-design-a`:
-  - Edits: `components/public/FocusTimer.tsx` and `components/public/FocusThePractice.tsx`
-- **Designer B ("Dial-First")** on branch `feature/focus-timer-design-b`:
-  - Edits: `components/public/FocusTimer.tsx` and `components/public/FocusThePractice.tsx`
-- **Designer C ("Session Strip")** on branch `feature/focus-timer-design-c`:
-  - Edits: `components/public/FocusTimer.tsx` and `components/public/FocusThePractice.tsx`
-
----
-
-## 2. Design Tokens & Visual Constraints
-
-### Palette
-- **Navy Dark Background**: `#172536`
-- **Offset Slab Shadow**: `#0d1926`
-- **Surface Dark**: `#1a2b3d`
-- **Track Dark**: `#1e3044`
-- **Cream Paper**: `#F4EFE4`
-- **Gold / Brass**: `#B68A53`, `#D2A75D`
-- **Tobacco (Wood / Text on Cream)**: `#60432F`
-- **Muted Slate / Blue**: `#8799A7`
-- **Dividers & Borders**:
-  - Dark container border: `border-[#F4EFE4]/15` or `border-[#B68A53]/30`
-  - Cream card inner border: `border-[#172536]/18` or `border-[#172536]/25`
-
-### Typography Classes
-- **Condensed Eyebrow & Labels**: `font-public-condensed text-xs uppercase tracking-[0.22em] font-semibold text-[#B68A53]`
-- **Display Digits & Headings**: `font-public-display` (`var(--font-italiana)`)
-- **Body & Checklist**: `font-public-sans` (`var(--font-dm-sans)`)
-- **Script Accents**: `font-public-hand` (`var(--font-caveat)`)
-
-### Interaction & A11y
-- Real `<button>` and `<input>` elements with visible focus rings (`focus-visible:ring-2 focus-visible:ring-[#B68A53] focus-visible:ring-offset-2 focus-visible:ring-offset-[#172536]`).
-- All icon-only buttons require explicit `aria-label`.
-- Inline confirms only (e.g., small "Reset session" / "Keep going" buttons). **Never** `window.confirm`, `alert`, or modal overlays.
-- Respect `prefers-reduced-motion` via `motion-safe:` / `motion-reduce:`.
-- **Zero emoji**: All icons must be hand-drawn inline SVGs.
-- **Zero audio files**: All ambient noise and chimes are synthesized via the Web Audio API.
+### C. `feature/focus-timer-design-c` (Reference only)
+- Design C is removed per instructions. No code or layout from Design C will be included.
 
 ---
 
-## 3. Exported Module APIs
+## 2. Local State Analysis & State Lifting
 
-### 3.1 Pure Schedule Builder (`lib/focusSchedule.ts`)
+### State Owned Locally in Existing Designs:
+1. **Design A (`FocusTimer.tsx` / `FocusThePractice.tsx`)**:
+   - `FocusTimer.tsx`: completely stateless; all values come from `useFocusSessionContext()`.
+   - `FocusThePractice.tsx`: `BreathingGuide` owns `stageIndex` for the local 4-second animation cycle during active breaks.
+2. **Design B (`FocusTimer.tsx`)**:
+   - `activePill` (`'study' | 'break' | 'total'`, default `'study'`): determines which pill is active and manipulated by `+` / `-` buttons.
+3. **Session & Global State**:
+   - `taskText`, `checklist` ticks, `soundId`, `volume`, `pauseMusicInBreaks`, `chimeMuted`, `settings`, `status`, `currentSegmentIndex`, `remainingSeconds`, `isResetConfirmOpen`.
 
-```typescript
-export type SessionPhase = 'focus' | 'break';
-
-export interface FocusSettings {
-  studyMin: number;       // 5 to 120, step 5, default 25
-  breakMin: 5 | 10;       // strictly 5 or 10, default 5
-  totalStudyMin: number;  // 15 to 480, step 15, default 120
-}
-
-export interface ScheduleSegment {
-  id: string;
-  phase: SessionPhase;
-  minutes: number;
-  blockNumber?: number;   // 1-based index for focus blocks
-}
-
-export interface ScheduleSummary {
-  segments: ScheduleSegment[];
-  focusBlocks: number;
-  breaks: number;
-  totalStudyMinutes: number; // actual scheduled focus minutes
-  totalMinutes: number;      // total study + break minutes
-  endsAt: string;            // e.g. "11:35" or "11:35 AM"
-  droppedMinutes: number;    // remainder < 5 dropped minutes
-}
-
-export function buildSchedule(
-  settings: FocusSettings,
-  startTime: number = Date.now()
-): ScheduleSummary;
-```
-
-#### Schedule Rules
-1. Total = study time only; breaks are added on top.
-2. `fullBlocks = Math.floor(totalStudyMin / studyMin)`.
-3. `remainder = totalStudyMin % studyMin`.
-4. If `remainder >= 5`, add a final shorter focus block equal to the remainder.
-5. If `remainder < 5`, drop it and record `droppedMinutes = remainder`.
-6. Insert one break (`breakMin`) between every pair of focus blocks; none after the last focus block.
-7. If only 1 focus block exists, 0 breaks are inserted.
+### State Lifted into the Wrapper (`FocusThePractice.tsx` / Session Context):
+- **`activePill`** (`'study' | 'break' | 'total'`): Lifted into the shared context/wrapper so that if the user selects a pill in Design B, toggles to Design A, and toggles back to Design B in setup, the active pill selection is preserved without loss.
+- **`layout`** (`'a' | 'b'`): Owned by the wrapper.
+  - Initial value: `'a'` (server and initial client paint to prevent hydration mismatch).
+  - Hydrated in `useEffect` from `localStorage.getItem('track.focus.layout.v1')`. Validated as `'a'` or `'b'`.
+  - URL override `?layout=a` or `?layout=b` evaluated in `useEffect` during setup.
+  - Locked during `running`, `paused`, and `finished` states.
+- All session, checklist, task, and audio states remain in `useFocusSession` and are called exactly ONCE.
 
 ---
 
-### 3.2 Ambient Music & Chimes Engine (`lib/ambient.ts`)
+## 3. Exact File Map for New Structure
 
-```typescript
-export type AmbientSoundId = 'off' | 'brown' | 'pink' | 'white' | 'rain';
+### A. New Components & Files
+1. **`components/public/LayoutKnob.tsx`**:
+   - 36px round rotary knob in navy (`#172536`), gold (`#B68A53`), and cream (`#F4EFE4`).
+   - Two notches labelled "A" and "B" in uppercase font.
+   - Gold pointer notch rotating between A and B with CSS transition (instant under `prefers-reduced-motion`).
+   - `role="switch"` (or radiogroup) with `aria-label="Timer layout"` and `aria-checked` / `aria-valuetext` reflecting "Ledger" or "Dial-first".
+   - Full keyboard accessibility: Click/Tap, Arrow Left/Right/Up/Down, Space, Enter.
+   - Status text / tooltip below knob:
+     - When setup: `"LEDGER"` or `"DIAL-FIRST"`
+     - When running/paused/finished: `"LOCKED DURING SESSION"`, knob dimmed (`opacity-50 pointer-events-none cursor-not-allowed`), `aria-disabled="true"`.
+2. **`components/public/LedgerLayout.tsx`**:
+   - Clean presentational component rendering Design A ("The Ledger").
+   - Left: Ledger Main Timer Card containing the top row with summary text, slot for `LayoutKnob`, 180° arc dial, steppers, schedule preview, and controls.
+   - Right: `LedgerSidePanel` (Checklist -> Task -> Progress -> Breathing -> Sound -> Compass).
+3. **`components/public/DialFirstLayout.tsx`**:
+   - Clean presentational component rendering Design B ("Dial-First").
+   - Left: Dial-First Main Timer Card containing the top row with Presets, slot for `LayoutKnob`, 360° segmented dial, interactive pills, schedule preview, and controls.
+   - Right: `DialFirstSidePanel` (Task -> Sound list with waveforms -> Checklist -> Progress -> Breathing -> Compass).
+4. **`TEAM_SPEC.md`**:
+   - This specification file at the repository root.
 
-export interface AmbientAudioEngine {
-  setSound: (id: AmbientSoundId) => void;
-  setVolume: (vol: number) => void; // 0 to 1, default 0.25
-  pause: () => void;
-  resume: () => void;
-  fadeToMute: (durationMs?: number) => void;
-  fadeToCurrentVolume: (durationMs?: number) => void;
-  cleanup: () => void;
-  getSound: () => AmbientSoundId;
-  getVolume: () => number;
-}
-
-export function getAmbientEngine(): AmbientAudioEngine;
-
-// Chime Synthesis (Web Audio sine waves)
-export function playChime(type: 'segment' | 'finished', muted?: boolean): void;
-export function playSkipTick(muted?: boolean): void;
-```
-
-#### Sound Synthesis Specifications
-- **Brown Noise**: Leaky integrator / random walk on white noise through soft low-pass filter (~400 Hz), looped 4s `AudioBuffer`.
-- **Pink Noise**: Paul Kellet 3-pole filter approximation of 1/f slope, looped 4s `AudioBuffer`.
-- **White Noise**: Uniform random samples through soft low-pass filter (~6000 Hz), looped 4s `AudioBuffer`.
-- **Rain**: Pink noise through band-pass filter (~800–1200 Hz) combined with sparse, randomized high-passed clicks (~3000 Hz, short decay).
-- **Segment Chime**: Two soft sine notes (e.g. 523.25 Hz C5 -> 659.25 Hz E5), ~0.8s gentle envelope, peak gain 0.15.
-- **Finished Chime**: Three soft sine notes (e.g. 523.25 Hz C5 -> 659.25 Hz E5 -> 783.99 Hz G5), ~1.5s envelope, peak gain 0.18.
-- **Skip Tick**: Very short, soft click (single 10ms burst, low gain).
-
----
-
-### 3.3 Focus Session Hook (`components/public/hooks/useFocusSession.ts`)
-
-```typescript
-export type SessionStatus = 'setup' | 'running' | 'paused' | 'finished';
-
-export interface UseFocusSessionReturn {
-  // Session states
-  status: SessionStatus;
-  phase: SessionPhase;
-  currentSegmentIndex: number;
-  currentSegment: ScheduleSegment | null;
-  totalSegments: number;
-  currentBlockNumber: number; // e.g. 2 for "BLOCK 2 OF 5"
-  totalFocusBlocks: number;   // e.g. 5
-  studiedMinutes: number;     // completed focus minutes
-  totalTargetStudyMinutes: number; // target total study minutes
-  remainingSeconds: number;   // remaining in active segment
-  formattedTime: string;      // MM:SS
-  segmentProgress: number;    // 0..1 remaining in current segment
-  overallProgress: number;    // 0..1 across entire study schedule
-  
-  // Settings & Schedule
-  settings: FocusSettings;
-  schedule: ScheduleSummary;
-  updateSettings: (changes: Partial<FocusSettings>) => void;
-  applyPreset: (studyMin: number, breakMin: 5 | 10, totalStudyMin?: number) => void;
-  
-  // Controls
-  start: () => void;
-  pause: () => void;
-  resume: () => void;
-  togglePauseResume: () => void;
-  skip: () => void;
-  
-  // Reset with inline confirmation
-  isResetConfirmOpen: boolean;
-  openResetConfirm: () => void;
-  cancelResetConfirm: () => void;
-  confirmReset: () => void;
-  
-  // Audio state & controls
-  soundId: AmbientSoundId;
-  setSoundId: (id: AmbientSoundId) => void;
-  volume: number;
-  setVolume: (v: number) => void;
-  pauseMusicInBreaks: boolean;
-  setPauseMusicInBreaks: (v: boolean) => void;
-  chimeMuted: boolean;
-  setChimeMuted: (v: boolean) => void;
-  
-  // Speed multiplier for testing (?speed=60)
-  speedMultiplier: number;
-}
-```
-
-#### Timing & Tab Drift
-- Store target timestamp: `targetTimestamp = Date.now() + remainingMs / speedMultiplier`.
-- Interval tick runs every 250 ms: `remainingMs = Math.max(0, (targetTimestamp - Date.now()) * speedMultiplier)`.
-- When segment finishes (`remainingMs <= 0`):
-  - If more segments exist: auto-advance to next segment, play `"segment"` chime, continue running.
-  - If last focus block ends: status becomes `"finished"`, play `"finished"` chime, pause music.
-- While running: updates `document.title` (e.g. `[FOCUS] 24:30 — TRACK`). On pause/finish/reset: reverts to default title.
-- Presets:
-  - 25 / 5 (default 120 total)
-  - 50 / 10 (default 180 total)
-  - 90 / 10 (default 180 total)
+### B. Modified Files
+1. **`components/public/hooks/useFocusSession.ts`**:
+   - Unified hook providing all session state, task state, checklist gate, audio state, and lifted `activePill` state.
+   - `FocusSessionProvider` and `useFocusSessionContext` exporting the complete typed session API.
+   - Preserves `?speed=60` dev-only multiplier, inert in production.
+2. **`components/public/FocusThePractice.tsx`**:
+   - Thin section wrapper calling `useFocusSession` via `FocusSessionProvider`.
+   - Manages `layout` state (`'a' | 'b'`), `localStorage` persistence under `'track.focus.layout.v1'`, URL query parameter parsing, and session lock enforcement.
+   - Dynamically renders `LedgerLayout` (Design A) or `DialFirstLayout` (Design B), passing the `LayoutKnob`.
+   - Section header subtitle reflects active layout: `DESIGN A: THE LEDGER` or `DESIGN B: DIAL-FIRST`.
+3. **`components/public/FocusTimer.tsx`**:
+   - Retained as a thin dispatcher or compatibility export pointing to the active layout timer card.
+4. **`next.config.js`**:
+   - Includes `turbopack: { root: path.resolve(__dirname, '..') }`.
 
 ---
 
-## 4. Companion Features (Required across all 3 designs)
-
-Every design must include these companion features:
-1. **Checklist Gate**:
-   - 3 items: "Clear your desk", "Choose one task", "Take a breath".
-   - In setup mode: START button is disabled until all 3 are checked, OR the user clicks "Skip checklist".
-2. **Task Text Input**:
-   - Persisted in localStorage (`track.focus.task.v1`).
-   - Displayed cleanly (e.g., under the dial label or in the companion panel) while running.
-3. **Progress Indicators**:
-   - Text display: `"BLOCK X OF Y"` (e.g. `"BLOCK 2 OF 5"`).
-   - Thin progress bar: `"STUDIED M / N MIN"` showing completed focus minutes vs total.
-4. **Breathing Guide**:
-   - 4-stage box breathing: `INHALE` (4s) -> `HOLD` (4s) -> `EXHALE` (4s) -> `REST` (4s).
-   - **Active ONLY during break segments**.
-   - Static during focus.
-   - Respect `prefers-reduced-motion`: step highlighting instead of continuous scaling.
-5. **Sound Controls**:
-   - Sound selection: `OFF`, `BROWN`, `PINK`, `WHITE`, `RAIN`.
-   - Volume slider (0 to 100%).
-   - Toggle: "Pause music during breaks" (default: checked).
-   - Toggle: Chime mute.
-6. **Habit Balance / Compass Illustration**:
-   - Maintained in the layout (shrink as needed so all elements fit comfortably without scrolling or overflowing).
-
----
-
-## 5. Verification Commands
-
-Before any commit is finalized on any branch:
-```bash
-npx tsc --noEmit
-npm run lint
-npm run build
-```
-All three commands must exit with code 0.
+## 4. Implementation & Lock Rules
+1. **Knob Enabled ONLY when `session.status === 'setup'`**.
+2. **Knob Disabled when `session.status === 'running' | 'paused' | 'finished'`**:
+   - Dimmed appearance, `aria-disabled="true"`, all keyboard and click events suppressed.
+   - Caption renders `"LOCKED DURING SESSION"`.
+   - `?layout=` URL query parameter and `localStorage` mutations ignored while not in setup.
+3. **Responsive Header Row**:
+   - At 1440px and 390px, knob sits top-right on the header row; summary/presets wrap gracefully without overlapping or causing horizontal scrolling.
+4. **Zero State Loss**:
+   - Switching between A and B in setup preserves study minutes, break minutes, total minutes, task description, checklist ticks, sound selection, volume, pause-in-breaks toggle, chime mute, and active pill.
