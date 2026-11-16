@@ -130,13 +130,15 @@ function useHabitTrackerEntries(
   const [entriesMap, setEntriesMap] = useState<
     Record<number, Record<string, boolean>>
   >(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     return parseHabitTrackerRows(entries)
   })
   const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     setEntriesMap(parseHabitTrackerRows(entries))
   }, [id, initialEntries])
 
@@ -144,17 +146,21 @@ function useHabitTrackerEntries(
     async (day: number, habitIdx: number) => {
       if (isArrangeMode) return
       const posKey = String(habitIdx)
-      const currentDayMarks = entriesMap[day] || {}
-      const prevVal = !!currentDayMarks[posKey]
-      const nextDayMarks = {
-        ...currentDayMarks,
-        [posKey]: !prevVal,
-      }
+      let prevMarks: Record<string, boolean> = {}
+      let nextDayMarks: Record<string, boolean> = {}
 
-      setEntriesMap((prev) => ({
-        ...prev,
-        [day]: nextDayMarks,
-      }))
+      setEntriesMap((prev) => {
+        prevMarks = prev[day] || {}
+        const prevVal = !!prevMarks[posKey]
+        nextDayMarks = {
+          ...prevMarks,
+          [posKey]: !prevVal,
+        }
+        return {
+          ...prev,
+          [day]: nextDayMarks,
+        }
+      })
 
       const res = await saveWidgetEntryAndBump(id, day, {
         marks: nextDayMarks,
@@ -163,13 +169,13 @@ function useHabitTrackerEntries(
       if (!res.success) {
         setEntriesMap((prev) => ({
           ...prev,
-          [day]: currentDayMarks,
+          [day]: prevMarks,
         }))
         setSaveError(`Failed to save Habit ${day}`)
         setTimeout(() => setSaveError(null), 3500)
       }
     },
-    [id, entriesMap, isArrangeMode],
+    [id, isArrangeMode],
   )
 
   return { entriesMap, saveError, toggleCell }

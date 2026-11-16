@@ -120,13 +120,15 @@ export function CounterDesktop({
 
   // Map of day -> count
   const [countsMap, setCountsMap] = useState<Record<number, number>>(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     return parseCounterRows(entries)
   })
   const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     setCountsMap(parseCounterRows(entries))
   }, [id, initialEntries])
 
@@ -138,15 +140,16 @@ export function CounterDesktop({
   const adjustCount = useCallback(
     async (delta: number) => {
       if (isArrangeMode) return
-      const prevCount = countsMap[currentDayKey] ?? 0
-      const nextCount = Math.max(0, prevCount + delta)
-      if (nextCount === prevCount) return
 
-      // Optimistic update
-      setCountsMap((prev) => ({
-        ...prev,
-        [currentDayKey]: nextCount,
-      }))
+      let nextCount = 0
+      let prevCount = 0
+      setCountsMap((prev) => {
+        prevCount = prev[currentDayKey] ?? 0
+        nextCount = Math.max(0, prevCount + delta)
+        return { ...prev, [currentDayKey]: nextCount }
+      })
+
+      if (nextCount === prevCount) return
 
       const res = await saveWidgetEntryAndBump(id, currentDayKey, {
         count: nextCount,
@@ -162,7 +165,7 @@ export function CounterDesktop({
         setTimeout(() => setSaveError(null), 3000)
       }
     },
-    [id, currentDayKey, countsMap, isArrangeMode],
+    [id, currentDayKey, isArrangeMode],
   )
 
   const isTargetReached = target !== undefined && currentCount >= target

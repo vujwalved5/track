@@ -21,6 +21,7 @@ import type { WidgetDefinition, WidgetRenderProps } from '../types'
 import { numberLogEntrySchema } from '../entrySchemas'
 import {
   saveWidgetEntryAndBump,
+  scheduleDebouncedEntrySave,
   getWidgetEntriesWithCache,
   getInitialWidgetEntries,
   type WidgetEntryRow,
@@ -91,7 +92,8 @@ function useNumberLogEntries(
   initialEntries?: WidgetEntryRow[],
 ) {
   const [valuesMap, setValuesMap] = useState<Record<number, number | null>>(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     return parseNumberLogRows(entries)
   })
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -100,7 +102,8 @@ function useNumberLogEntries(
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     setValuesMap(parseNumberLogRows(entries))
   }, [id, initialEntries])
 
@@ -241,7 +244,14 @@ export function NumberLogDesktop({
                   ref={inputRef}
                   type="number"
                   value={editingText}
-                  onChange={(e) => setEditingText(e.target.value)}
+                  onChange={(e) => {
+                    const txt = e.target.value
+                    setEditingText(txt)
+                    const trimmed = txt.trim()
+                    const nextVal = trimmed === '' ? null : parseFloat(trimmed)
+                    const finalVal = trimmed === '' || isNaN(nextVal as number) ? null : nextVal
+                    scheduleDebouncedEntrySave(id, day, { value: finalVal }, 400)
+                  }}
                   onBlur={() => commitEdit(day, editingText)}
                   onKeyDown={(e) => handleInputKeyDown(e, day)}
                   aria-label={`Day ${day}: ${label}`}
@@ -406,7 +416,14 @@ export function NumberLogMobile({
                   type="number"
                   step="any"
                   value={editingText}
-                  onChange={(e) => setEditingText(e.target.value)}
+                  onChange={(e) => {
+                    const txt = e.target.value
+                    setEditingText(txt)
+                    const trimmed = txt.trim()
+                    const nextVal = trimmed === '' ? null : parseFloat(trimmed)
+                    const finalVal = trimmed === '' || isNaN(nextVal as number) ? null : nextVal
+                    scheduleDebouncedEntrySave(id, day, { value: finalVal }, 400)
+                  }}
                   onBlur={() => commitEdit(day, editingText)}
                   onKeyDown={(e) => handleInputKeyDown(e, day)}
                   aria-label={`Day ${day}: ${label}`}

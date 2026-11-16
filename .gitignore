@@ -18,3 +18,5 @@ tsconfig.tsbuildinfo
 # Design reference images and comparison captures
 design-reference/
 
+tmp_*/
+*.log

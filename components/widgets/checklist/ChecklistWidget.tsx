@@ -22,6 +22,7 @@ import type { WidgetDefinition, WidgetRenderProps } from '../types'
 import { checklistEntrySchema } from '../entrySchemas'
 import {
   saveWidgetEntryAndBump,
+  scheduleDebouncedEntrySave,
   getWidgetEntriesWithCache,
   getInitialWidgetEntries,
   type WidgetEntryRow,
@@ -142,7 +143,8 @@ export function ChecklistDesktop({
   const title = config?.title || 'Checklist'
 
   const [items, setItems] = useState<ChecklistItem[]>(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     return parseChecklistRows(entries)
   })
   const [newItemText, setNewItemText] = useState('')
@@ -150,7 +152,8 @@ export function ChecklistDesktop({
   const newRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     setItems(parseChecklistRows(entries))
   }, [id, initialEntries])
 
@@ -188,9 +191,9 @@ export function ChecklistDesktop({
   }
 
   const handleItemTextChange = (index: number, newText: string) => {
-    setItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, text: newText } : item)),
-    )
+    const next = items.map((item, i) => (i === index ? { ...item, text: newText } : item))
+    setItems(next)
+    scheduleDebouncedEntrySave(id, 1, { items: next }, 400)
   }
 
   const handleItemBlur = (index: number) => {
@@ -266,6 +269,12 @@ export function ChecklistDesktop({
                 value={item.text}
                 onChange={(e) => handleItemTextChange(idx, e.target.value)}
                 onBlur={() => handleItemBlur(idx)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleItemBlur(idx)
+                  }
+                }}
                 aria-label={`Checklist item ${idx + 1}`}
                 className={`w-full bg-transparent font-hand text-[11px] text-ink focus:outline-none ${
                   item.crossed

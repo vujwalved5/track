@@ -1,6 +1,6 @@
 /**
  * Offline Sync and Local Entry Cache
- * Memorable Moments — Phase 6 / Task 12 (Batch B)
+ * Memorable Moments — Phase 6 / Task 12 & Task 14
  *
  * Rules:
  * - Privacy (L11): Key all data by user ID; never cache another user's data (Correction 2).
@@ -8,11 +8,14 @@
  * - Only ENTRY reads and writes work offline (Correction 3).
  * - Replay pending saves on "online" event and on app startup (Correction 3).
  * - Upserts are idempotent; drop item if widget no longer exists (Correction 3).
+ * - Cache merge rule: Only unsynced (pending/failed) entries override server data.
+ *   Once a write succeeds, remove from pending set so server copy wins again.
  */
 
 import { saveWidgetEntry } from '@/components/widgets/entryActions'
 import { createClient } from '@/lib/supabase/client'
 import { useEntriesVersionStore } from '@/store/entriesVersion'
+import { useSaveStatusStore } from '@/store/saveStatusStore'
 
 export interface PendingSaveItem {
   widgetId: string
@@ -48,6 +51,18 @@ export async function getActiveUserId(): Promise<string | null> {
 }
 
 /**
+ * Synchronous getter for active user ID if already resolved in memory or localStorage.
+ */
+export function getActiveUserIdSync(): string | null {
+  if (activeUserId) return activeUserId
+  if (typeof window !== 'undefined') {
+    activeUserId = localStorage.getItem('mm_last_user_id')
+    return activeUserId
+  }
+  return null
+}
+
+/**
  * Records the active user ID locally.
  */
 export function setActiveUserId(userId: string | null) {
@@ -69,6 +84,95 @@ function getCacheKey(userId: string, widgetId: string): string {
 
 function getQueueKey(userId: string): string {
   return `mm_queue_${userId}`
+}
+
+// ── Pending / Unsynced Set Management (Amendment 2) ───────────
+
+/**
+ * Retrieves all pending / unsynced writes for the user.
+ */
+export function getPendingQueue(userId: string): PendingSaveItem[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem(getQueueKey(userId))
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Gets pending items for a specific widget as a Map of day -> PendingSaveItem.
+ */
+export function getPendingEntriesForWidget(
+  userId: string,
+  widgetId: string,
+): Map<number, PendingSaveItem> {
+  const map = new Map<number, PendingSaveItem>()
+  const queue = getPendingQueue(userId)
+  for (const item of queue) {
+    if (item.widgetId === widgetId) {
+      map.set(item.day, item)
+    }
+  }
+  return map
+}
+
+/**
+ * Adds or updates a pending entry in the unsynced queue.
+ */
+export function enqueueOfflineSave(
+  userId: string,
+  widgetId: string,
+  day: number,
+  value: Record<string, unknown>,
+): void {
+  useEntriesVersionStore.getState().setLastMutatedWidgetId(widgetId)
+  if (typeof window === 'undefined') return
+  try {
+    const queueKey = getQueueKey(userId)
+    const queue = getPendingQueue(userId)
+
+    // Deduplicate / replace pending save for the exact same widget & day
+    const updated = queue.filter(
+      (item) => !(item.widgetId === widgetId && item.day === day),
+    )
+    updated.push({
+      widgetId,
+      day,
+      value,
+      timestamp: Date.now(),
+    })
+
+    localStorage.setItem(queueKey, JSON.stringify(updated))
+  } catch {
+    // Ignore storage quota
+  }
+}
+
+/**
+ * Removes a successfully written entry from the pending set (Amendment 2).
+ */
+export function removePendingEntry(
+  userId: string,
+  widgetId: string,
+  day: number,
+): void {
+  if (typeof window === 'undefined') return
+  try {
+    const queueKey = getQueueKey(userId)
+    const queue = getPendingQueue(userId)
+    const remaining = queue.filter(
+      (item) => !(item.widgetId === widgetId && item.day === day),
+    )
+    if (remaining.length > 0) {
+      localStorage.setItem(queueKey, JSON.stringify(remaining))
+    } else {
+      localStorage.removeItem(queueKey)
+    }
+  } catch {
+    // Ignore
+  }
 }
 
 // ── Entry Cache Functions ─────────────────────────────────────
@@ -130,59 +234,18 @@ export function updateLocalCachedDay(
 // ── Replay Queue Functions ────────────────────────────────────
 
 /**
- * Enqueues a pending save operation while offline.
- */
-export function enqueueOfflineSave(
-  userId: string,
-  widgetId: string,
-  day: number,
-  value: Record<string, unknown>,
-): void {
-  useEntriesVersionStore.getState().setLastMutatedWidgetId(widgetId)
-  if (typeof window === 'undefined') return
-  try {
-    const queueKey = getQueueKey(userId)
-    const raw = localStorage.getItem(queueKey)
-    const queue: PendingSaveItem[] = raw ? JSON.parse(raw) : []
-
-    // Deduplicate/replace pending save for the exact same widget & day
-    const updated = queue.filter(
-      (item) => !(item.widgetId === widgetId && item.day === day),
-    )
-    updated.push({
-      widgetId,
-      day,
-      value,
-      timestamp: Date.now(),
-    })
-
-    localStorage.setItem(queueKey, JSON.stringify(updated))
-  } catch {
-    // Ignore
-  }
-}
-
-/**
  * Drains and synchronizes pending saves when connection is restored.
  */
 export async function drainOfflineQueue(userId: string): Promise<void> {
   if (typeof window === 'undefined') return
   if (!navigator.onLine) return
 
-  const queueKey = getQueueKey(userId)
-  const raw = localStorage.getItem(queueKey)
-  if (!raw) return
-
-  let queue: PendingSaveItem[] = []
-  try {
-    queue = JSON.parse(raw)
-  } catch {
-    localStorage.removeItem(queueKey)
-    return
-  }
-
+  const queue = getPendingQueue(userId)
   if (queue.length === 0) return
 
+  useSaveStatusStore.getState().setStatus('syncing')
+
+  const queueKey = getQueueKey(userId)
   const remaining: PendingSaveItem[] = []
   let anySaved = false
 
@@ -221,8 +284,10 @@ export async function drainOfflineQueue(userId: string): Promise<void> {
 
   if (remaining.length > 0) {
     localStorage.setItem(queueKey, JSON.stringify(remaining))
+    useSaveStatusStore.getState().setStatus('retrying', { error: 'Sync pending' })
   } else {
     localStorage.removeItem(queueKey)
+    useSaveStatusStore.getState().setStatus(anySaved ? 'saved' : 'idle')
   }
 
   if (anySaved) {

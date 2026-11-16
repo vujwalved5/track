@@ -1,0 +1,161 @@
+{
+  "http://localhost:3000/": {
+    "h1Count": 1,
+    "headingValid": false,
+    "totalHeadings": 20,
+    "headings": [
+      {
+        "tag": "h1",
+        "level": 1,
+        "text": "Make Every Day Count."
+      },
+      {
+        "tag": "h3",
+        "level": 3,
+        "text": "Begin where you are."
+      },
+      {
+        "tag": "h2",
+        "level": 2,
+        "text": "What is Track?"
+      },
+      {
+        "tag": "h2",
+        "level": 2,
+        "text": "Four ways tofind your way."
+      },
+      {
+        "tag": "h3",
+        "level": 3,
+        "text": "Track"
+      },
+      {
+        "tag": "h3",
+        "level": 3,
+        "text": "Charts"
+      },
+      {
+        "tag": "h3",
+        "level": 3,
+        "text": "Write"
+      },
+      {
+        "tag": "h3",
+        "level": 3,
+        "text": "Ask"
+      },
+      {
+        "tag": "h4",
+        "level": 4,
+        "text": "What felt different today?"
+      },
+      {
+        "tag": "h2",
+        "level": 2,
+        "text": "Four ways to find your way."
+      },
+      {
+        "tag": "h3",
+        "level": 3,
+        "text": "Track"
+      },
+      {
+        "tag": "h3",
+        "level": 3,
+        "text": "Charts"
+      },
+      {
+        "tag": "h3",
+        "level": 3,
+        "text": "Write"
+      },
+      {
+        "tag": "h3",
+        "level": 3,
+        "text": "Ask"
+      },
+      {
+        "tag": "h4",
+        "level": 4,
+        "text": "What felt different today?"
+      },
+      {
+        "tag": "h2",
+        "level": 2,
+        "text": "Your days leave a trace."
+      },
+      {
+        "tag": "h2",
+        "level": 2,
+        "text": "You don't have to be perfect. You just have to keep showing up."
+      },
+      {
+        "tag": "h2",
+        "level": 2,
+        "text": "Your days are worth remembering."
+      },
+      {
+        "tag": "h2",
+        "level": 2,
+        "text": "TRACK"
+      },
+      {
+        "tag": "h2",
+        "level": 2,
+        "text": "TRACK"
+      }
+    ],
+    "totalImages": 2,
+    "invalidImages": 0,
+    "totalControls": 13,
+    "missingFocus": 0,
+    "motionMatches": true
+  },
+  "http://localhost:3000/focus-room": {
+    "h1Count": 1,
+    "headingValid": true,
+    "totalHeadings": 7,
+    "headings": [
+      {
+        "tag": "h1",
+        "level": 1,
+        "text": "Find your rhythm."
+      },
+      {
+        "tag": "h2",
+        "level": 2,
+        "text": "Settle into focus."
+      },
+      {
+        "tag": "h3",
+        "level": 3,
+        "text": "Before you begin"
+      },
+      {
+        "tag": "h3",
+        "level": 3,
+        "text": "Session 1 of 4"
+      },
+      {
+        "tag": "h3",
+        "level": 3,
+        "text": "Ambient focus"
+      },
+      {
+        "tag": "h2",
+        "level": 2,
+        "text": "Give one thing your full attention."
+      },
+      {
+        "tag": "h2",
+        "level": 2,
+        "text": "Until then, take your time."
+      }
+    ],
+    "totalImages": 1,
+    "invalidImages": 0,
+    "totalControls": 21,
+    "missingFocus": 0,
+    "motionMatches": true
+  }
+}

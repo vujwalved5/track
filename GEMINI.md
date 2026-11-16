@@ -27,4 +27,9 @@ PROTOCOL FOR EVERY TASK:
 5. When finished, reply with: (a) Done-when checklist with pass/fail for each item, (b) files changed, (c) "Deviation report": anything you did differently from the task, or "None".
 6. Update PROJECT_STATE.md: what is finished, what is next, any open questions.
 
+RULES FOR THE REST OF THIS PROJECT:
+- Never create browser profiles, user-data directories, logs, screenshots or test scripts inside the project folder. Use the system temp folder (outside the repo).
+- Delete any temporary files you create when the task is finished.
+- Never run git add -A or git commit unless I ask. I will commit myself.
+
 Reply now with only: "Rules understood" and a one-line summary of L1 to L14 in your own words.

@@ -1,0 +1,89 @@
+{
+  "http://localhost:3000/": {
+    "meta": {
+      "title": "TRACK — Atlas of Everyday",
+      "description": "A quieter space to track your days, notice your progress, and build habits that last. Make Every Day Count.",
+      "favicon": "/icons/icon.svg",
+      "og": {
+        "ogTitle": null,
+        "ogDesc": null,
+        "ogType": null,
+        "ogImage": null,
+        "ogUrl": null
+      },
+      "twitter": {
+        "twitterCard": null,
+        "twitterTitle": null
+      }
+    },
+    "fontData": {
+      "fontLinks": [
+        "http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__1q7r2-w7jd5u5._.css",
+        "http://localhost:3000/_next/static/chunks/%5Bnext%5D_internal_font_google_1jn17zxk3jf6b._.css"
+      ],
+      "externalFontLinks": [],
+      "htmlClasses": "kalam_dad734c3-module__On5IxW__variable",
+      "hasNextFontClasses": false
+    },
+    "cls": 0,
+    "imgData": [
+      {
+        "src": "http://localhost:3000/_next/image?url=%2Fwelcome%2Fhero-desk-crop.jpg&w=828&q=75",
+        "width": 605,
+        "height": 802,
+        "displayWidth": 749,
+        "displayHeight": 450,
+        "loading": "auto",
+        "decoding": "async"
+      },
+      {
+        "src": "http://localhost:3000/_next/image?url=%2Fwelcome%2Fhero-mountain.jpg&w=384&q=75",
+        "width": 295,
+        "height": 165,
+        "displayWidth": 271,
+        "displayHeight": 210,
+        "loading": "lazy",
+        "decoding": "async"
+      }
+    ]
+  },
+  "http://localhost:3000/focus-room": {
+    "meta": {
+      "title": "TRACK — Focus Room",
+      "description": "Find your rhythm. Settle into focus with ambient sound, timed intervals, and a quiet space to do what matters.",
+      "favicon": "/icons/icon.svg",
+      "og": {
+        "ogTitle": null,
+        "ogDesc": null,
+        "ogType": null,
+        "ogImage": null,
+        "ogUrl": null
+      },
+      "twitter": {
+        "twitterCard": null,
+        "twitterTitle": null
+      }
+    },
+    "fontData": {
+      "fontLinks": [
+        "http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__1q7r2-w7jd5u5._.css",
+        "http://localhost:3000/_next/static/chunks/%5Bnext%5D_internal_font_google_1jn17zxk3jf6b._.css"
+      ],
+      "externalFontLinks": [],
+      "htmlClasses": "kalam_dad734c3-module__On5IxW__variable",
+      "hasNextFontClasses": false
+    },
+    "cls": 0,
+    "imgData": [
+      {
+        "src": "http://localhost:3000/_next/image?url=%2Fwelcome%2Ffocus-desk.jpg&w=828&q=75",
+        "width": 764,
+        "height": 1146,
+        "displayWidth": 749,
+        "displayHeight": 419,
+        "loading": "auto",
+        "decoding": "async"
+      }
+    ]
+  }
+}

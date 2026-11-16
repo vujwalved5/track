@@ -1,21 +1,29 @@
+'use client'
+
 /**
- * Sticky Note Widget (Test Widget for Engine Validation)
- * Memorable Moments — Phase 4 / Task 7
+ * Sticky Note Widget
+ * Memorable Moments — Phase 4 / Task 7 & Task 14
  *
- * Locked constraints:
- * - Hand-drawn SVG icon (L13, no emoji)
- * - Kalam font (L5)
- * - Palette strictly L6 (paper, ink, kraft, highlighter, redpen)
- * - Text-only configuration schema
+ * Rules:
+ * - Group: 'Write' (Correction 1)
+ * - Default size: 7x6 (154px × 132px on 22px grid)
+ * - Min size: 4x4 (88px × 88px)
+ * - Kalam font, L6 paper (#f4eddc), ink (#1c2433), washi tape kraft (#b9895a)
+ * - Debounced text edit (max 400ms), save-on-blur, flush on pagehide/visibilitychange
+ * - Hand-drawn SVG icon (L13)
  */
 
-import React from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
+import {
+  saveWidgetConfigQueued,
+  scheduleDebouncedConfigSave,
+} from '../entryHelpers'
 
-// ── Zod Schema (Text Only) ────────────────────────────────────
+// ── Zod Config Schema ─────────────────────────────────────────
 export const stickyNoteSchema = z.object({
-  text: z.string().default('Remember to...'),
+  text: z.string().default(''),
 })
 
 export type StickyNoteConfig = z.infer<typeof stickyNoteSchema>
@@ -30,29 +38,29 @@ export function StickyNoteIcon({ className = 'w-5 h-5' }: { className?: string }
       stroke="currentColor"
       aria-hidden="true"
     >
-      {/* Sticky note body with folded bottom-right corner */}
-      <path
-        d="M 4 4.5 C 9 4.2, 15 4.5, 19.5 4 C 20 8, 19.8 14, 20 16.5 L 15.5 20 C 11 19.8, 6 20.2, 4 20 C 3.8 15, 4.2 9, 4 4.5 Z"
-        strokeWidth="1.6"
+      {/* Square paper outline */}
+      <rect
+        x="3.5"
+        y="4"
+        width="17"
+        height="16"
+        rx="1"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {/* Folded corner flap */}
+      {/* Top washi tape strip */}
       <path
-        d="M 15.5 16.5 C 15.6 18, 15.5 19.5, 15.5 20 C 17.5 18.5, 18.5 17.5, 20 16.5 Z"
-        strokeWidth="1.4"
+        d="M 8 2.5 L 16 2.5 L 15.5 5.5 L 7.5 5.5 Z"
+        fill="currentColor"
+        opacity="0.35"
+        stroke="currentColor"
+        strokeWidth="1"
         strokeLinejoin="round"
       />
-      {/* Tape strip at top */}
+      {/* Hand-drawn text rule lines */}
       <path
-        d="M 8.5 2.5 L 15.5 2.5 L 15 5.5 L 8 5.5 Z"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-        strokeDasharray="2 2"
-      />
-      {/* Handwritten note lines */}
-      <path
-        d="M 7 9 C 9.5 8.8, 13 9.2, 16 9"
+        d="M 6.5 9 C 9.5 8.7, 13 9.2, 16.5 9"
         strokeWidth="1.3"
         strokeLinecap="round"
       />
@@ -67,15 +75,22 @@ export function StickyNoteIcon({ className = 'w-5 h-5' }: { className?: string }
 
 // ── Desktop Render Component ──────────────────────────────────
 export function StickyNoteDesktop({
+  id,
   config,
   w = 7,
   h = 6,
+  isArrangeMode,
 }: WidgetRenderProps<StickyNoteConfig>) {
-  const noteText = config?.text?.trim() ? config.text : 'Click the pen icon in arrange mode to write a note...'
-  const textRef = React.useRef<HTMLParagraphElement>(null)
-  const [isOverflowing, setIsOverflowing] = React.useState(false)
+  const initialText = config?.text || ''
+  const [text, setText] = useState(initialText)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [isOverflowing, setIsOverflowing] = useState(false)
 
-  const fontSize = React.useMemo(() => {
+  useEffect(() => {
+    setText(initialText)
+  }, [initialText])
+
+  const fontSize = useMemo(() => {
     const area = w * h
     if (area <= 6) return 11
     if (area <= 12) return 12
@@ -83,12 +98,21 @@ export function StickyNoteDesktop({
     return 14
   }, [w, h])
 
-  React.useEffect(() => {
-    const el = textRef.current
+  useEffect(() => {
+    const el = textareaRef.current
     if (el) {
       setIsOverflowing(el.scrollHeight > el.clientHeight + 2)
     }
-  }, [noteText, fontSize, w, h])
+  }, [text, fontSize, w, h])
+
+  const handleBlur = async () => {
+    await saveWidgetConfigQueued(id, { text })
+  }
+
+  const handleChange = (newText: string) => {
+    setText(newText)
+    scheduleDebouncedConfigSave(id, { text: newText }, 400)
+  }
 
   return (
     <div className="relative w-full h-full p-2 flex flex-col justify-between bg-paper border border-ink/15 rounded shadow-[1px_2px_6px_rgba(28,36,51,0.08)] select-none overflow-hidden">
@@ -100,15 +124,19 @@ export function StickyNoteDesktop({
         />
       )}
 
-      {/* Note content */}
+      {/* Note content textarea */}
       <div className={`flex-1 overflow-hidden ${h > 2 ? 'pt-1.5' : 'pt-0.5'}`}>
-        <p
-          ref={textRef}
+        <textarea
+          ref={textareaRef}
+          disabled={isArrangeMode}
+          value={text}
+          onChange={(e) => handleChange(e.target.value)}
+          onBlur={handleBlur}
+          placeholder="Write a note..."
+          aria-label="Sticky note content"
           style={{ fontSize: `${fontSize}px`, lineHeight: 1.3 }}
-          className="font-hand text-ink leading-snug break-words whitespace-pre-wrap"
-        >
-          {noteText}
-        </p>
+          className="w-full h-full bg-transparent font-hand text-ink leading-snug break-words resize-none focus:outline-none overflow-hidden placeholder:text-ink/40 select-text"
+        />
       </div>
 
       {/* Hand-Drawn "More" Folded Corner when content overflows */}
@@ -140,17 +168,9 @@ export function StickyNoteDesktop({
   )
 }
 
-// ── Mobile Render Component (Task 11 layout placeholder) ─────
-export function StickyNoteMobile({
-  config,
-}: WidgetRenderProps<StickyNoteConfig>) {
-  return (
-    <div className="w-full p-3 bg-paper border border-ink/20 rounded shadow-sm select-none">
-      <p className="font-hand text-xs text-ink leading-normal break-words whitespace-pre-wrap">
-        {config?.text || 'Sticky note'}
-      </p>
-    </div>
-  )
+// ── Mobile Render Component ───────────────────────────────────
+export function StickyNoteMobile(props: WidgetRenderProps<StickyNoteConfig>) {
+  return <StickyNoteDesktop {...props} />
 }
 
 // ── Widget Definition ─────────────────────────────────────────

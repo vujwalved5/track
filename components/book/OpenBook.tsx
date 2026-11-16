@@ -27,6 +27,7 @@ import {
 } from '@/components/widgets/entryHelpers'
 import { signOut } from '@/lib/supabase/auth'
 import { PinnedIndexCard, AntiqueBrassKey } from '@/components/desk'
+import { FolioSaveStatus } from './FolioSaveStatus'
 
 const MonthSetupWizard = dynamic(
   () => import('@/components/setup/MonthSetupWizard').then((m) => m.MonthSetupWizard),
@@ -777,9 +778,12 @@ export function OpenBook({
         ) : (
           <span className="opacity-50">{prevName}</span>
         )}
-        <span className="font-hand tracking-widest text-[11px] opacity-80">
-          p. {pageNum}
-        </span>
+        <div className="flex items-center gap-3">
+          <FolioSaveStatus />
+          <span className="font-hand tracking-widest text-[11px] opacity-80">
+            p. {pageNum}
+          </span>
+        </div>
       </div>
     )
   }

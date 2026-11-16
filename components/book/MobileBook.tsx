@@ -28,6 +28,7 @@ import {
 import type { WidgetEntryRow } from '@/components/widgets/entryHelpers'
 import { signOut } from '@/lib/supabase/auth'
 import { AntiqueBrassKey } from '@/components/desk'
+import { FolioSaveStatus } from './FolioSaveStatus'
 import { MONTHS } from './OpenBook'
 
 const MonthSetupWizard = dynamic(
@@ -522,8 +523,11 @@ export function MobileBook({
             </button>
 
             {/* Handwritten Folio in Center */}
-            <div className="font-hand text-xs text-ink/70 select-none pointer-events-none">
-              p. {clampedPage + 1} of {totalPages}
+            <div className="flex flex-col items-center justify-center pointer-events-none">
+              <FolioSaveStatus />
+              <div className="font-hand text-xs text-ink/70 select-none">
+                p. {clampedPage + 1} of {totalPages}
+              </div>
             </div>
 
             {/* Folded bottom-right dog-ear corner for "next" (at least 44px tap target) */}

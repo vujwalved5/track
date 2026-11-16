@@ -2,12 +2,13 @@
 
 /**
  * Entry Server Actions
- * Memorable Moments — Phase 5 / Task 9
+ * Memorable Moments — Phase 5 / Task 9 & Task 14
  *
  * Rules:
  * - Validate every entry write with Zod (day 1..31, valid value shape) (Correction 6)
  * - RLS enforcement via Supabase createClient() (L11)
  * - All entries stored in entries table per (widget_id, day) (L2, Correction 3)
+ * - Updates only the value column on (widget_id, day)
  */
 
 import { createClient } from '@/lib/supabase/server'
@@ -34,7 +35,7 @@ export async function getWidgetEntries(
     const supabase = await createClient()
     const { data, error } = await supabase
       .from('entries')
-      .select('*')
+      .select('id, widget_id, day, value, created_at')
       .eq('widget_id', widgetId)
       .order('day', { ascending: true })
 
@@ -54,6 +55,7 @@ export async function getWidgetEntries(
 /**
  * Saves or updates a daily entry for a widget.
  * Validates with Zod before writing to Supabase.
+ * Upserts strictly on (widget_id, day) updating only the value column.
  */
 export async function saveWidgetEntry(
   widgetId: string,
@@ -80,7 +82,7 @@ export async function saveWidgetEntry(
         },
         { onConflict: 'widget_id,day' },
       )
-      .select()
+      .select('id, widget_id, day, value, created_at')
       .single()
 
     if (error || !data) {

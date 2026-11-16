@@ -18,7 +18,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { z } from 'zod'
 import type { WidgetDefinition, WidgetRenderProps } from '../types'
-import { updateWidgetConfig } from '../widgetActions'
+import {
+  saveWidgetConfigQueued,
+  scheduleDebouncedConfigSave,
+} from '../entryHelpers'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const freeNoteConfigSchema = z.object({
@@ -108,14 +111,17 @@ export function FreeNoteDesktop({
     }
   }, [text, fontSize, containerHeight])
 
-  // Commit text to widget config on blur (Correction 5)
+  // Commit text to widget config on blur
   const handleBlur = async () => {
-    if (text !== initialText) {
-      await updateWidgetConfig(id, {
-        paper,
-        text,
-      })
-    }
+    await saveWidgetConfigQueued(id, {
+      paper,
+      text,
+    })
+  }
+
+  const handleChange = (newText: string) => {
+    setText(newText)
+    scheduleDebouncedConfigSave(id, { paper, text: newText }, 400)
   }
 
   return (
@@ -136,7 +142,7 @@ export function FreeNoteDesktop({
         ref={textareaRef}
         disabled={isArrangeMode}
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         onBlur={handleBlur}
         placeholder="Write by hand..."
         aria-label="Free handwritten note"

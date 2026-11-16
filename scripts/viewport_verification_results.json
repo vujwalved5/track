@@ -1,0 +1,416 @@
+{
+  "mobile-390": {
+    "winWidth": 390,
+    "docWidth": 390,
+    "overflow": false,
+    "nav": {
+      "height": 130,
+      "brandX": 24,
+      "ctaRight": 366
+    },
+    "hero": {
+      "height": 986.78125,
+      "fieldNotesX": 0,
+      "h1Right": 366,
+      "expBtnRight": 236,
+      "photoPanel": {
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "top": 666.78125,
+        "bottom": 1116.78125,
+        "height": 450
+      },
+      "polaroid": null
+    },
+    "section01": {
+      "height": 657.34375,
+      "pLeft": {
+        "left": 25.34375,
+        "width": 340.65625,
+        "height": 99.328125
+      },
+      "pRight": {
+        "left": 24,
+        "width": 342,
+        "height": 151.953125
+      },
+      "sprig": {
+        "left": 0,
+        "right": 0,
+        "width": 0
+      },
+      "colophon": {
+        "left": 25.34375
+      }
+    }
+  },
+  "tablet-768": {
+    "winWidth": 768,
+    "docWidth": 753,
+    "overflow": false,
+    "nav": {
+      "height": 95,
+      "brandX": 0,
+      "ctaRight": 0
+    },
+    "hero": {
+      "height": 920.6875,
+      "fieldNotesX": 0,
+      "h1Right": 729,
+      "expBtnRight": 468,
+      "photoPanel": {
+        "left": 0,
+        "right": 753,
+        "width": 753,
+        "top": 565.6875,
+        "bottom": 1015.6875,
+        "height": 450
+      },
+      "polaroid": null
+    },
+    "section01": {
+      "height": 725.359375,
+      "pLeft": {
+        "left": 49.90625,
+        "width": 460,
+        "height": 115.875
+      },
+      "pRight": {
+        "left": 32,
+        "width": 392,
+        "height": 161.484375
+      },
+      "sprig": {
+        "left": 0,
+        "right": 0,
+        "width": 0
+      },
+      "colophon": {
+        "left": 49.90625
+      }
+    }
+  },
+  "desktop-1280": {
+    "winWidth": 1280,
+    "docWidth": 1265,
+    "overflow": false,
+    "nav": {
+      "height": 95,
+      "brandX": 0,
+      "ctaRight": 0
+    },
+    "hero": {
+      "height": 870,
+      "fieldNotesX": 19,
+      "h1Right": 616.5,
+      "expBtnRight": 526,
+      "photoPanel": {
+        "left": 659.5,
+        "right": 1350.5,
+        "width": 691,
+        "top": 95,
+        "bottom": 965,
+        "height": 870
+      },
+      "polaroid": null
+    },
+    "section01": {
+      "height": 637,
+      "pLeft": {
+        "left": 83.1875,
+        "width": 460,
+        "height": 124.171875
+      },
+      "pRight": {
+        "left": 823.5,
+        "width": 392,
+        "height": 161.484375
+      },
+      "sprig": {
+        "left": 472.5,
+        "right": 792.5,
+        "width": 320
+      },
+      "colophon": {
+        "left": 83.1875
+      }
+    }
+  },
+  "desktop-1366": {
+    "winWidth": 1366,
+    "docWidth": 1351,
+    "overflow": false,
+    "nav": {
+      "height": 95,
+      "brandX": 0,
+      "ctaRight": 0
+    },
+    "hero": {
+      "height": 870,
+      "fieldNotesX": 19,
+      "h1Right": 659.5,
+      "expBtnRight": 526,
+      "photoPanel": {
+        "left": 702.5,
+        "right": 1393.5,
+        "width": 691,
+        "top": 95,
+        "bottom": 965,
+        "height": 870
+      },
+      "polaroid": null
+    },
+    "section01": {
+      "height": 637,
+      "pLeft": {
+        "left": 88.78125,
+        "width": 460,
+        "height": 124.171875
+      },
+      "pRight": {
+        "left": 866.5,
+        "width": 392,
+        "height": 161.484375
+      },
+      "sprig": {
+        "left": 515.5,
+        "right": 835.5,
+        "width": 320
+      },
+      "colophon": {
+        "left": 88.78125
+      }
+    }
+  },
+  "desktop-1440": {
+    "winWidth": 1440,
+    "docWidth": 1425,
+    "overflow": false,
+    "nav": {
+      "height": 95,
+      "brandX": 0,
+      "ctaRight": 0
+    },
+    "hero": {
+      "height": 870,
+      "fieldNotesX": 19,
+      "h1Right": 696.5,
+      "expBtnRight": 536.5,
+      "photoPanel": {
+        "left": 739.5,
+        "right": 1430.5,
+        "width": 691,
+        "top": 95,
+        "bottom": 965,
+        "height": 870
+      },
+      "polaroid": null
+    },
+    "section01": {
+      "height": 637,
+      "pLeft": {
+        "left": 93.59375,
+        "width": 460,
+        "height": 124.171875
+      },
+      "pRight": {
+        "left": 903.5,
+        "width": 392,
+        "height": 161.484375
+      },
+      "sprig": {
+        "left": 552.5,
+        "right": 872.5,
+        "width": 320
+      },
+      "colophon": {
+        "left": 93.59375
+      }
+    }
+  },
+  "desktop-1536": {
+    "winWidth": 1536,
+    "docWidth": 1521,
+    "overflow": false,
+    "nav": {
+      "height": 95,
+      "brandX": 0,
+      "ctaRight": 0
+    },
+    "hero": {
+      "height": 950,
+      "fieldNotesX": 63.5,
+      "h1Right": 744.5,
+      "expBtnRight": 584.5,
+      "photoPanel": {
+        "left": 787.5,
+        "right": 1478.5,
+        "width": 691,
+        "top": 95,
+        "bottom": 1045,
+        "height": 950
+      },
+      "polaroid": null
+    },
+    "section01": {
+      "height": 692,
+      "pLeft": {
+        "left": 99.828125,
+        "width": 460,
+        "height": 124.171875
+      },
+      "pRight": {
+        "left": 1201.5,
+        "width": 319.5,
+        "height": 193.78125
+      },
+      "sprig": {
+        "left": 600.5,
+        "right": 920.5,
+        "width": 320
+      },
+      "colophon": {
+        "left": 99.828125
+      }
+    }
+  },
+  "desktop-1600": {
+    "winWidth": 1600,
+    "docWidth": 1585,
+    "overflow": false,
+    "nav": {
+      "height": 95,
+      "brandX": 0,
+      "ctaRight": 0
+    },
+    "hero": {
+      "height": 950,
+      "fieldNotesX": 95.5,
+      "h1Right": 776.5,
+      "expBtnRight": 616.5,
+      "photoPanel": {
+        "left": 819.5,
+        "right": 1510.5,
+        "width": 691,
+        "top": 95,
+        "bottom": 1045,
+        "height": 950
+      },
+      "polaroid": null
+    },
+    "section01": {
+      "height": 692,
+      "pLeft": {
+        "left": 104,
+        "width": 460,
+        "height": 124.171875
+      },
+      "pRight": {
+        "left": 1233.5,
+        "width": 351.5,
+        "height": 193.78125
+      },
+      "sprig": {
+        "left": 632.5,
+        "right": 952.5,
+        "width": 320
+      },
+      "colophon": {
+        "left": 104
+      }
+    }
+  },
+  "desktop-1920": {
+    "winWidth": 1920,
+    "docWidth": 1905,
+    "overflow": false,
+    "nav": {
+      "height": 95,
+      "brandX": 0,
+      "ctaRight": 0
+    },
+    "hero": {
+      "height": 950,
+      "fieldNotesX": 255.5,
+      "h1Right": 936.5,
+      "expBtnRight": 776.5,
+      "photoPanel": {
+        "left": 979.5,
+        "right": 1670.5,
+        "width": 691,
+        "top": 95,
+        "bottom": 1045,
+        "height": 950
+      },
+      "polaroid": null
+    },
+    "section01": {
+      "height": 692,
+      "pLeft": {
+        "left": 124.796875,
+        "width": 460,
+        "height": 124.171875
+      },
+      "pRight": {
+        "left": 1393.5,
+        "width": 392,
+        "height": 161.484375
+      },
+      "sprig": {
+        "left": 792.5,
+        "right": 1112.5,
+        "width": 320
+      },
+      "colophon": {
+        "left": 124.796875
+      }
+    }
+  },
+  "desktop-2560": {
+    "winWidth": 2560,
+    "docWidth": 2545,
+    "overflow": false,
+    "nav": {
+      "height": 95,
+      "brandX": 0,
+      "ctaRight": 0
+    },
+    "hero": {
+      "height": 950,
+      "fieldNotesX": 575.5,
+      "h1Right": 1256.5,
+      "expBtnRight": 1096.5,
+      "photoPanel": {
+        "left": 1299.5,
+        "right": 1990.5,
+        "width": 691,
+        "top": 95,
+        "bottom": 1045,
+        "height": 950
+      },
+      "polaroid": null
+    },
+    "section01": {
+      "height": 692,
+      "pLeft": {
+        "left": 160,
+        "width": 460,
+        "height": 124.171875
+      },
+      "pRight": {
+        "left": 1713.5,
+        "width": 392,
+        "height": 161.484375
+      },
+      "sprig": {
+        "left": 1112.5,
+        "right": 1432.5,
+        "width": 320
+      },
+      "colophon": {
+        "left": 160
+      }
+    }
+  }
+}

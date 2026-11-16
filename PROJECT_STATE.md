@@ -1215,6 +1215,16 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - `.agents/teamwork/` (Agent metadata)
 
 ## What is Finished (Recent)
+- Task 14c: Cleaned up 27 temporary browser profile folders (`tmp_cdp_*`, ~1.61 GB), appended `tmp_*/` and `*.log` to `.gitignore`, unstaged all files via `git reset`, and saved project rules regarding external temporary folder usage and commit restrictions to `GEMINI.md`.
+- Task 14: Fixed reliable data saving across all widgets (Number Log, Habit Tracker, Memorable Moments, Counter, Checklist, Mood Tracker, Poll, Free Note, Sticky Note).
+  - Per-cell save queue (`entryHelpers.ts`): All writes to `(widget_id, day)` are queued sequentially so that later edits wait for earlier ones, preventing out-of-order overwrite bugs.
+  - Save on blur and Enter immediately; rapid keystrokes debounced and capped at 400ms.
+  - Lifecycle flush: `visibilitychange` (hidden) and `pagehide` flush pending saves via `fetch('/api/entries/save', { keepalive: true })` and `/api/widgets/config/save`.
+  - `beforeunload` warning: displays navigation confirmation only when saves are actively in flight or debounced.
+  - Upsert on `(widget_id, day)` updating only the `value` column without touching widget table rows.
+  - Book-style folio save status (`FolioSaveStatus.tsx`): tiny handwritten indicator near page folio showing "saved", "saving...", red-pen "not saved, retrying" with 3 auto-retries, and "waiting to sync" when offline. Zero toasts, zero popups.
+  - Cache merge rule: Only unsynced (pending/failed) edits override server data. Once a write succeeds, it is removed from the pending set so fresh server data wins, preventing stale localStorage data from clobbering server data.
+  - Service worker tuning (`app/sw.ts`): Supabase/API requests use `NetworkFirst` with a 2s timeout (never cache-first), `/book/*` navigation uses `NetworkFirst` with a 2s timeout so online navigations stay fresh while offline remains accessible.
 - Task F1: Fixed stuck sign-in navigation in `components/book/ClosedBook.tsx` (removed unauthenticated prefetch before auth, preserved 1100ms cover animation, added 4s silent fail-safe timer calling `window.location.assign('/home')` if route is stuck, added unmount timer cleanup, and guaranteed error path state resets).
 - Task F2: Restricted Service Worker caching in `app/sw.ts` to full-page navigations (`request.mode === 'navigate'`), excluded Next.js RSC requests (`_rsc` query param or `RSC` header), renamed cache to `'mm-book-month-pages-v2'`, and added activation cleanup targeting legacy `'mm-book-month-pages'`.
 - Task F3: Fixed sign-out race condition and re-entry in `components/book/OpenBook.tsx`, `components/book/MobileBook.tsx`, and `components/desk/HomeDesk.tsx`. Preserved 450ms key turn and 900ms cover close animations; at 900ms, navigation awaits `signOut()` and `clearAllLocalCaches()` with a 3-second fail-safe timer; cancels only the 3s fail-safe on unmount; added single-navigation guard ref; resets `isClosing` and stays on book if `signOut()` errors.

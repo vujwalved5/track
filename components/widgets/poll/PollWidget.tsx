@@ -218,13 +218,15 @@ export function PollDesktop({
 
   // Map of day -> selectedOption string
   const [entriesMap, setEntriesMap] = useState<Record<number, string>>(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     return parsePollRows(entries)
   })
   const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     setEntriesMap(parsePollRows(entries))
   }, [id, initialEntries])
 
@@ -232,10 +234,13 @@ export function PollDesktop({
   const selectOption = useCallback(
     async (option: string) => {
       if (isArrangeMode) return
-      const prevOption = entriesMap[activeDay]
+      let prevOption: string | undefined
 
       // Optimistic update
-      setEntriesMap((prev) => ({ ...prev, [activeDay]: option }))
+      setEntriesMap((prev) => {
+        prevOption = prev[activeDay]
+        return { ...prev, [activeDay]: option }
+      })
 
       const res = await saveWidgetEntryAndBump(id, activeDay, { selectedOption: option })
 
@@ -254,7 +259,7 @@ export function PollDesktop({
         setTimeout(() => setSaveError(null), 3000)
       }
     },
-    [id, activeDay, entriesMap, isArrangeMode],
+    [id, activeDay, isArrangeMode],
   )
 
   // Tally counts per option across all 31 days

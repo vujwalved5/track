@@ -1,0 +1,132 @@
+{
+  "Home": [
+    {
+      "viewport": "mobile-390",
+      "width": 390,
+      "scrollWidth": 390,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "tablet-768",
+      "width": 768,
+      "scrollWidth": 768,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-1280",
+      "width": 1280,
+      "scrollWidth": 1265,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-1366",
+      "width": 1366,
+      "scrollWidth": 1351,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-1536",
+      "width": 1536,
+      "scrollWidth": 1521,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-1600",
+      "width": 1600,
+      "scrollWidth": 1585,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-1920",
+      "width": 1920,
+      "scrollWidth": 1905,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-2560",
+      "width": 2560,
+      "scrollWidth": 2545,
+      "hasOverflow": false,
+      "overflowBy": 0
+    }
+  ],
+  "FocusRoom": [
+    {
+      "viewport": "mobile-390",
+      "width": 390,
+      "scrollWidth": 390,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "tablet-768",
+      "width": 768,
+      "scrollWidth": 768,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-1280",
+      "width": 1280,
+      "scrollWidth": 1265,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-1366",
+      "width": 1366,
+      "scrollWidth": 1351,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-1536",
+      "width": 1536,
+      "scrollWidth": 1521,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-1600",
+      "width": 1600,
+      "scrollWidth": 1585,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-1920",
+      "width": 1920,
+      "scrollWidth": 1905,
+      "hasOverflow": false,
+      "overflowBy": 0
+    },
+    {
+      "viewport": "desktop-2560",
+      "width": 2560,
+      "scrollWidth": 2545,
+      "hasOverflow": false,
+      "overflowBy": 0
+    }
+  ]
+}

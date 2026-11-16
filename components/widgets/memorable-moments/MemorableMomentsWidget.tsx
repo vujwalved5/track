@@ -25,6 +25,7 @@ import {
 } from '../entrySchemas'
 import {
   saveWidgetEntryAndBump,
+  scheduleDebouncedEntrySave,
   getWidgetEntriesWithCache,
   getInitialWidgetEntries,
   type WidgetEntryRow,
@@ -110,7 +111,8 @@ function useMemorableMomentsEntries(
   initialEntries?: WidgetEntryRow[],
 ) {
   const [entriesMap, setEntriesMap] = useState<Record<number, DayEntryState>>(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     return parseMemorableMomentsRows(entries)
   })
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -118,7 +120,8 @@ function useMemorableMomentsEntries(
   const longPressFiredRef = useRef<{ [day: number]: boolean }>({})
 
   useEffect(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     setEntriesMap(parseMemorableMomentsRows(entries))
   }, [id, initialEntries])
 
@@ -159,10 +162,16 @@ function useMemorableMomentsEntries(
       highlighted: false,
       crossedOut: false,
     }
+    const nextState = { ...cur, text: newText }
     setEntriesMap((prev) => ({
       ...prev,
-      [day]: { ...cur, text: newText },
+      [day]: nextState,
     }))
+    scheduleDebouncedEntrySave(id, day, {
+      text: nextState.text,
+      highlighted: nextState.highlighted,
+      crossedOut: nextState.crossedOut,
+    }, 400)
   }
 
   const handleTextBlur = (day: number) => {
@@ -274,7 +283,10 @@ export function MemorableMomentsDesktop({
             onChange={(e) => handleTextChange(day, e.target.value)}
             onBlur={() => handleTextBlur(day)}
             onKeyDown={(e) => {
-              if ((e.altKey || e.ctrlKey || e.metaKey) && (e.key === 'h' || e.key === 'H')) {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleTextBlur(day)
+              } else if ((e.altKey || e.ctrlKey || e.metaKey) && (e.key === 'h' || e.key === 'H')) {
                 e.preventDefault()
                 toggleHighlight(day)
               }
@@ -514,7 +526,10 @@ export function MemorableMomentsMobile({
                   onChange={(e) => handleTextChange(day, e.target.value)}
                   onBlur={() => handleTextBlur(day)}
                   onKeyDown={(e) => {
-                    if ((e.altKey || e.ctrlKey || e.metaKey) && (e.key === 'h' || e.key === 'H')) {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleTextBlur(day)
+                    } else if ((e.altKey || e.ctrlKey || e.metaKey) && (e.key === 'h' || e.key === 'H')) {
                       e.preventDefault()
                       toggleHighlight(day)
                     }

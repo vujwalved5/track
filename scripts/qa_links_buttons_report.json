@@ -1,0 +1,517 @@
+{
+  "http://localhost:3000/": {
+    "links": [
+      {
+        "index": 0,
+        "text": "TRACK AN ATLAS OF EVERYDAY",
+        "href": "/",
+        "resolvedHref": "http://localhost:3000/",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 1,
+        "text": "OPEN JOURNAL",
+        "href": "/login",
+        "resolvedHref": "http://localhost:3000/login",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 2,
+        "text": "HOME",
+        "href": "/",
+        "resolvedHref": "http://localhost:3000/",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 3,
+        "text": "JOURNAL",
+        "href": "/login",
+        "resolvedHref": "http://localhost:3000/login",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 4,
+        "text": "FOCUS ROOM",
+        "href": "/focus-room",
+        "resolvedHref": "http://localhost:3000/focus-room",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 5,
+        "text": "ABOUT",
+        "href": "#about",
+        "resolvedHref": "http://localhost:3000/#about",
+        "visible": true,
+        "ariaLabel": null,
+        "status": "ANCHOR_EXISTS",
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 6,
+        "text": "TRACKAN ATLAS OF EVERYDAY",
+        "href": "/",
+        "resolvedHref": "http://localhost:3000/",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 7,
+        "text": "HOME",
+        "href": "/",
+        "resolvedHref": "http://localhost:3000/",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 8,
+        "text": "JOURNAL",
+        "href": "/login",
+        "resolvedHref": "http://localhost:3000/login",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 9,
+        "text": "FOCUS ROOM",
+        "href": "/focus-room",
+        "resolvedHref": "http://localhost:3000/focus-room",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 10,
+        "text": "ABOUT",
+        "href": "#about",
+        "resolvedHref": "http://localhost:3000/#about",
+        "visible": false,
+        "ariaLabel": null,
+        "status": "ANCHOR_EXISTS",
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 11,
+        "text": "OPEN JOURNAL",
+        "href": "/login",
+        "resolvedHref": "http://localhost:3000/login",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 12,
+        "text": "OPEN YOUR JOURNAL",
+        "href": "/login",
+        "resolvedHref": "http://localhost:3000/login",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 13,
+        "text": "EXPLORE FOCUS ROOM",
+        "href": "/focus-room",
+        "resolvedHref": "http://localhost:3000/focus-room",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 14,
+        "text": "START WITH TODAY ↗",
+        "href": "/login",
+        "resolvedHref": "http://localhost:3000/login",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 15,
+        "text": "HOME",
+        "href": "/",
+        "resolvedHref": "http://localhost:3000/",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 16,
+        "text": "JOURNAL",
+        "href": "/login",
+        "resolvedHref": "http://localhost:3000/login",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 17,
+        "text": "FOCUS ROOM",
+        "href": "/focus-room",
+        "resolvedHref": "http://localhost:3000/focus-room",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 18,
+        "text": "ABOUT",
+        "href": "/#about",
+        "resolvedHref": "http://localhost:3000/#about",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 19,
+        "text": "HOME",
+        "href": "/",
+        "resolvedHref": "http://localhost:3000/",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 20,
+        "text": "JOURNAL",
+        "href": "/login",
+        "resolvedHref": "http://localhost:3000/login",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 21,
+        "text": "FOCUS ROOM",
+        "href": "/focus-room",
+        "resolvedHref": "http://localhost:3000/focus-room",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 22,
+        "text": "ABOUT",
+        "href": "/#about",
+        "resolvedHref": "http://localhost:3000/#about",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      }
+    ],
+    "buttons": [],
+    "totalLinks": 23,
+    "failedLinks": 0,
+    "totalButtons": 0,
+    "disabledButtons": 0
+  },
+  "http://localhost:3000/focus-room": {
+    "links": [
+      {
+        "index": 0,
+        "text": "TRACK",
+        "href": "/",
+        "resolvedHref": "http://localhost:3000/",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 1,
+        "text": "HOME",
+        "href": "/",
+        "resolvedHref": "http://localhost:3000/",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 2,
+        "text": "JOURNAL",
+        "href": "/login",
+        "resolvedHref": "http://localhost:3000/login",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 3,
+        "text": "FOCUS ROOM",
+        "href": "/focus-room",
+        "resolvedHref": "http://localhost:3000/focus-room",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 4,
+        "text": "ABOUT",
+        "href": "/#about",
+        "resolvedHref": "http://localhost:3000/#about",
+        "visible": false,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 5,
+        "text": "HOME",
+        "href": "/",
+        "resolvedHref": "http://localhost:3000/",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 6,
+        "text": "JOURNAL",
+        "href": "/login",
+        "resolvedHref": "http://localhost:3000/login",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 7,
+        "text": "FOCUS",
+        "href": "/focus-room",
+        "resolvedHref": "http://localhost:3000/focus-room",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 8,
+        "text": "← Return to journal",
+        "href": "/login",
+        "resolvedHref": "http://localhost:3000/login",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 9,
+        "text": "HOME",
+        "href": "/",
+        "resolvedHref": "http://localhost:3000/",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 10,
+        "text": "JOURNAL",
+        "href": "/login",
+        "resolvedHref": "http://localhost:3000/login",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 11,
+        "text": "FOCUS ROOM ↑",
+        "href": "/focus-room",
+        "resolvedHref": "http://localhost:3000/focus-room",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      },
+      {
+        "index": 12,
+        "text": "ABOUT",
+        "href": "/#about",
+        "resolvedHref": "http://localhost:3000/#about",
+        "visible": true,
+        "ariaLabel": null,
+        "status": 200,
+        "ok": true,
+        "error": null
+      }
+    ],
+    "buttons": [
+      {
+        "index": 0,
+        "tagName": "button",
+        "role": "button",
+        "text": "START",
+        "ariaLabel": "Start focus timer",
+        "disabled": false,
+        "visible": true,
+        "hasClickHandler": true
+      },
+      {
+        "index": 1,
+        "tagName": "button",
+        "role": "button",
+        "text": "PAUSE",
+        "ariaLabel": "Pause focus timer",
+        "disabled": false,
+        "visible": true,
+        "hasClickHandler": true
+      },
+      {
+        "index": 2,
+        "tagName": "button",
+        "role": "button",
+        "text": "RESET",
+        "ariaLabel": "Reset focus timer",
+        "disabled": false,
+        "visible": true,
+        "hasClickHandler": true
+      },
+      {
+        "index": 3,
+        "tagName": "button",
+        "role": "tab",
+        "text": "FOCUS 25 MIN",
+        "ariaLabel": null,
+        "disabled": false,
+        "visible": true,
+        "hasClickHandler": true
+      },
+      {
+        "index": 4,
+        "tagName": "button",
+        "role": "tab",
+        "text": "SHORT BREAK 5 MIN",
+        "ariaLabel": null,
+        "disabled": false,
+        "visible": true,
+        "hasClickHandler": true
+      },
+      {
+        "index": 5,
+        "tagName": "button",
+        "role": "tab",
+        "text": "LONG BREAK 15 MIN",
+        "ariaLabel": null,
+        "disabled": false,
+        "visible": true,
+        "hasClickHandler": true
+      },
+      {
+        "index": 6,
+        "tagName": "button",
+        "role": "button",
+        "text": "",
+        "ariaLabel": "Play ambient focus sound",
+        "disabled": false,
+        "visible": true,
+        "hasClickHandler": true
+      },
+      {
+        "index": 7,
+        "tagName": "button",
+        "role": "radio",
+        "text": "RAIN & NATURE",
+        "ariaLabel": null,
+        "disabled": false,
+        "visible": true,
+        "hasClickHandler": true
+      },
+      {
+        "index": 8,
+        "tagName": "button",
+        "role": "radio",
+        "text": "SOFT PIANO",
+        "ariaLabel": null,
+        "disabled": false,
+        "visible": true,
+        "hasClickHandler": true
+      },
+      {
+        "index": 9,
+        "tagName": "button",
+        "role": "radio",
+        "text": "DEEP FOCUS",
+        "ariaLabel": null,
+        "disabled": false,
+        "visible": true,
+        "hasClickHandler": true
+      }
+    ],
+    "totalLinks": 13,
+    "failedLinks": 0,
+    "totalButtons": 10,
+    "disabledButtons": 0
+  }
+}

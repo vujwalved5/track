@@ -246,13 +246,15 @@ export function MoodTrackerDesktop({
 
   // Map of day -> mood (1..5)
   const [moodsMap, setMoodsMap] = useState<Record<number, MoodValue>>(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     return parseMoodTrackerRows(entries)
   })
   const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
-    const entries = initialEntries ?? getInitialWidgetEntries(id)
+    const cached = getInitialWidgetEntries(id)
+    const entries = cached.length > 0 ? cached : (initialEntries?.filter((e) => e.widget_id === id) ?? [])
     setMoodsMap(parseMoodTrackerRows(entries))
   }, [id, initialEntries])
 
@@ -260,10 +262,13 @@ export function MoodTrackerDesktop({
   const selectMood = useCallback(
     async (mood: MoodValue) => {
       if (isArrangeMode) return
-      const prevMood = moodsMap[activeDay]
+      let prevMood: MoodValue | undefined
 
       // Optimistic update
-      setMoodsMap((prev) => ({ ...prev, [activeDay]: mood }))
+      setMoodsMap((prev) => {
+        prevMood = prev[activeDay]
+        return { ...prev, [activeDay]: mood }
+      })
 
       const res = await saveWidgetEntryAndBump(id, activeDay, { mood })
 
@@ -282,7 +287,7 @@ export function MoodTrackerDesktop({
         setTimeout(() => setSaveError(null), 3000)
       }
     },
-    [id, activeDay, moodsMap, isArrangeMode],
+    [id, activeDay, isArrangeMode],
   )
 
   const activeMood = moodsMap[activeDay]
