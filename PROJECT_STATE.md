@@ -1230,6 +1230,27 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - Task F3: Fixed sign-out race condition and re-entry in `components/book/OpenBook.tsx`, `components/book/MobileBook.tsx`, and `components/desk/HomeDesk.tsx`. Preserved 450ms key turn and 900ms cover close animations; at 900ms, navigation awaits `signOut()` and `clearAllLocalCaches()` with a 3-second fail-safe timer; cancels only the 3s fail-safe on unmount; added single-navigation guard ref; resets `isClosing` and stays on book if `signOut()` errors.
 - Task F4: Fixed stuck loading state in the five chart widgets (`BarChartWidget.tsx`, `DonutWidget.tsx`, `GoalBarWidget.tsx`, `LineGraphWidget.tsx`, and `ScatterPlotWidget.tsx`). Wrapped all entry fetches in `try / catch / finally` with `setLoading(false)` guaranteed in `finally`, cleared entries and logged `console.error` in `catch` to render existing empty state, and protected state resets and loading clears with `if (!cancelled)` against unmount/stale runs.
 - README & Docs: Added comprehensive `README.md` with features, tech stack, getting started, env var placeholders, and project structure; generated redacted WebP screenshots in `docs/screenshots/` (login cover, home desk, open book spread, month setup wizard, widget library) all under 400 KB.
+- Task 16 — Line Graph Day Axis Zoom & Value Axis:
+  - Line Graph Day Axis Zoom (`LineGraphWidget.tsx`):
+    - Dynamically computes active day range `[firstDay - 1, lastDay + 1]`, clamped to `1..31`, with minimum 7-day span (fallback to `1..31` when empty).
+    - Spreads day range across full axis length (`plotH` when vertical/down, `plotW` when horizontal/across).
+    - Adaptive day tick labels: first day, last day, and every data day when <= 10 days shown; otherwise endpoints and every 5th day. Collisions prevented with minimum pixel spacing.
+    - Missing days inside range: short dotted pen stroke across gaps (`strokeDasharray="2.5 3"`), solid wobbly lines for consecutive days.
+    - Preserves orientation (`down` vs `across`) strictly according to config without auto-switching.
+    - Live updates when entries change via entriesVersion store.
+  - Line Graph Value Axis Rules:
+    - Value range: `dataMin - pad` to `dataMax + pad` where `pad = max(2, span * 0.1)`, not starting at 0. Fixed 1..5 for mood sources.
+    - 3 value ticks (min, mid, max) rounded to whole number (or 1 decimal if data has decimals), short hand-drawn tick marks, Kalam font, ink at ~70% opacity.
+    - Source config unit rendered once next to top tick.
+    - Small Kalam value beside each point (all points when <= 10 points; highest and lowest only when > 10 points).
+    - Top horizontal value axis for vertical/down mode; left vertical value axis for normal/across mode.
+    - Thinning out to min/max only at minimum widget size.
+    - Updated `aria-label` to include min, max, unit, and the day range shown.
+  - Bar Chart Day Axis Zoom (`BarChartWidget.tsx`):
+    - Applied day-range zoom to Bar Chart daily slots and adaptive day labels.
+    - Updated `aria-label` to announce visible day range.
+  - Scatter Plot Assessment:
+    - Scatter Plot plots source1 vs source2 coordinates with no day axis, so day zoom was omitted.
 
 ## Next
 - Next task from BOOK_LAG_AUDIT.md or product backlog as directed by user.

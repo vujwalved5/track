@@ -26,6 +26,7 @@ import {
   seedFromString,
   resolveDataSeries,
 } from '../charts/chartUtils'
+import { computeDayRange } from '../line-graph/LineGraphWidget'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const barChartConfigSchema = z.object({
@@ -157,15 +158,21 @@ function BarChartDesktopInner({
   const plotW = Math.max(30, widthPx - padLeft - padRight)
   const plotH = Math.max(30, svgH - padTop - padBottom)
 
+  // Day range clamped to 1..31, min 7 days
+  const daysWithData = useMemo(() => series.map((s) => s.day), [series])
+  const dayRange = useMemo(() => computeDayRange(daysWithData), [daysWithData])
+  const { startDay, endDay } = dayRange
+  const numSlots = endDay - startDay + 1
+
   // Value extents: start at 0 so bars represent heights from base
   const values = series.map((s) => s.value)
   const maxVal = values.length > 0 ? Math.max(1, ...values) : 1
 
-  // 31 slots
-  const slotW = plotW / 31
+  // Dynamic slots based on active day range
+  const slotW = plotW / numSlots
   const barW = Math.max(2, slotW * 0.72)
 
-  const slotH = plotH / 31
+  const slotH = plotH / numSlots
   const barH = Math.max(2, slotH * 0.72)
 
   interface RenderedBar {
@@ -179,40 +186,90 @@ function BarChartDesktopInner({
   // Memoize daily bar geometry and coordinate math (Fix 11)
   const renderedBars = useMemo<RenderedBar[]>(() => {
     const bars: RenderedBar[] = []
-    for (let i = 0; i < 31; i++) {
-      const day = i + 1
+    for (let day = startDay; day <= endDay; day++) {
       const val = dayValueMap[day]
       if (val === undefined || val === null || val <= 0) continue
 
+      const slotIndex = day - startDay
       if (isDown) {
         // "down" draws horizontal bars with days running top to bottom
         const barWidth = Math.max(2, (val / maxVal) * plotW)
         const bx = padLeft
-        const by = padTop + (day - 1) * slotH + (slotH - barH) / 2
+        const by = padTop + slotIndex * slotH + (slotH - barH) / 2
         bars.push({ day, x: bx, y: by, width: barWidth, height: barH })
       } else {
         // "across" draws vertical bars with days running left to right
         const barHeight = Math.max(2, (val / maxVal) * plotH)
-        const bx = padLeft + (day - 1) * slotW + (slotW - barW) / 2
+        const bx = padLeft + slotIndex * slotW + (slotW - barW) / 2
         const by = padTop + plotH - barHeight
         bars.push({ day, x: bx, y: by, width: barW, height: barHeight })
       }
     }
     return bars
-  }, [dayValueMap, isDown, maxVal, plotW, plotH, padLeft, padTop, slotH, slotW, barH, barW])
+  }, [dayValueMap, startDay, endDay, isDown, maxVal, plotW, plotH, padLeft, padTop, slotH, slotW, barH, barW])
 
-  // Memoize sparse day label positions (Fix 11)
+  // Memoize day label positions with collision prevention
   const renderedSparseLabels = useMemo(() => {
-    return SPARSE_DAYS.map((d) => {
+    if (startDay === endDay) {
+      return [{ d: startDay, x: padLeft, y: padTop, anchor: 'middle' as const }]
+    }
+
+    const span = endDay - startDay + 1
+    let candidates: number[] = []
+    if (isCompact) {
+      candidates = [startDay, endDay]
+    } else if (span <= 10) {
+      const set = new Set<number>([startDay, endDay])
+      for (const d of daysWithData) {
+        if (d >= startDay && d <= endDay) {
+          set.add(d)
+        }
+      }
+      candidates = Array.from(set).sort((a, b) => a - b)
+    } else {
+      const set = new Set<number>([startDay, endDay])
+      for (let d = startDay; d <= endDay; d++) {
+        if (d % 5 === 0) set.add(d)
+      }
+      candidates = Array.from(set).sort((a, b) => a - b)
+    }
+
+    // Ensure labels never overlap
+    const minSpacing = isDown ? 13 : 16
+    const axisLength = isDown ? plotH : plotW
+    const getPosPx = (d: number) => ((d - startDay) / (endDay - startDay)) * axisLength
+
+    const accepted: number[] = [startDay]
+    const middleCandidates = candidates.filter((d) => d !== startDay && d !== endDay)
+
+    for (const d of middleCandidates) {
+      const prev = accepted[accepted.length - 1]
+      const posD = getPosPx(d)
+      const posPrev = getPosPx(prev)
+      const posEnd = getPosPx(endDay)
+      if (posD - posPrev >= minSpacing && posEnd - posD >= minSpacing) {
+        accepted.push(d)
+      }
+    }
+
+    if (endDay !== startDay) {
+      const lastAccepted = accepted[accepted.length - 1]
+      if (getPosPx(endDay) - getPosPx(lastAccepted) >= minSpacing || accepted.length === 1) {
+        accepted.push(endDay)
+      }
+    }
+
+    return accepted.map((d) => {
+      const slotIndex = d - startDay
       if (isDown) {
-        const y = padTop + (d - 1) * slotH + slotH / 2
+        const y = padTop + slotIndex * slotH + slotH / 2
         return { d, x: padLeft - 6, y: y + 3, anchor: 'end' as const }
       } else {
-        const x = padLeft + (d - 1) * slotW + slotW / 2
+        const x = padLeft + slotIndex * slotW + slotW / 2
         return { d, x, y: padTop + plotH + 14, anchor: 'middle' as const }
       }
     })
-  }, [isDown, padLeft, padTop, slotH, slotW, plotH])
+  }, [startDay, endDay, daysWithData, isCompact, isDown, padLeft, padTop, slotH, slotW, plotH, plotW])
 
   return (
     <div className="relative w-full h-full flex flex-col bg-transparent select-none overflow-hidden p-2">
@@ -242,7 +299,7 @@ function BarChartDesktopInner({
             viewBox={`0 0 ${widthPx} ${svgH}`}
             className="w-full h-full overflow-visible"
             role="img"
-            aria-label={`Bar chart of ${title}, ${series.length} entries, max value ${maxVal}`}
+            aria-label={`Bar chart of ${title}, days ${startDay} to ${endDay}, ${series.length} entries, max value ${maxVal}`}
           >
             <defs>
               {/* Pen-stroke diagonal hatching pattern */}
