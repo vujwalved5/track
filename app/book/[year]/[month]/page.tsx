@@ -1,8 +1,9 @@
-import { OpenBook, MONTHS } from '@/components/book'
+import { OpenBook, MONTHS } from '@/components/book/OpenBook'
 import type { PaperType } from '@/components/paper'
 import { createClient } from '@/lib/supabase/server'
-import { getPreviousMonthData } from '@/components/setup'
-import type { WidgetData, WidgetEntryRow } from '@/components/widgets'
+import { getPreviousMonthData } from '@/components/setup/setupActions'
+import type { WidgetData } from '@/components/widgets/types'
+import type { WidgetEntryRow } from '@/components/widgets/entryHelpers'
 
 interface PageProps {
   params: Promise<{

@@ -4,18 +4,18 @@ import React, { useState, useEffect, useRef, useCallback, useTransition } from '
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Paper, { PAGE_W, PAGE_H, PAGE_COLS, PAGE_ROWS, type PaperType } from '@/components/paper'
-import type { PreviousMonthData } from '@/components/setup'
+import type { PreviousMonthData } from '@/components/setup/setupActions'
 import { MobileBook } from './MobileBook'
+import { PageWidgetLayer } from '@/components/widgets/PageWidgetLayer'
+import { PlacementOverlay } from '@/components/widgets/PlacementOverlay'
+import { createWidget } from '@/components/widgets/widgetActions'
 import {
-  PageWidgetLayer,
-  PlacementOverlay,
-  createWidget,
   isValidPlacement,
   type WidgetData,
   type WidgetDefinition,
   type PageSide,
   type WidgetRect,
-} from '@/components/widgets'
+} from '@/components/widgets/types'
 import {
   getWidgetMetadata,
   findFittingSizeAt,
@@ -26,7 +26,8 @@ import {
   type WidgetEntryRow,
 } from '@/components/widgets/entryHelpers'
 import { signOut } from '@/lib/supabase/auth'
-import { PinnedIndexCard, AntiqueBrassKey } from '@/components/desk'
+import { PinnedIndexCard } from '@/components/desk/PinnedIndexCard'
+import { AntiqueBrassKey } from '@/components/desk/AntiqueBrassKey'
 import { FolioSaveStatus } from './FolioSaveStatus'
 
 const MonthSetupWizard = dynamic(
