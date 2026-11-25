@@ -108,8 +108,7 @@ export default async function BookMonthPage({ params }: PageProps) {
           .maybeSingle()
       : Promise.resolve(null)
 
-    const [prevMonthData, currentBookRes, nextBookRes] = await Promise.all([
-      getPreviousMonthData(year, month),
+    const [currentBookRes, nextBookRes] = await Promise.all([
       currentBookQuery,
       nextBookQuery,
     ])
@@ -148,6 +147,10 @@ export default async function BookMonthPage({ params }: PageProps) {
       initialWidgets = []
       initialEntries = []
     }
+
+    const prevMonthData = setupDone
+      ? { exists: false }
+      : await getPreviousMonthData(year, month)
 
     // Evaluate gentle next month prompt result
     if (isLast3DaysOfViewedMonth && nextBookRes) {

@@ -35,6 +35,7 @@ interface WidgetWrapperProps {
   year?: number
   month?: number
   setupConfig?: Record<string, unknown>
+  allWidgets?: WidgetData[]
   isArrangeMode: boolean
   otherWidgets: WidgetData[]
   onResizeEnd: (
@@ -50,6 +51,7 @@ function WidgetWrapperInner({
   year,
   month,
   setupConfig,
+  allWidgets,
   isArrangeMode,
   otherWidgets,
   onResizeEnd,
@@ -337,6 +339,7 @@ function WidgetWrapperInner({
             year={year}
             month={month}
             setupConfig={setupConfig}
+            allWidgets={widget.type === 'line-graph' ? allWidgets : undefined}
           />
         ) : (
           <div className="w-full h-full bg-paper/50 border border-ink/20 p-2 font-hand text-xs text-ink/70">
@@ -532,6 +535,11 @@ function areWidgetWrapperPropsEqual(
     for (const key of prevKeys) {
       if (prevConfig[key] !== nextConfig[key]) return false
     }
+  }
+
+  // For line-graph widgets, re-render if month widgets changed (source unit may have changed)
+  if (nextProps.widget.type === 'line-graph' && prevProps.allWidgets !== nextProps.allWidgets) {
+    return false
   }
 
   return true

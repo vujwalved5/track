@@ -486,6 +486,7 @@ export function MobileBook({
                         year={year}
                         month={month}
                         setupConfig={setupConfig}
+                        allWidgets={widgets}
                         mobileSubPage={subPage}
                         mobileTotalSubPages={totalSubPages}
                         initialEntries={initialEntries}

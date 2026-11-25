@@ -937,6 +937,7 @@ export function OpenBook({
                     page="left"
                     monthId={currentMonthId}
                     widgets={leftWidgets}
+                    allWidgets={widgets}
                     isArrangeMode={false}
                     onWidgetsChange={handleLeftWidgetsChange}
                     onOpenConfig={noop}
@@ -971,6 +972,7 @@ export function OpenBook({
                       page="right"
                       monthId={monthId}
                       widgets={rightWidgets}
+                      allWidgets={widgets}
                       isArrangeMode={false}
                       onWidgetsChange={handleRightWidgetsChange}
                       onOpenConfig={noop}
@@ -1017,6 +1019,7 @@ export function OpenBook({
                     page="right"
                     monthId={monthId}
                     widgets={rightWidgets}
+                    allWidgets={widgets}
                     isArrangeMode={false}
                     onWidgetsChange={handleRightWidgetsChange}
                     onOpenConfig={noop}
@@ -1044,6 +1047,7 @@ export function OpenBook({
                       page="left"
                       monthId={monthId}
                       widgets={leftWidgets}
+                      allWidgets={widgets}
                       isArrangeMode={false}
                       onWidgetsChange={handleLeftWidgetsChange}
                       onOpenConfig={noop}
@@ -1109,6 +1113,7 @@ export function OpenBook({
                     month={month}
                     setupConfig={currentSetupConfig}
                     widgets={leftWidgets}
+                    allWidgets={widgets}
                     isArrangeMode={isArrangeMode}
                     onWidgetsChange={handleLeftWidgetsChange}
                     onOpenConfig={handleOpenConfig}
@@ -1138,6 +1143,7 @@ export function OpenBook({
                   month={month}
                   setupConfig={currentSetupConfig}
                   widgets={rightWidgets}
+                  allWidgets={widgets}
                   isArrangeMode={isArrangeMode}
                   onWidgetsChange={handleRightWidgetsChange}
                   onOpenConfig={handleOpenConfig}

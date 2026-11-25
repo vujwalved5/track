@@ -41,6 +41,7 @@ interface PageWidgetLayerProps {
   month?: number
   setupConfig?: Record<string, unknown>
   widgets: WidgetData[]
+  allWidgets?: WidgetData[]
   isArrangeMode: boolean
   onWidgetsChange: (widgets: WidgetData[]) => void
   onOpenConfig: (widgetId: string) => void
@@ -53,6 +54,7 @@ export function PageWidgetLayer({
   month,
   setupConfig,
   widgets,
+  allWidgets,
   isArrangeMode,
   onWidgetsChange,
   onOpenConfig,
@@ -237,6 +239,7 @@ export function PageWidgetLayer({
               year={year}
               month={month}
               setupConfig={setupConfig}
+              allWidgets={allWidgets}
               isArrangeMode={isArrangeMode}
               otherWidgets={widgets.filter((w) => w.id !== widget.id)}
               onResizeEnd={handleResizeEnd}

@@ -56,6 +56,8 @@ export interface WidgetRenderProps<T = Record<string, unknown>> {
   year?: number
   month?: number
   setupConfig?: Record<string, unknown>
+  /** Full month widget list (for cross-widget references such as line-graph source unit) */
+  allWidgets?: WidgetData[]
   mobileSubPage?: number
   mobileTotalSubPages?: number
 }
