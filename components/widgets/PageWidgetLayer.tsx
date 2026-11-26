@@ -12,7 +12,7 @@
  * - Dev-only test control: "dev: add sticky note" (Correction 5)
  */
 
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   DndContext,
   useSensor,
@@ -33,6 +33,9 @@ import {
   updateWidgetPosition,
   deleteWidget,
 } from './widgetActions'
+
+const EMPTY_SETUP_CONFIG: Record<string, unknown> = {}
+const EMPTY_WIDGETS: WidgetData[] = []
 
 interface PageWidgetLayerProps {
   page: PageSide
@@ -60,6 +63,14 @@ export function PageWidgetLayer({
   onOpenConfig,
 }: PageWidgetLayerProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const stableSetupConfig = setupConfig ?? EMPTY_SETUP_CONFIG
+  const otherWidgetsById = useMemo(() => {
+    const map = new Map<string, WidgetData[]>()
+    for (const w of widgets) {
+      map.set(w.id, widgets.filter((other) => other.id !== w.id))
+    }
+    return map
+  }, [widgets])
 
   // Configure pointer sensor with activation distance to avoid misclicks
   const sensors = useSensors(
@@ -238,10 +249,10 @@ export function PageWidgetLayer({
               widget={widget}
               year={year}
               month={month}
-              setupConfig={setupConfig}
+              setupConfig={stableSetupConfig}
               allWidgets={allWidgets}
               isArrangeMode={isArrangeMode}
-              otherWidgets={widgets.filter((w) => w.id !== widget.id)}
+              otherWidgets={otherWidgetsById.get(widget.id) ?? EMPTY_WIDGETS}
               onResizeEnd={handleResizeEnd}
               onRemove={handleRemove}
               onOpenConfig={onOpenConfig}

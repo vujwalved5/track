@@ -114,7 +114,7 @@ interface LineSegment {
 }
 
 // ── Desktop / Main Component ──────────────────────────────────
-export function LineGraphDesktop({
+export const LineGraphDesktop = React.memo(function LineGraphDesktop({
   id,
   config,
   w,
@@ -129,7 +129,9 @@ export function LineGraphDesktop({
       ? config.orientation === 'down'
       : !!config?.vertical
 
-  const version = useEntriesVersionStore((s) => s.version)
+  const version = useEntriesVersionStore((s) =>
+    sourceWidgetId ? s.versions[sourceWidgetId] ?? 0 : 0,
+  )
   const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>(() => {
     if (!sourceWidgetId) return []
     const sourceInitial = initialEntries?.filter((e) => e.widget_id === sourceWidgetId)
@@ -627,7 +629,7 @@ export function LineGraphDesktop({
       )}
     </div>
   )
-}
+})
 
 // ── Mobile Render Component (Task 11 placeholder) ─────────────
 export function LineGraphMobile(
