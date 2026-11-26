@@ -79,7 +79,7 @@ export function GoalBarIcon({ className = 'w-5 h-5' }: { className?: string }) {
 }
 
 // ── Desktop / Main Component ──────────────────────────────────
-export function GoalBarDesktop({
+export const GoalBarDesktop = React.memo(function GoalBarDesktop({
   id,
   config,
   w = 14,
@@ -94,7 +94,9 @@ export function GoalBarDesktop({
   const orientation = config?.orientation || 'across'
   const isDown = orientation === 'down'
 
-  const version = useEntriesVersionStore((s) => s.version)
+  const version = useEntriesVersionStore((s) =>
+    sourceWidgetId ? s.versions[sourceWidgetId] ?? 0 : 0,
+  )
   const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>(() => {
     if (!sourceWidgetId) return []
     const sourceInitial = initialEntries?.filter((e) => e.widget_id === sourceWidgetId)
@@ -388,7 +390,7 @@ export function GoalBarDesktop({
       )}
     </div>
   )
-}
+})
 
 // ── Mobile Render Component (Task 11 placeholder) ─────────────
 export function GoalBarMobile(

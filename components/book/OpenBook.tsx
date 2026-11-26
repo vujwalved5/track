@@ -4,18 +4,18 @@ import React, { useState, useEffect, useRef, useCallback, useTransition } from '
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import Paper, { PAGE_W, PAGE_H, PAGE_COLS, PAGE_ROWS, type PaperType } from '@/components/paper'
-import type { PreviousMonthData } from '@/components/setup'
+import type { PreviousMonthData } from '@/components/setup/setupActions'
 import { MobileBook } from './MobileBook'
+import { PageWidgetLayer } from '@/components/widgets/PageWidgetLayer'
+import { PlacementOverlay } from '@/components/widgets/PlacementOverlay'
+import { createWidget } from '@/components/widgets/widgetActions'
 import {
-  PageWidgetLayer,
-  PlacementOverlay,
-  createWidget,
   isValidPlacement,
   type WidgetData,
   type WidgetDefinition,
   type PageSide,
   type WidgetRect,
-} from '@/components/widgets'
+} from '@/components/widgets/types'
 import {
   getWidgetMetadata,
   findFittingSizeAt,
@@ -26,7 +26,8 @@ import {
   type WidgetEntryRow,
 } from '@/components/widgets/entryHelpers'
 import { signOut } from '@/lib/supabase/auth'
-import { PinnedIndexCard, AntiqueBrassKey } from '@/components/desk'
+import { PinnedIndexCard } from '@/components/desk/PinnedIndexCard'
+import { AntiqueBrassKey } from '@/components/desk/AntiqueBrassKey'
 import { FolioSaveStatus } from './FolioSaveStatus'
 
 const MonthSetupWizard = dynamic(
@@ -91,9 +92,6 @@ export function OpenBook({
   nextMonthName,
   nextMonthDate,
 }: OpenBookProps) {
-  // Synchronously prime the entries cache with initial SSR data so child widgets avoid waterfalls
-  setInitialEntries(initialEntries, initialWidgets.map((w) => w.id))
-
   const router = useRouter()
   const [, startTransition] = useTransition()
 
@@ -306,8 +304,8 @@ export function OpenBook({
     setActiveConfigWidgetId(null)
   }, [])
 
-  const handleOverlayHover = useCallback((page: PageSide, x: number, y: number) => {
-    setActivePlacement({ page, x, y })
+  const handleClearPlacementCursor = useCallback(() => {
+    setActivePlacement(null)
   }, [])
 
   const handleDrawerOpenToggle = useCallback(() => {
@@ -936,6 +934,7 @@ export function OpenBook({
                     page="left"
                     monthId={currentMonthId}
                     widgets={leftWidgets}
+                    allWidgets={widgets}
                     isArrangeMode={false}
                     onWidgetsChange={handleLeftWidgetsChange}
                     onOpenConfig={noop}
@@ -970,6 +969,7 @@ export function OpenBook({
                       page="right"
                       monthId={monthId}
                       widgets={rightWidgets}
+                      allWidgets={widgets}
                       isArrangeMode={false}
                       onWidgetsChange={handleRightWidgetsChange}
                       onOpenConfig={noop}
@@ -1016,6 +1016,7 @@ export function OpenBook({
                     page="right"
                     monthId={monthId}
                     widgets={rightWidgets}
+                    allWidgets={widgets}
                     isArrangeMode={false}
                     onWidgetsChange={handleRightWidgetsChange}
                     onOpenConfig={noop}
@@ -1043,6 +1044,7 @@ export function OpenBook({
                       page="left"
                       monthId={monthId}
                       widgets={leftWidgets}
+                      allWidgets={widgets}
                       isArrangeMode={false}
                       onWidgetsChange={handleLeftWidgetsChange}
                       onOpenConfig={noop}
@@ -1108,6 +1110,7 @@ export function OpenBook({
                     month={month}
                     setupConfig={currentSetupConfig}
                     widgets={leftWidgets}
+                    allWidgets={widgets}
                     isArrangeMode={isArrangeMode}
                     onWidgetsChange={handleLeftWidgetsChange}
                     onOpenConfig={handleOpenConfig}
@@ -1117,8 +1120,8 @@ export function OpenBook({
                       page="left"
                       pickedWidgetDef={pickedWidgetDef}
                       existingWidgets={leftWidgets}
-                      cursor={activePlacement?.page === 'left' ? activePlacement : null}
-                      onHover={handleOverlayHover}
+                      cursor={activePlacement}
+                      onClearCursor={handleClearPlacementCursor}
                       onPlace={handlePlaceWidget}
                       onNoRoom={triggerNoRoom}
                       onDismissNoRoom={dismissNoRoom}
@@ -1137,6 +1140,7 @@ export function OpenBook({
                   month={month}
                   setupConfig={currentSetupConfig}
                   widgets={rightWidgets}
+                  allWidgets={widgets}
                   isArrangeMode={isArrangeMode}
                   onWidgetsChange={handleRightWidgetsChange}
                   onOpenConfig={handleOpenConfig}
@@ -1146,8 +1150,8 @@ export function OpenBook({
                     page="right"
                     pickedWidgetDef={pickedWidgetDef}
                     existingWidgets={rightWidgets}
-                    cursor={activePlacement?.page === 'right' ? activePlacement : null}
-                    onHover={handleOverlayHover}
+                    cursor={activePlacement}
+                    onClearCursor={handleClearPlacementCursor}
                     onPlace={handlePlaceWidget}
                     onNoRoom={triggerNoRoom}
                     onDismissNoRoom={dismissNoRoom}

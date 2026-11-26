@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { ClosedBook } from '@/components/book'
+import { ClosedBook } from '@/components/book/ClosedBook'
 
 export default async function LoginPage() {
   const supabase = await createClient()

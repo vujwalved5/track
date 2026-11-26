@@ -75,7 +75,7 @@ interface SliceData {
 }
 
 // ── Desktop / Main Component ──────────────────────────────────
-export function DonutDesktop({
+export const DonutDesktop = React.memo(function DonutDesktop({
   id,
   config,
   setupConfig,
@@ -87,7 +87,9 @@ export function DonutDesktop({
   const title = config?.title || 'Donut'
   const sourceWidgetId = config?.sourceWidgetId || ''
 
-  const version = useEntriesVersionStore((s) => s.version)
+  const version = useEntriesVersionStore((s) =>
+    sourceWidgetId ? s.versions[sourceWidgetId] ?? 0 : 0,
+  )
   const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>(() => {
     if (!sourceWidgetId) return []
     const sourceInitial = initialEntries?.filter((e) => e.widget_id === sourceWidgetId)
@@ -358,7 +360,7 @@ export function DonutDesktop({
       )}
     </div>
   )
-}
+})
 
 // ── Mobile Render Component (Task 11 placeholder) ─────────────
 export function DonutMobile(

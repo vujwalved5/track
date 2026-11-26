@@ -19,15 +19,12 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import type { PaperType } from '@/components/paper'
-import type { PreviousMonthData } from '@/components/setup'
-import {
-  getWidgetDefinition,
-  type WidgetData,
-  type WidgetDefinition,
-} from '@/components/widgets'
+import type { PreviousMonthData } from '@/components/setup/setupActions'
+import { getWidgetDefinition } from '@/components/widgets/registry'
+import type { WidgetData, WidgetDefinition } from '@/components/widgets/types'
 import type { WidgetEntryRow } from '@/components/widgets/entryHelpers'
 import { signOut } from '@/lib/supabase/auth'
-import { AntiqueBrassKey } from '@/components/desk'
+import { AntiqueBrassKey } from '@/components/desk/AntiqueBrassKey'
 import { FolioSaveStatus } from './FolioSaveStatus'
 import { MONTHS } from './OpenBook'
 
@@ -489,6 +486,7 @@ export function MobileBook({
                         year={year}
                         month={month}
                         setupConfig={setupConfig}
+                        allWidgets={widgets}
                         mobileSubPage={subPage}
                         mobileTotalSubPages={totalSubPages}
                         initialEntries={initialEntries}

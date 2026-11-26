@@ -14,7 +14,7 @@
  * Spine shadow: left page → inset on right edge; right page → inset on left.
  */
 
-import type { CSSProperties } from 'react'
+import { memo, type CSSProperties } from 'react'
 
 // ── Public types ─────────────────────────────────────────────
 export type PaperType = 'dotted' | 'squared' | 'lined' | 'blank'
@@ -97,7 +97,7 @@ function spineStyle(side: PageSide): Pick<CSSProperties, 'boxShadow'> {
 }
 
 // ── Component ─────────────────────────────────────────────────
-export default function Paper({
+const Paper = memo(function Paper({
   type,
   side,
   children,
@@ -127,4 +127,6 @@ export default function Paper({
       {children}
     </div>
   )
-}
+})
+
+export default Paper

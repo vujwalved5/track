@@ -36,7 +36,6 @@ import {
   seedFromString,
   resolveDataSeries,
 } from '../charts/chartUtils'
-import { createClient } from '@/lib/supabase/client'
 
 // ── Zod Config Schema ─────────────────────────────────────────
 export const lineGraphConfigSchema = z.object({
@@ -115,7 +114,7 @@ interface LineSegment {
 }
 
 // ── Desktop / Main Component ──────────────────────────────────
-export function LineGraphDesktop({
+export const LineGraphDesktop = React.memo(function LineGraphDesktop({
   id,
   config,
   w,
@@ -130,14 +129,19 @@ export function LineGraphDesktop({
       ? config.orientation === 'down'
       : !!config?.vertical
 
-  const version = useEntriesVersionStore((s) => s.version)
+  const version = useEntriesVersionStore((s) =>
+    sourceWidgetId ? s.versions[sourceWidgetId] ?? 0 : 0,
+  )
   const [entries, setEntries] = useState<Array<{ day: number; value: unknown }>>(() => {
     if (!sourceWidgetId) return []
     const sourceInitial = initialEntries?.filter((e) => e.widget_id === sourceWidgetId)
     if (sourceInitial && sourceInitial.length > 0) return sourceInitial
     return getInitialWidgetEntries(sourceWidgetId)
   })
-  const [sourceUnit, setSourceUnit] = useState<string>('')
+  const rawUnit = sourceWidgetId
+    ? rest.allWidgets?.find((w) => w.id === sourceWidgetId)?.config?.unit
+    : ''
+  const sourceUnit = typeof rawUnit === 'string' ? rawUnit : ''
   const [loading, setLoading] = useState(false)
 
   // Seed for deterministic wobble
@@ -147,49 +151,21 @@ export function LineGraphDesktop({
   useEffect(() => {
     let cancelled = false
     async function fetchSourceData() {
-      if (!sourceWidgetId) {
-        setEntries([])
-        setSourceUnit('')
+      if (isFirstMount.current) {
+        isFirstMount.current = false
         return
       }
 
+      if (!sourceWidgetId) {
+        setEntries([])
+        return
+      }
+
+      setLoading(true)
       try {
-        const supabase = createClient()
-        const widgetPromise = supabase
-          .from('widgets')
-          .select('config, type')
-          .eq('id', sourceWidgetId)
-          .maybeSingle()
-
-        if (isFirstMount.current) {
-          isFirstMount.current = false
-          const widgetRes = await widgetPromise
-          if (!cancelled && widgetRes?.data?.config && typeof widgetRes.data.config === 'object') {
-            const cfg = widgetRes.data.config as Record<string, unknown>
-            if (typeof cfg.unit === 'string') {
-              setSourceUnit(cfg.unit)
-            }
-          }
-          return
-        }
-
-        setLoading(true)
-        const [res, widgetRes] = await Promise.all([
-          getWidgetEntriesWithCache(sourceWidgetId),
-          widgetPromise,
-        ])
+        const res = await getWidgetEntriesWithCache(sourceWidgetId)
         if (!cancelled) {
-          if (res.success && res.data) {
-            setEntries(res.data)
-          } else {
-            setEntries([])
-          }
-          if (widgetRes?.data?.config && typeof widgetRes.data.config === 'object') {
-            const cfg = widgetRes.data.config as Record<string, unknown>
-            if (typeof cfg.unit === 'string') {
-              setSourceUnit(cfg.unit)
-            }
-          }
+          setEntries(res.success && res.data ? res.data : [])
         }
       } catch (err) {
         if (!cancelled) {
@@ -653,7 +629,7 @@ export function LineGraphDesktop({
       )}
     </div>
   )
-}
+})
 
 // ── Mobile Render Component (Task 11 placeholder) ─────────────
 export function LineGraphMobile(

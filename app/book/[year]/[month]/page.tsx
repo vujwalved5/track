@@ -1,8 +1,9 @@
-import { OpenBook, MONTHS } from '@/components/book'
+import { OpenBook, MONTHS } from '@/components/book/OpenBook'
 import type { PaperType } from '@/components/paper'
 import { createClient } from '@/lib/supabase/server'
-import { getPreviousMonthData } from '@/components/setup'
-import type { WidgetData, WidgetEntryRow } from '@/components/widgets'
+import { getPreviousMonthData } from '@/components/setup/setupActions'
+import type { WidgetData } from '@/components/widgets/types'
+import type { WidgetEntryRow } from '@/components/widgets/entryHelpers'
 
 interface PageProps {
   params: Promise<{
@@ -107,8 +108,7 @@ export default async function BookMonthPage({ params }: PageProps) {
           .maybeSingle()
       : Promise.resolve(null)
 
-    const [prevMonthData, currentBookRes, nextBookRes] = await Promise.all([
-      getPreviousMonthData(year, month),
+    const [currentBookRes, nextBookRes] = await Promise.all([
       currentBookQuery,
       nextBookQuery,
     ])
@@ -147,6 +147,10 @@ export default async function BookMonthPage({ params }: PageProps) {
       initialWidgets = []
       initialEntries = []
     }
+
+    const prevMonthData = setupDone
+      ? { exists: false }
+      : await getPreviousMonthData(year, month)
 
     // Evaluate gentle next month prompt result
     if (isLast3DaysOfViewedMonth && nextBookRes) {
