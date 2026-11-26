@@ -1305,3 +1305,20 @@ Applies ONLY to `/`, `/focus-room` and the components in `/components/public` (w
 - Covers: Pomodoro technique variants, browser timer accuracy (Web Worker + timestamp approach), persistence (localStorage), alerts (Notifications API, wake lock), accessibility (aria-live milestones, prefers-reduced-motion), and 3+ music candidates per chip (Rain & Nature, Soft Piano, Deep Focus).
 - Recommended approach: Web Worker timer, CC0/CC BY OGG files self-hosted in /public/audio/, Web Audio API synthesis for Deep Focus chip.
 - Next: Task 17 (build) — awaiting 5 product owner decisions listed in Open Questions.
+
+---
+
+## Overnight performance run
+
+- **Branch**: `perf/overnight-2026-11-25` (branched off `0eef2ab7`; `main` untouched, nothing pushed).
+- **Tasks**:
+  - **T1 (`5f668023`) — done**: Broke barrel-export leaks across `@/components/book`, `@/components/widgets`, `@/components/desk`, and `@/components/setup` using direct imports (`app/login/page.tsx`, `app/home/page.tsx`, `app/book/[year]/[month]/page.tsx`, `OpenBook.tsx`, `MobileBook.tsx`).
+  - **T2 (`d8b42ad9`) — done**: Removed the `LineGraphDesktop` client `/rest/v1/widgets` query by threading already-fetched `widgets` through `OpenBook`, `MobileBook`, `PageWidgetLayer`, and `WidgetWrapper`; gated `getPreviousMonthData()` in `app/book/[year]/[month]/page.tsx` on `!setup_done`.
+  - **T3 (`d2f05f16`) — done**: Moved `setInitialEntries` out of `OpenBook` render into a `useEffect` and localized placement hover state inside `PlacementOverlay`.
+  - **T4 — skipped**: Skipped per follow-up user instruction (`"finish till task 3 and report"`).
+- **Key bundle & runtime outcomes**:
+  - `/login` total initial JS: `1,125.0 KB` -> `834.3 KB` raw / `319.9 KB` -> `245.6 KB` gz (`-290.7 KB` raw / `-74.2 KB` gz; excludes book, widgets, and `@dnd-kit`).
+  - `/home` total initial JS: `864.2 KB` -> `863.6 KB` raw / `254.0 KB` -> `253.6 KB` gz (`-0.6 KB` raw / `-0.4 KB` gz).
+  - `/book/[year]/[month]` total initial JS: `1,144.1 KB` -> `1,064.1 KB` raw / `323.9 KB` -> `302.3 KB` gz (`-80.0 KB` raw / `-21.5 KB` gz; excludes `ClosedBookDesk`).
+  - `0` `/rest/v1/widgets` client queries on mount/turn; `getPreviousMonthData()` skipped when `setup_done = true`; `setInitialEntries` moved out of render & `PlacementOverlay` hover localized.
+- **Details**: See `OVERNIGHT_TASKS.md` and `OVERNIGHT_REPORT.md`.
