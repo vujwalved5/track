@@ -14,7 +14,7 @@
  * - Strictly L6 palette
  */
 
-import React, { useMemo, useRef } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import type { WidgetData, WidgetDefinition, PageSide, WidgetRect } from './types'
 import {
   GRID_PX,
@@ -30,8 +30,8 @@ interface PlacementOverlayProps {
   page: PageSide
   pickedWidgetDef: WidgetDefinition
   existingWidgets: WidgetData[]
-  cursor: { x: number; y: number } | null
-  onHover: (page: PageSide, x: number, y: number) => void
+  cursor: { page: PageSide; x: number; y: number } | null
+  onClearCursor: () => void
   onPlace: (page: PageSide, x: number, y: number, w: number, h: number) => void
   onNoRoom: () => void
   onDismissNoRoom: () => void
@@ -42,7 +42,7 @@ export function PlacementOverlay({
   pickedWidgetDef,
   existingWidgets,
   cursor,
-  onHover,
+  onClearCursor,
   onPlace,
   onNoRoom,
   onDismissNoRoom,
@@ -51,6 +51,12 @@ export function PlacementOverlay({
   const meta = getWidgetMetadata(pickedWidgetDef.id)
   const defaultSize = meta?.defaultSize ?? pickedWidgetDef.defaultSize
   const minSize = meta?.minSize ?? pickedWidgetDef.minSize
+
+  // Local pointer hover cell so moving across 22px grid cells does not re-render OpenBook
+  const [hoverCell, setHoverCell] = useState<{ x: number; y: number } | null>(null)
+  if (cursor && hoverCell) setHoverCell(null)
+
+  const activeCursor = hoverCell || (cursor && cursor.page === page ? cursor : null)
 
   // Cached bounding rect to avoid layout thrashing on pointer move (Fix 6)
   const rectRef = useRef<DOMRect | null>(null)
@@ -68,53 +74,45 @@ export function PlacementOverlay({
 
   // Calculate largest fitting size at current cursor position (if active on this page)
   const fitSize = useMemo(() => {
-    if (!cursor) return null
+    if (!activeCursor) return null
     return findFittingSizeAt(
-      cursor.x,
-      cursor.y,
+      activeCursor.x,
+      activeCursor.y,
       defaultSize,
       minSize,
       otherRects,
       PAGE_COLS,
       PAGE_ROWS,
     )
-  }, [cursor, defaultSize, minSize, otherRects])
+  }, [activeCursor, defaultSize, minSize, otherRects])
 
-  const handlePointerEnter = (e: React.PointerEvent<HTMLDivElement>) => {
+  const cacheRect = (e: React.PointerEvent<HTMLDivElement>) => {
     rectRef.current = e.currentTarget.getBoundingClientRect()
   }
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    rectRef.current = e.currentTarget.getBoundingClientRect()
+  const getGridCell = (e: React.MouseEvent<HTMLDivElement>) => {
+    const r = rectRef.current || (rectRef.current = e.currentTarget.getBoundingClientRect())
+    return {
+      x: Math.max(0, Math.min(PAGE_COLS - 1, Math.floor((e.clientX - r.left) / GRID_PX))),
+      y: Math.max(0, Math.min(PAGE_ROWS - 1, Math.floor((e.clientY - r.top) / GRID_PX))),
+    }
   }
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     onDismissNoRoom()
-    const rect = rectRef.current ?? (rectRef.current = e.currentTarget.getBoundingClientRect())
-    const offsetX = e.clientX - rect.left
-    const offsetY = e.clientY - rect.top
-
-    const gridX = Math.max(0, Math.min(PAGE_COLS - 1, Math.floor(offsetX / GRID_PX)))
-    const gridY = Math.max(0, Math.min(PAGE_ROWS - 1, Math.floor(offsetY / GRID_PX)))
-
-    if (!cursor || cursor.x !== gridX || cursor.y !== gridY) {
-      onHover(page, gridX, gridY)
-    }
+    const { x, y } = getGridCell(e)
+    onClearCursor()
+    setHoverCell((prev) => (prev && prev.x === x && prev.y === y ? prev : { x, y }))
   }
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation()
     onDismissNoRoom()
-    const rect = rectRef.current ?? (rectRef.current = e.currentTarget.getBoundingClientRect())
-    const offsetX = e.clientX - rect.left
-    const offsetY = e.clientY - rect.top
-
-    const gridX = Math.max(0, Math.min(PAGE_COLS - 1, Math.floor(offsetX / GRID_PX)))
-    const gridY = Math.max(0, Math.min(PAGE_ROWS - 1, Math.floor(offsetY / GRID_PX)))
+    const { x, y } = getGridCell(e)
 
     const fit = findFittingSizeAt(
-      gridX,
-      gridY,
+      x,
+      y,
       defaultSize,
       minSize,
       otherRects,
@@ -123,7 +121,7 @@ export function PlacementOverlay({
     )
 
     if (fit) {
-      onPlace(page, gridX, gridY, fit.w, fit.h)
+      onPlace(page, x, y, fit.w, fit.h)
     } else {
       onNoRoom()
     }
@@ -131,8 +129,9 @@ export function PlacementOverlay({
 
   return (
     <div
-      onPointerEnter={handlePointerEnter}
-      onPointerDown={handlePointerDown}
+      onPointerEnter={cacheRect}
+      onPointerLeave={() => setHoverCell(null)}
+      onPointerDown={cacheRect}
       onPointerMove={handlePointerMove}
       onClick={handleClick}
       className="absolute inset-0 z-30 cursor-crosshair select-none focus:outline-none"
@@ -144,7 +143,7 @@ export function PlacementOverlay({
       tabIndex={0}
     >
       {/* 22px Grid Snapped Footprint: rendered when cursor is on this page */}
-      {cursor && (
+      {activeCursor && (
         <div
           className={`absolute rounded-sm transition-all duration-75 pointer-events-none flex flex-col items-center justify-center p-2 font-hand text-xs ${
             fitSize
@@ -152,10 +151,10 @@ export function PlacementOverlay({
               : 'bg-redpen/20 border-2 border-dashed border-redpen text-redpen'
           }`}
           style={{
-            left: cursor.x * GRID_PX,
-            top: cursor.y * GRID_PX,
-            width: (fitSize ? fitSize.w : Math.min(minSize.w, PAGE_COLS - cursor.x)) * GRID_PX,
-            height: (fitSize ? fitSize.h : Math.min(minSize.h, PAGE_ROWS - cursor.y)) * GRID_PX,
+            left: activeCursor.x * GRID_PX,
+            top: activeCursor.y * GRID_PX,
+            width: (fitSize ? fitSize.w : Math.min(minSize.w, PAGE_COLS - activeCursor.x)) * GRID_PX,
+            height: (fitSize ? fitSize.h : Math.min(minSize.h, PAGE_ROWS - activeCursor.y)) * GRID_PX,
           }}
         >
           <span className="font-bold tracking-wide select-none">

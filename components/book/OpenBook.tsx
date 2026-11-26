@@ -92,9 +92,6 @@ export function OpenBook({
   nextMonthName,
   nextMonthDate,
 }: OpenBookProps) {
-  // Synchronously prime the entries cache with initial SSR data so child widgets avoid waterfalls
-  setInitialEntries(initialEntries, initialWidgets.map((w) => w.id))
-
   const router = useRouter()
   const [, startTransition] = useTransition()
 
@@ -307,8 +304,8 @@ export function OpenBook({
     setActiveConfigWidgetId(null)
   }, [])
 
-  const handleOverlayHover = useCallback((page: PageSide, x: number, y: number) => {
-    setActivePlacement({ page, x, y })
+  const handleClearPlacementCursor = useCallback(() => {
+    setActivePlacement(null)
   }, [])
 
   const handleDrawerOpenToggle = useCallback(() => {
@@ -1123,8 +1120,8 @@ export function OpenBook({
                       page="left"
                       pickedWidgetDef={pickedWidgetDef}
                       existingWidgets={leftWidgets}
-                      cursor={activePlacement?.page === 'left' ? activePlacement : null}
-                      onHover={handleOverlayHover}
+                      cursor={activePlacement}
+                      onClearCursor={handleClearPlacementCursor}
                       onPlace={handlePlaceWidget}
                       onNoRoom={triggerNoRoom}
                       onDismissNoRoom={dismissNoRoom}
@@ -1153,8 +1150,8 @@ export function OpenBook({
                     page="right"
                     pickedWidgetDef={pickedWidgetDef}
                     existingWidgets={rightWidgets}
-                    cursor={activePlacement?.page === 'right' ? activePlacement : null}
-                    onHover={handleOverlayHover}
+                    cursor={activePlacement}
+                    onClearCursor={handleClearPlacementCursor}
                     onPlace={handlePlaceWidget}
                     onNoRoom={triggerNoRoom}
                     onDismissNoRoom={dismissNoRoom}
