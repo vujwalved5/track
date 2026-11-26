@@ -87,10 +87,20 @@ Measured from `.next/server/app/<route>/page/build-manifest.json` (`polyfillFile
 - **Verification result**: `PASS (tsc --noEmit 0, lint 0, build 0; bundle <= T2; headless Chrome read-only check verified entries reload cleanly across page turns, LineGraph unit "hrs" preserved, PlacementOverlay hover/leave/keyboard handoff/Escape clean with 0 console/network/DB-write errors; Auditor CLEAN, Reviewer APPROVE)`
 - **Commit hash**: `d2f05f16`
 
-### [-] T4 — Fix chart `entriesVersion` selectors (`s.versions[sourceWidgetId]`), wrap charts + `Paper` in `React.memo`, and stabilize props (Audit P4)
-- **Status**: `skipped`
+### [!] T4 — Fix chart `entriesVersion` selectors (`s.versions[sourceWidgetId]`), wrap charts + `Paper` in `React.memo`, and stabilize props (Audit P4)
+- **Status**: `failed`
 - **Before numbers**:
-  - Reference T3 after numbers (`LineGraphDesktop`, `DonutDesktop`, `GoalBarDesktop` subscribe to `s.version` without `React.memo`; `Paper` unmemoized)
-- **After numbers**: `N/A (skipped)`
-- **Verification result**: `Skipped — User instruction update: "finish till task 3 and report"`
-- **Commit hash**: `none`
+  - `/login`: route `298,451 B` (`291.5 KB`) raw / `80,144 B` (`78.3 KB`) gz; total `854,362 B` (`834.3 KB`) raw / `251,543 B` (`245.6 KB`) gz
+  - `/home`: route `328,452 B` (`320.8 KB`) raw / `88,275 B` (`86.2 KB`) gz; total `884,363 B` (`863.6 KB`) raw / `259,674 B` (`253.6 KB`) gz
+  - `/book/[year]/[month]`: route `533,708 B` (`521.2 KB`) raw / `138,205 B` (`135.0 KB`) gz; total `1,089,619 B` (`1,064.1 KB`) raw / `309,604 B` (`302.3 KB`) gz
+  - Top 5 chunks: `3batmfs7cfp0_.js` (`258.9 KB` raw / `68.2 KB` gz), `2u3wlrixsna5x.js` (`223.7 KB` raw / `70.0 KB` gz), `40ohfs9sg2ivp.js` (`153,441 B` / `149.8 KB` raw / `34,249 B` / `33.4 KB` gz), `1dm5v-i2bhyil.js` (`128.7 KB` raw / `34.8 KB` gz), `0cz1d0mv5g_q7.js` (`110.0 KB` raw / `38.7 KB` gz)
+  - Code state: `LineGraphDesktop`, `DonutDesktop`, `GoalBarDesktop` subscribe to `s.version` without `React.memo`; `Paper` unmemoized (`d2f05f16`)
+- **After numbers**:
+  - Measured pre-revert T4 numbers:
+    - `/login`: route `298,451 B` raw / `80,144 B` gz; total `854,362 B` raw / `251,543 B` gz (`0 B` vs T3)
+    - `/home`: route `328,452 B` raw / `88,275 B` gz; total `884,363 B` raw / `259,674 B` gz (`0 B` vs T3)
+    - `/book/[year]/[month]`: route `534,564 B` raw / `138,453 B` gz; total `1,090,475 B` raw / `309,852 B` gz (`+856 B` raw / `+248 B` gz vs T3)
+    - Top-5 Chunk #3 (`2s2sq180ysnep.js`): `153,676 B` raw / `34,327 B` gz (`+235 B` raw / `+78 B` gz vs T3 `40ohfs9sg2ivp.js`); chunks #1, #2, #4, #5 unchanged (`0 B` vs T3)
+  - Reverted to `f861af54` (final code matches T3 `d2f05f16`; post-revert rebuild verified `/book/[year]/[month]` `533,708 B` raw / `138,205 B` gz route, `1,089,619 B` raw / `309,604 B` gz total, Chunk #3 `40ohfs9sg2ivp.js` `153,441 B` raw / `34,249 B` gz)
+- **Verification result**: `FAIL — tsc --noEmit (0), npm run lint (0), npm run build (0), Auditor CLEAN, Challenger CONFIRM, and headless Chrome read-only E2E PASS (0 console/network/DB-write errors), but failed mandatory <= T3 bundle-size gate (/book/[year]/[month] +856 B raw / +248 B gz and Top-5 Chunk #3 +235 B raw / +78 B gz over T3); code changes reverted cleanly to f861af54`
+- **Commit hash**: `none (reverted to f861af54)`

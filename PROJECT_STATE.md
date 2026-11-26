@@ -1315,7 +1315,7 @@ Applies ONLY to `/`, `/focus-room` and the components in `/components/public` (w
   - **T1 (`5f668023`) — done**: Broke barrel-export leaks across `@/components/book`, `@/components/widgets`, `@/components/desk`, and `@/components/setup` using direct imports (`app/login/page.tsx`, `app/home/page.tsx`, `app/book/[year]/[month]/page.tsx`, `OpenBook.tsx`, `MobileBook.tsx`).
   - **T2 (`d8b42ad9`) — done**: Removed the `LineGraphDesktop` client `/rest/v1/widgets` query by threading already-fetched `widgets` through `OpenBook`, `MobileBook`, `PageWidgetLayer`, and `WidgetWrapper`; gated `getPreviousMonthData()` in `app/book/[year]/[month]/page.tsx` on `!setup_done`.
   - **T3 (`d2f05f16`) — done**: Moved `setInitialEntries` out of `OpenBook` render into a `useEffect` and localized placement hover state inside `PlacementOverlay`.
-  - **T4 — skipped**: Skipped per follow-up user instruction (`"finish till task 3 and report"`).
+  - **T4 — failed (reverted to `f861af54`)**: Attempted on resume; passed `tsc`/`lint`/`build`, Auditor (`CLEAN`), Challenger (`CONFIRM`), and headless Chrome read-only E2E, but failed the strict `<= T3` bundle-size gate (`+856 B` raw / `+248 B` gz on `/book/[year]/[month]` and `+235 B` raw / `+78 B` gz on Top-5 Chunk #3) and was reverted cleanly to `f861af54`.
 - **Key bundle & runtime outcomes**:
   - `/login` total initial JS: `1,125.0 KB` -> `834.3 KB` raw / `319.9 KB` -> `245.6 KB` gz (`-290.7 KB` raw / `-74.2 KB` gz; excludes book, widgets, and `@dnd-kit`).
   - `/home` total initial JS: `864.2 KB` -> `863.6 KB` raw / `254.0 KB` -> `253.6 KB` gz (`-0.6 KB` raw / `-0.4 KB` gz).
