@@ -29,6 +29,7 @@ import { signOut } from '@/lib/supabase/auth'
 import { PinnedIndexCard } from '@/components/desk/PinnedIndexCard'
 import { AntiqueBrassKey } from '@/components/desk/AntiqueBrassKey'
 import { FolioSaveStatus } from './FolioSaveStatus'
+import { useBookTransitionStore } from '@/store/bookTransitionStore'
 
 const MonthSetupWizard = dynamic(
   () => import('@/components/setup/MonthSetupWizard').then((m) => m.MonthSetupWizard),
@@ -130,6 +131,16 @@ export function OpenBook({
 
   const failSafeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasNavigatedRef = useRef(false)
+  const readySignaledKeyRef = useRef<string | null>(null)
+  const transitionId = useBookTransitionStore((s) => s.transitionId)
+  const markBookReady = useBookTransitionStore((s) => s.markBookReady)
+
+  const signalBookReady = useCallback(() => {
+    const key = `${transitionId}:${year}:${month}`
+    if (readySignaledKeyRef.current === key) return
+    readySignaledKeyRef.current = key
+    markBookReady(year, month)
+  }, [transitionId, year, month, markBookReady])
 
   useEffect(() => {
     return () => {
@@ -233,6 +244,39 @@ export function OpenBook({
   // Viewport detection (Correction 7: exactly ONE tree, null avoids hydration mismatch)
   const [isDesktop, setIsDesktop] = useState<boolean | null>(null)
   const [mobilePageMode, setMobilePageMode] = useState<'first' | 'last'>('first')
+
+  // For a set month, report ready only after layout (isDesktop), fonts, and first paint finish
+  useEffect(() => {
+    if (!isSetupDone || isDesktop === null) return
+
+    let cancelled = false
+    let raf1 = 0
+    let raf2 = 0
+
+    const waitAndSignal = async () => {
+      if (typeof document !== 'undefined' && document.fonts?.ready) {
+        try {
+          await document.fonts.ready
+        } catch {
+          // Proceed if fonts.ready rejects
+        }
+      }
+      if (cancelled) return
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => {
+          if (!cancelled) signalBookReady()
+        })
+      })
+    }
+
+    waitAndSignal()
+
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(raf1)
+      cancelAnimationFrame(raf2)
+    }
+  }, [isSetupDone, isDesktop, signalBookReady])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -878,6 +922,7 @@ export function OpenBook({
         onWidgetSaved={handleWidgetSaved}
         onTurnMonth={handleMobileTurnMonth}
         onCompleteSetup={handleCompleteSetup}
+        onWizardReady={!isSetupDone ? signalBookReady : undefined}
         initialPageMode={mobilePageMode}
       />
     )
@@ -1218,6 +1263,7 @@ export function OpenBook({
                   monthName={curMonthObj.name}
                   prevMonthData={prevMonthData}
                   onComplete={handleCompleteSetup}
+                  onReady={signalBookReady}
                 />
               )}
             </div>

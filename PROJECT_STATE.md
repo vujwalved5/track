@@ -1252,6 +1252,17 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
   - Scatter Plot Assessment:
     - Scatter Plot plots source1 vs source2 coordinates with no day axis, so day zoom was omitted.
 
+### Live Deployment Verification — Screen Recording Flow (Task 18)
+- Recorded complete end-to-end user journey on live deployment `https://track-vujwal.vercel.app/`:
+  1. Landing page ("TRACK — An Atlas of Everyday").
+  2. Transition via "OPEN JOURNAL" to `/login`.
+  3. Credential entry on the bookplate (`newuser@gmail.com` / `new123`).
+  4. 3D cover-opening animation into `/home` desk scene.
+  5. Desk interaction opening the November book volume ("Open November journal").
+  6. 3D spread animation into `/book/2026/11` showcasing widgets, paper, tabs, ribbon, and layout.
+- Output video generated at 1440x900 H.264 MP4: `memorable_moments_login_to_book.mp4` on Desktop.
+- All temporary profiles and frames staged and cleaned up in system temp outside the repository.
+
 ## Next
 - Next task from BOOK_LAG_AUDIT.md or product backlog as directed by user.
 
@@ -1308,6 +1319,58 @@ Applies ONLY to `/`, `/focus-room` and the components in `/components/public` (w
 
 ---
 
+## Performance audit findings
+
+*Audit-only pass (Task P) conducted against `npm run build` / `npm run start` (`Next.js 16.4.5` Turbopack), source code, live Supabase schema/indexes (`gzozoqqvyojpdrdajjkg`), and headless Chrome CDP benchmarks (`390×844` @ `4×` CPU throttling & `1440×900` unthrottled) using read-only browsing on `newuser@gmail.com`.*
+
+### A) Findings Summary
+
+| ID | Area | What is slow / heavy | Evidence | Impact | Effort |
+|---|---|---|---|---|---|
+| **P1** | Build & Bundle | Barrel exports (`components/book/index.ts`, `components/widgets/index.ts`, `components/desk/index.ts`) pull `OpenBook`, `MobileBook`, `@dnd-kit/core`, all 14 widgets, `zod`, and `HomeDesk` onto `/login`, and pull `ClosedBookDesk` (`Cormorant_Garamond`) onto `/book/[year]/[month]` | `app/login/page.tsx:3`, `components/book/index.ts:1-3`, `OpenBook.tsx:9-29`; `.next`: `/login` = `582.1 KB` route (`1,125.0 KB` total raw / `319.9 KB` gz), `/book` = `601.2 KB` route (`1,144.1 KB` total raw / `323.9 KB` gz); Mobile `/login` long tasks `290 ms` + `82 ms` | High | Small |
+| **P2** | Data & Supabase | `LineGraphDesktop` fires a client-side Supabase REST query on every mount (and during turning-leaf mounts) just to read `config.unit`, even though SSR already fetched all widget configs | `components/widgets/line-graph/LineGraphWidget.tsx:157-174`; Chrome network on `/book/2026/11` desktop measured `641 ms` (`task-130`) – `1,045 ms` (`task-141`) | High | Small |
+| **P3** | Rendering | `OpenBook` calls `setInitialEntries(...)` synchronously in render (rebuilding `Map` + parsing `localStorage` on every render), and `PlacementOverlay` hover updates `activePlacement` in `OpenBook` state, re-rendering the entire spread on every 22px grid cell | `components/book/OpenBook.tsx:95, 286-287, 309-311`, `components/widgets/entryHelpers.ts:75-120` | High | Small |
+| **P4** | Rendering & Store | `LineGraphDesktop`, `DonutDesktop`, and `GoalBarDesktop` lack `React.memo` and subscribe to `s.version` instead of `s.versions[sourceWidgetId]`, breaking live per-widget updates and triggering all-chart refetches on `bump()`; 9 non-chart widgets also lack `React.memo` | `LineGraphWidget.tsx:133`, `DonutWidget.tsx:90`, `GoalBarWidget.tsx:97`, `store/entriesVersion.ts:31-46`, `PageWidgetLayer.tsx:233-246` | High | Small |
+| **P5** | Page Turn & Animation | Turning forward/backward unmounts the static spread and mounts 4 `<Paper>` + 2 `<PageWidgetLayer>` trees (with `DndContext`, `useDraggable`, and widgets) during the 600ms flip, omitting `year`/`month`/`setupConfig` props | `components/book/OpenBook.tsx:929-1068` (lines `971, 1017, 1044`) | High | Medium |
+| **P6** | Build & Bundle | `@dnd-kit/core` and all 14 widget implementations (`registry.ts`) load eagerly on `/book/[year]/[month]` even in read-only mode (`isArrangeMode === false`) and on `MobileBook` | `OpenBook.tsx:9-18`, `MobileBook.tsx:23-27`, `PageWidgetLayer.tsx:16-22, 231`, `WidgetWrapper.tsx:19`, `registry.ts:19-32`; `3e74daruhfslf.js` (`150.3 KB` raw), `2w05kiqm3eqxj.js` (`95.7 KB` raw) | Medium | Medium |
+| **P7** | Data & Supabase | `BookMonthPage` runs `getPreviousMonthData()` on every load even when `setup_done = true`, plus `proxy.ts` & `app/login/page.tsx` execute Tokyo WAN `supabase.auth.getUser()` hops, and actions run 2–9 sequential `select('*')` queries | `app/book/[year]/[month]/page.tsx:75-114`, `proxy.ts:32-34`, `app/login/page.tsx:7-9`, `setupActions.ts:37-113, 242-583`, `widgetActions.ts:41-376`; `/book/2026/11` TTFB `542–1400 ms` | High | Medium |
+| **P8** | Writes & Offline Sync | `drainOfflineQueue` has no concurrency lock (startup `1500ms` timer + `online` listener can replay duplicate `saveWidgetEntry` writes sequentially); `scheduleDebouncedEntrySave` parses/serializes `mm_queue` in `localStorage` per keystroke; `blur` writes unchanged notes/moments/checklists | `lib/offlineSync.ts:239-296, 339-351`, `entryHelpers.ts:297-309, 386-411`, `MemorableMomentsWidget.tsx:177-184`, `FreeNoteWidget.tsx:115-119`, `StickyNoteWidget.tsx:108-110`, `ChecklistWidget.tsx:199-209` | Medium | Small |
+| **P9** | Data & RLS | Live Postgres has `idx_widgets_month_id` + `(SELECT auth.uid())` RLS, but `entries -> widgets -> months -> books` RLS still evaluates a 3-table join chain (`82 SubPlans`), `idx_books_user_id`/`idx_months_book_id`/`idx_entries_widget_id` duplicate composite unique keys, and `supabase_migrations` only tracks `0001` | Live `pg_indexes` & `pg_policies`, `list_migrations` (`20261107150408` only), `supabase/migrations/0003_optimize_rls_and_indexes.sql:15-170` | Medium | Medium |
+| **P10** | Fonts & Caching | `app/(public)/layout.tsx:88` uses render-blocking `@import` for `Instrument Serif` causing `0.0337` CLS on `/`; `app/layout.tsx:7` loads unused `Kalam` `300` globally (even on `/` & `/focus-room`); `Nothing_You_Could_Do` is unused; `Cormorant_Garamond` is duplicated; `app/sw.ts:25` precaches `/` with static `'2'` revision instead of `/login` | `app/(public)/layout.tsx:12-55, 88`, `app/layout.tsx:6-13, 46`, `ClosedBook.tsx:9-14`, `ClosedBookDesk.tsx:7-12`, `app/sw.ts:25-31, 51-58`, `public/manifest.json:5`, `app/manifest.ts:8` | Medium | Small |
+| **P11** | Rendering & CSS | `Paper` is unmemoized and stacks 2 `2×2px` `repeating-linear-gradient` grain layers + dot/grid + `inset box-shadow` (`4×` during turn); `.desk-surface` paints viewport-wide SVG `<feTurbulence>` with `mix-blend-mode: overlay`; `42` `transition-all` classes & `ClosedBook` `boxShadow` swap on open | `components/paper/Paper.tsx:45-130`, `app/globals.css:250-272`, `ClosedBook.tsx:262-264`, `MobileBook.tsx:647`, `PlacementOverlay.tsx:149` | Medium | Medium |
+| **P12** | Runtime & Hydration | Two-pass `isDesktop === null` / `isMobile === null` hydration gates flash blank `#211b16` before rendering `/home` and `/book`; missing `app/login/loading.tsx`; multi-hop `/login -> /home -> /book` with `1100ms` timers; Mobile `/book/2026/11` LCP `1620–2848 ms`, INP `184 ms`, long tasks `102–268 ms` | `OpenBook.tsx:236, 853-864`, `HomeDesk.tsx:32, 165-172`, `ClosedBook.tsx:121, 191`, `ClosedBookDesk.tsx:65`; Chrome CDP metrics | High | Medium |
+
+### B) Top 5 Fixes Ranked by Impact / Effort (No Code)
+
+1. **Break barrel-export leaks (`@/components/book`, `@/components/widgets`, `@/components/desk`)** — Import `ClosedBook` directly in `app/login/page.tsx`, split `widgetMetadata`/client-only registry out of `OpenBook`/`MobileBook` static imports, and import `PinnedIndexCard`/`AntiqueBrassKey` directly in `OpenBook.tsx` so `/login` sheds ~`550 KB` of book/widget/DnD JS and `/book` sheds `ClosedBookDesk`.
+2. **Eliminate `LineGraphDesktop`'s redundant Supabase `widgets` fetch** — Pass all spread widgets' `config`/`type` (already fetched in SSR) or read `sourceWidget` config from parent `widgets` in `components/widgets/line-graph/LineGraphWidget.tsx` (and thread `widgets` metadata via `PageWidgetLayer.tsx` / `OpenBook.tsx`), removing a `641–1,045 ms` client network waterfall.
+3. **Fix `OpenBook` render-body `localStorage` call and hover state elevation** — Move `setInitialEntries` out of render into `useEffect`/`useMemo` in `components/book/OpenBook.tsx` and keep hover cursor state local to `components/widgets/PlacementOverlay.tsx` instead of `OpenBook.activePlacement`.
+4. **Fix chart `entriesVersion` selectors and add `React.memo`** — Subscribe `LineGraphWidget.tsx`, `DonutWidget.tsx`, and `GoalBarWidget.tsx` to `s.versions[sourceWidgetId]`, wrap them and the 9 non-chart widgets plus `Paper.tsx` in `React.memo`, and stabilize `otherWidgets`/callbacks in `PageWidgetLayer.tsx`.
+5. **Prevent offline queue duplicate replays & unnecessary `blur` / keystroke writes** — Add a single-flight lock + batched upsert to `drainOfflineQueue` in `lib/offlineSync.ts`, defer `localStorage` queue serialization until debounce fires in `components/widgets/entryHelpers.ts`, and guard `onBlur` against unchanged values in `MemorableMomentsWidget.tsx`, `ChecklistWidget.tsx`, `FreeNoteWidget.tsx`, and `StickyNoteWidget.tsx`.
+
+### C) Runtime Measurements (Production `npm run start`)
+
+**Book Flow (Primary)**:
+- **Mobile (`390×844`, `4×` CPU throttling)**:
+  - `/login`: LCP `1260 ms`, INP `40 ms`, CLS `0`, Long tasks > 50ms: `2` (`290 ms`, `82 ms`).
+  - `/home`: LCP `972–1428 ms`, INP `104 ms` (click-to-paint `79.5 ms` / `22.0 ms`), CLS `0`, Long tasks > 50ms: `0` on load / `4` during interactions (`232, 81, 69, 59 ms`).
+  - `/book/2026/11`: LCP `2848 ms` cold (`1620 ms` SW-warmed), INP `184 ms` (sub-page turn click-to-paint `28.0–61.7 ms`), CLS `0`, Long tasks > 50ms: `1` on load (`102–104 ms`) / `3` on sub-page interaction (`268, 228, 58 ms`).
+- **Desktop (`1440×900`, `1×` unthrottled)**:
+  - `/login`: LCP `1380 ms`, INP `48 ms`, CLS `0`, Long tasks > 50ms: `1` (`60 ms`).
+  - `/home`: LCP `576–812 ms`, INP `64 ms` (click-to-paint `19.5 ms` / `55.5 ms`), CLS `0`, Long tasks > 50ms: `0` on load / `1` on interaction (`65 ms`).
+  - `/book/2026/11`: LCP `1392 ms` cold (`800 ms` SW-warmed), INP `528 ms` (observed across sequence ending in month turn; per-control click-to-paint `25.1–33.5 ms`; Drawer slide & 600ms 3D turn both `60 fps`, max frame delta `17.1–17.2 ms`), CLS `0`, Long tasks > 50ms: `0`.
+
+**Public Pages (Secondary)**:
+- **Mobile (`390×844`, `4×` CPU)**: `/` — LCP `1048 ms`, INP `0 ms` (`3.2 ms` click-to-paint), CLS `0.0009`, Long tasks `1` (`246 ms`); `/focus-room` — LCP `868 ms`, INP `152 ms` (`17.1 ms` click-to-paint), CLS `0`, Long tasks `3` (`62, 78, 70 ms`).
+- **Desktop (`1440×900`, `1×`)**: `/` — LCP `1024 ms`, INP `16 ms` (`12.9 ms` click-to-paint), CLS `0.0337`, Long tasks `1` (`56 ms`); `/focus-room` — LCP `812 ms`, INP `232 ms` (`141.4 ms` click-to-paint on `DEEP FOCUS`), CLS `0`, Long tasks `1` (`82 ms`).
+
+### D) Cross-Check Against `BOOK_LAG_AUDIT.md` & `OPTIMISATION_PLAN.md`
+- **Already known and fixed**: SW `_rsc` filtering and `sw.js` minification; `ClosedBook` post-auth `router.prefetch`; awaited `signOut()` with fail-safe timers; `BookMonthPage` nested query + `initialEntries` preload; `idx_widgets_month_id` + `(SELECT auth.uid())` RLS wrapping; optimistic widget UUID placement; adjacent-month prefetch; `PlacementOverlay` `rectRef` caching; `WidgetWrapper`/`BarChart`/`ScatterPlot` memoization; `@dnd-kit/utilities` removal; chart `try/finally` loading guards; moving `Cormorant_Garamond` off root layout.
+- **Already known and still open**: Static widget registry / `@dnd-kit` coupling (`OpenBook` / `MobileBook`); missing `React.memo` & `s.version` bug on `LineGraph`, `Donut`, `GoalBar`; 4-table RLS `EXISTS` (`82 SubPlans`) + redundant single-column FK indexes; Tokyo `proxy.ts` `getUser()` hop, missing `app/login/loading.tsx`, `1100ms` cover delays, `isDesktop === null` 2-pass SSR gate, non-atomic `setupActions` inserts, un-cleared in-memory/Zustand caches on sign-out, and 4× `<Paper>` remount during 3D page turns.
+- **New in this audit**: Barrel-export leak sending `OpenBook`/`dnd-kit`/all 14 widgets to `/login` (`1.12 MB` raw JS); `LineGraphDesktop` extra `641–1,045 ms` client `widgets` query; `setInitialEntries()` running in `OpenBook` render + `PlacementOverlay` hover re-rendering `OpenBook`; turning-leaf `PageWidgetLayer` omitting `year`/`month`/`setupConfig`; `drainOfflineQueue` duplicate replay race + per-keystroke `mm_queue` serialization + unconditional `onBlur` saves; unconditional `getPreviousMonthData()` & `select('*')` waterfalls + `supabase_migrations` drift; public-layout blocking `@import` causing `0.0337` CLS on `/`, unused `Kalam 300` & `Nothing_You_Could_Do`, `.desk-surface` `<feTurbulence>`, and `app/sw.ts` precache mismatch (`/` vs `/login`).
+
+---
+
 ## Overnight performance run
 
 - **Branch**: `perf/overnight-2026-11-25` (branched off `0eef2ab7`; `main` untouched, nothing pushed).
@@ -1322,3 +1385,22 @@ Applies ONLY to `/`, `/focus-room` and the components in `/components/public` (w
   - `/book/[year]/[month]` total initial JS: `1,144.1 KB` -> `1,064.1 KB` raw / `323.9 KB` -> `302.3 KB` gz (`-80.0 KB` raw / `-21.5 KB` gz; excludes `ClosedBookDesk`).
   - `0` `/rest/v1/widgets` client queries on mount/turn; `getPreviousMonthData()` skipped when `setup_done = true`; `setInitialEntries` moved out of render & `PlacementOverlay` hover localized.
 - **Details**: See `OVERNIGHT_TASKS.md` and `OVERNIGHT_REPORT.md`.
+
+---
+
+### Task 14 (Part 1) — Shared Book Transition Layer (`/home` → `/book/[year]/[month]`)
+- **Finished**:
+  - `store/bookTransitionStore.ts`: Zustand transition state (`isActive`, `transitionId`, `targetYear`/`targetMonth`, `rect`, `isAnimationDone`, `isBookReady`, `isTimedOut`, `hasNotifiedReady`) with repeat-click lock and month/year-guarded `markBookReady`.
+  - `components/book/BookCoverArt.tsx`: Extracted exact `/home` cover, spine, ribbon, gold foil, Cormorant Garamond title, and 1100ms 3D hinge CSS from `ClosedBookDesk.tsx`.
+  - `components/book/BookTransitionLayer.tsx`: Mounted in `app/layout.tsx` so the 1100ms cover swing (or 200ms reduced-motion fade) overlaps with `router.push(targetUrl)` without cutting off on route unmount; shows `"turning the page..."` if animation finishes first, `"try again"` / `"go back"` after 10s without ready, and clears immediately on browser Back (`popstate`) or redirect/error page.
+  - `components/desk/ClosedBookDesk.tsx`: Prefetches `targetUrl` on mount, captures cover `DOMRect`, starts the shared transition, and calls `router.push(targetUrl)` immediately on click.
+  - `components/book/OpenBook.tsx`, `components/book/MobileBook.tsx`, `components/setup/MonthSetupWizard.tsx`: Signals `markBookReady(year, month)` once per transition after layout detection (`isDesktop !== null`), `document.fonts.ready`, and two paint frames (for unset months, only the visible `MonthSetupWizard` reports ready).
+  - Verified `/home` → `/book/2026/11` in production (`1440×900` median reveal `1359 ms` vs `5183 ms` baseline; `390×844` and browser Back passed).
+  - Removed all temporary `[PERF]` timing logs after verification.
+- **Not tested yet** (due to browser sandbox limits and read-only journal rule):
+  - `unset month` (current month `2026/11` already has `setup_done = true`)
+  - `slow network` (no network throttling or `page.route` in `webview_browser`)
+  - `redirect` (mid-transition auth/error redirect not forced without altering `proxy.ts` or session state)
+  - `reduced motion` (`page.emulateMedia` unsupported in `webview_browser`)
+- **Next (Remaining Task 14 work)**:
+  - Extend the shared transition layer to **Home (`/`)** and **Focus Room (`/focus-room`)** transitions.

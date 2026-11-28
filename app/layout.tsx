@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Kalam } from 'next/font/google'
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister'
+import { BookTransitionLayer } from '@/components/book/BookTransitionLayer'
 import './globals.css'
 
 const kalam = Kalam({
@@ -47,6 +48,7 @@ export default function RootLayout({
       <body className="bg-desk antialiased">
         <ServiceWorkerRegister />
         {children}
+        <BookTransitionLayer />
       </body>
     </html>
   )

@@ -58,6 +58,7 @@ interface MobileBookProps {
     newMonthId?: string,
     newSetupConfig?: Record<string, unknown>,
   ) => void
+  onWizardReady?: () => void
   initialPageMode?: 'first' | 'last'
 }
 
@@ -96,6 +97,7 @@ export function MobileBook({
   initialEntries,
   onTurnMonth,
   onCompleteSetup,
+  onWizardReady,
   initialPageMode = 'first',
 }: MobileBookProps) {
   const router = useRouter()
@@ -436,6 +438,7 @@ export function MobileBook({
                   monthName={curMonthName}
                   prevMonthData={prevMonthData}
                   onComplete={onCompleteSetup}
+                  onReady={onWizardReady}
                 />
               </div>
             ) : activePageItem ? (

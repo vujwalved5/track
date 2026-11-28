@@ -17,6 +17,7 @@ interface MonthSetupWizardProps {
     monthId?: string,
     setupConfig?: MonthSetupConfig,
   ) => void
+  onReady?: () => void
 }
 
 const PAPER_OPTIONS: Array<{ type: PaperStyle; label: string }> = [
@@ -212,6 +213,7 @@ export function MonthSetupWizard({
   monthName,
   prevMonthData,
   onComplete,
+  onReady,
 }: MonthSetupWizardProps) {
   // Exactly 7 steps (1 to 7)
   const [step, setStep] = useState<number>(1)
@@ -251,6 +253,38 @@ export function MonthSetupWizard({
     window.addEventListener('keydown', handleKeyDown, true)
     return () => window.removeEventListener('keydown', handleKeyDown, true)
   }, [])
+
+  // Report ready once wizard is drawn and fonts are ready
+  useEffect(() => {
+    if (!onReady) return
+    let cancelled = false
+    let raf1 = 0
+    let raf2 = 0
+
+    const notifyWhenDrawn = async () => {
+      if (typeof document !== 'undefined' && document.fonts?.ready) {
+        try {
+          await document.fonts.ready
+        } catch {
+          // Proceed if fonts.ready rejects
+        }
+      }
+      if (cancelled) return
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => {
+          if (!cancelled) onReady()
+        })
+      })
+    }
+
+    notifyWhenDrawn()
+
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(raf1)
+      cancelAnimationFrame(raf2)
+    }
+  }, [onReady, year, month])
 
   // Action handlers
   const handleChooseSameAsLast = () => {
