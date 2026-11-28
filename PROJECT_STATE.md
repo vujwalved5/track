@@ -1267,7 +1267,7 @@ All widgets store daily values in `entries` table (`widget_id`, `day`, `value`):
 - Next task from BOOK_LAG_AUDIT.md or product backlog as directed by user.
 
 ## Open Questions
-- None.
+- **Release Blocker — Account-Change Local/SW Cache Risk**: `signIn()` and `signUp()` (`lib/supabase/auth.ts`) update `mm_last_user_id` (`lib/offlineSync.ts`) but do not invoke `clearAllLocalCaches()`. If a previous user's session expires or cookies are replaced without explicit brass-key `signOut()`, the previous user's `mm_entries_*` keys remain in `localStorage` (not read by the new user), and the shared un-keyed SW runtime caches (`mm-book-month-pages-v2` and `mm-supabase-data-v1` in `app/sw.ts`) could fall back to the previous user's cached `/book/[year]/[month]` HTML during offline or >2s-timed-out navigations. Also `initialEntriesCache` in `components/widgets/entryHelpers.ts` is not cleared inside `clearAllLocalCaches()`.
 
 ## Locked Decisions (L1–L14)
 
@@ -1403,4 +1403,38 @@ Applies ONLY to `/`, `/focus-room` and the components in `/components/public` (w
   - `redirect` (mid-transition auth/error redirect not forced without altering `proxy.ts` or session state)
   - `reduced motion` (`page.emulateMedia` unsupported in `webview_browser`)
 - **Next (Remaining Task 14 work)**:
-  - Extend the shared transition layer to **Home (`/`)** and **Focus Room (`/focus-room`)** transitions.
+  - Completed in Task 14 (Part 2) below.
+
+---
+
+### Task 14 (Part 2) — Home (`/`) & Focus Room (`/focus-room`) → Journal Transition
+- **Finished**:
+  - `store/bookTransitionStore.ts`: Extended `useBookTransitionStore` for `public-to-login` transitions (`kind`, `sourcePath`, `publicPhase`, `isLoginReady`, `redirectedToBook`, `isSwingDone`, `startPublicTransition`, `setPublicPhase`, `markLoginReady`, `resolveBookRedirect`, `markSwingDone`) while preserving `/home` → `/book/[year]/[month]` unchanged. `markLoginReady` is a no-op when inactive or off `/login`.
+  - `components/book/BookCoverArt.tsx` & `components/book/ClosedBook.tsx`: Extracted shared `LoginBookCoverArt` matching the real `/login` cover geometry (`520×700` responsive, spine, gold foil border, Cormorant Garamond title, dotted inside endpaper, under-book spacer, optional ribbon sway). `ClosedBook` preserves its exact resting appearance, sign-in/sign-up, errors, and links, and calls `markLoginReady()` after `document.fonts.ready` + 2 paint frames. In the transition layer, the bookplate renders only `"THIS BOOK BELONGS TO"` (no fields or button).
+  - `components/public/JournalTransitionLink.tsx`: Client `<Link href="/login">` wrapper used only for `"OPEN YOUR JOURNAL"` (`HomeHero.tsx`) and `"← Return to journal"` (`PublicNav.tsx`), prefetching `/login`, preserving Ctrl/Cmd-click and middle-click, and ignoring repeat clicks.
+  - `app/(public)/layout.tsx`, `components/public/HomeHero.tsx`, `components/public/FocusHero.tsx`, `app/globals.css`: Added pure CSS `transform`/`opacity` Leave animations scoped strictly to `html[data-book-leaving]` (screen slight shrink + `#211b16` fade-in, Home polaroid & sticky-note drift, Focus Room lamp glow fading last) and Arrive/ribbon-sway keyframes + `prefers-reduced-motion` overrides.
+  - `components/book/BookTransitionLayer.tsx`: Orchestrates `Leave (350ms)` → `router.push('/login')` → `Arrive (500ms)` → `Wait` (gold ribbon sway + `"turning the page..."` after 1s) → `Reveal (250ms)` on `/login` ready, OR keeps the closed book up on `/login` → `/book/[year]/[month]` server redirect, reads `year`/`month` from the final URL, waits for `markBookReady`, plays the 1100ms cover swing, and reveals; handles 10s fallback (`"try again"` / `"go back"` to `sourcePath`), browser Back (`popstate`), unexpected redirects, and same-URL Next.js error pages.
+  - Verified against `npm run build` and `npm start` (`http://localhost:3000`) via headless Chrome CDP screenshots at `1440px` and `390px`.
+- **Not tested yet** (awaiting user typing login details):
+  - Home and Focus Room, signed in (`/login` → `/book/[year]/[month]` redirect + 1100ms cover swing)
+  - `/home` to `/book/[year]/[month]`
+  - Normal successful sign-in from `/login`
+- **Next**:
+  - User manual verification of signed-in flows, or next task as directed by user.
+- **Open Questions**:
+  - See **Open Questions** above (Release Blocker: Account-Change Local/SW Cache Risk).
+
+---
+
+### Task — Fix Stale Home Page (`/`) Service Worker Precache
+- **Finished**:
+  - `app/sw.ts`: Removed `{ url: '/', revision: '2' }` from `precacheEntries` so `/` is never precached with a static revision. Kept all manifest/icon precache entries, all `runtimeCaching` rules (including offline month pages `mm-book-month-pages-v2`), and omitted `skipWaiting`.
+  - `public/sw.js`: Rebuilt via `npm run build` (`36881` bytes, gitignored).
+  - Verified in an isolated temporary copy (`%TEMP%`, same origin and persistent profile across Build A → Build B → Build C + new visitor):
+    - Build A old SW controlled `/` and served `BUILD_A` from `serwist-precache-v2-*` (`/?__WB_REVISION__=2`).
+    - Build B updated `sw.js`: stayed `waiting: "installed"` during first load and same-tab reload (`BUILD_A`), then after closing all tabs and reopening, activated, purged `/?__WB_REVISION__=2` from `serwist-precache-v2-*`, and served `BUILD_B` from the network.
+    - Build C (text change on `/` without editing `app/sw.ts`): both returning and new visitors received `BUILD_C` immediately on direct load.
+- **Next**:
+  - Resolve open release blocker (account-change cache clearing) or proceed with next backlog task as directed by user.
+- **Open Questions**:
+  - Release blocker: Account-change cache risk (`mm-book-month-pages-v2`, `mm-supabase-data-v1`, leftover `mm_entries_*`, and `initialEntriesCache`) when switching accounts without explicit brass-key `signOut()`.

@@ -201,10 +201,18 @@
   .animate-leaf-shadow-backward,
   .animate-reverse-cover-close,
   .animate-sandglass-tip,
-  .animate-note-lift {
+  .animate-note-lift,
+  .animate-ribbon-sway,
+  .animate-book-arrive,
+  .animate-public-leave-root,
+  .animate-home-polaroid-drift,
+  .animate-home-sticky-drift,
+  .animate-focus-fade-early,
+  .animate-focus-lamp-last {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
+    translate: none !important;
   }
 
   /* Month setup sheet slide → instant */
@@ -387,4 +395,135 @@
   button[aria-label*="Turn to"] {
     display: none !important;
   }
+}
+
+/* ── Public → Journal Transition Animations (Task 14 Part 2: pure CSS transform/opacity) ── */
+@keyframes publicLeaveRoot {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.985);
+    opacity: 0;
+  }
+}
+
+@keyframes homePolaroidDrift {
+  0% {
+    translate: 0 0;
+    opacity: 1;
+  }
+  100% {
+    translate: 10px -12px;
+    opacity: 0;
+  }
+}
+
+@keyframes homeStickyDrift {
+  0% {
+    translate: 0 0;
+    opacity: 1;
+  }
+  100% {
+    translate: -8px 12px;
+    opacity: 0;
+  }
+}
+
+@keyframes focusFadeEarly {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes focusLampLast {
+  0% {
+    opacity: 1;
+  }
+  48% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes bookArriveRise {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes goldRibbonSway {
+  0%,
+  100% {
+    transform: rotate(-2.5deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+html[data-book-leaving='home'] [data-public-transition-root] {
+  transform-origin: 50% var(--leave-origin-y, 50vh);
+  animation: publicLeaveRoot 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+html[data-book-leaving='home'] [data-transition-element='polaroid'] {
+  animation: homePolaroidDrift 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: translate, opacity;
+}
+
+html[data-book-leaving='home'] [data-transition-element='sticky-note'] {
+  animation: homeStickyDrift 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: translate, opacity;
+}
+
+html[data-book-leaving='focus-room'] [data-public-transition-root] {
+  transform-origin: 50% var(--leave-origin-y, 50vh);
+  transform: scale(0.985);
+  background-color: transparent !important;
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1), background-color 210ms ease-out;
+  will-change: transform;
+}
+
+html[data-book-leaving='focus-room'] [data-public-transition-root] > div,
+html[data-book-leaving='focus-room'] [data-public-transition-root] main > section:first-child {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  transition: background-color 210ms ease-out, border-color 210ms ease-out;
+}
+
+html[data-book-leaving='focus-room'] [data-public-transition-root] nav,
+html[data-book-leaving='focus-room'] [data-public-transition-root] footer,
+html[data-book-leaving='focus-room'] [data-public-transition-root] main > section:not(:first-child),
+html[data-book-leaving='focus-room'] [data-public-transition-root] [data-transition-element='focus-copy'] {
+  animation: focusFadeEarly 210ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: opacity;
+}
+
+html[data-book-leaving='focus-room'] [data-transition-element='lamp-glow'] {
+  animation: focusLampLast 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: opacity;
+}
+
+.animate-book-arrive {
+  animation: bookArriveRise 500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-ribbon-sway {
+  transform-origin: top center;
+  animation: goldRibbonSway 2200ms ease-in-out infinite;
+  will-change: transform;
 }

@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { JournalTransitionLink } from './JournalTransitionLink'
 
 export function HomeHero() {
   return (
@@ -53,7 +54,8 @@ export function HomeHero() {
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap items-center gap-3.5 mt-[31px]">
-              <Link
+              <JournalTransitionLink
+                sourcePath="/"
                 href="/login"
                 className="press-btn inline-flex items-center justify-center gap-2 w-[218px] h-[46px] bg-[#172536] text-[#F4EFE4] font-public-condensed text-[14px] lg:text-xs uppercase tracking-[0.2em] font-semibold rounded shadow-sm hover:bg-[#172536]/90 transition-colors"
               >
@@ -72,7 +74,7 @@ export function HomeHero() {
                 >
                   <path d="M2.5 8.5L8.5 2.5M3.5 2.5H8.5V7.5" />
                 </svg>
-              </Link>
+              </JournalTransitionLink>
               <Link
                 href="/focus-room"
                 className="press-btn inline-flex items-center justify-center gap-2.5 w-[212px] h-[46px] bg-transparent text-[#172536] border border-[#172536] font-public-condensed text-[14px] lg:text-xs uppercase tracking-[0.2em] font-bold rounded hover:bg-[#172536]/5 transition-colors"
@@ -156,6 +158,7 @@ export function HomeHero() {
             Width=295px, rotated 7.5°. We place it at right=[8px] from panel edge so it is
             never cropped at any viewport. top-[5px] matches original. */}
         <div
+          data-transition-element="polaroid"
           className="absolute top-[5px] right-[8px] bg-[#ede8df] p-3 pb-7 shadow-xl rounded-[2px] w-[295px] rotate-[7.5deg] z-20 lift-card"
         >
           <div className="relative w-full h-[210px] bg-[#172536]/10 overflow-hidden">
@@ -174,6 +177,7 @@ export function HomeHero() {
 
         {/* Tilted Taped Paper Note at x=784 (left: 74px in panel), y=442 rel to hero */}
         <div
+          data-transition-element="sticky-note"
           className="absolute top-[442px] left-[74px] bg-[#F4EFE4]/95 backdrop-blur-[0.5px] p-7 pt-8 shadow-2xl rounded-[2px] border border-[#B68A53]/25 w-[316px] min-h-[345px] rotate-[-5deg] z-30 lift-card"
         >
           {/* Washi tape strip */}

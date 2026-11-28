@@ -22,7 +22,6 @@ declare const self: ServiceWorkerGlobalScope
 
 const serwist = new Serwist({
   precacheEntries: [
-    { url: '/', revision: '2' },
     { url: '/manifest.webmanifest', revision: '2' },
     { url: '/icons/icon.svg', revision: '2' },
     { url: '/icons/icon-192.png', revision: '2' },

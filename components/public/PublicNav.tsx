@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { JournalTransitionLink } from './JournalTransitionLink'
 
 interface PublicNavProps {
   current?: 'home' | 'focus-room'
@@ -80,12 +81,13 @@ export function PublicNav({ current = 'home', theme = 'chalk' }: PublicNavProps)
               <span className="font-public-condensed text-[11px] uppercase tracking-[0.25em] font-semibold text-[#B68A53]">
                 NIGHT STUDY / 02
               </span>
-              <Link
+              <JournalTransitionLink
+                sourcePath="/focus-room"
                 href="/login"
                 className="font-public-sans text-xs tracking-normal text-[#F4EFE4]/90 hover:text-[#B68A53] border-b border-[#B68A53] pb-0.5 mt-0.5 transition-colors inline-block"
               >
                 ← Return to journal
-              </Link>
+              </JournalTransitionLink>
             </div>
           </div>
         </div>

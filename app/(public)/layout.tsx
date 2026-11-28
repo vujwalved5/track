@@ -66,6 +66,7 @@ export default function PublicLayout({
 }) {
   return (
     <div
+      data-public-transition-root=""
       className={`${dmSans.variable} ${fraunces.variable} ${barlowCondensed.variable} ${caveat.variable} ${italiana.variable} ${oswald.variable} ${nothing.variable} font-sans min-h-screen text-[#172536]`}
       style={
         {

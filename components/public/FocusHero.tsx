@@ -5,7 +5,10 @@ export function FocusHero() {
     <section className="relative overflow-hidden border-b border-[#F4EFE4]/15 bg-[#172536] text-[#F4EFE4]">
       <div className="max-w-[1366px] mx-auto min-h-[862px] lg:h-[862px] flex flex-col lg:flex-row">
         {/* Left Column: Typography & Intent */}
-        <div className="w-full lg:w-[780px] lg:shrink-0 px-6 sm:px-14 lg:pl-[109px] lg:pr-12 pt-12 lg:pt-[123px] pb-10 lg:pb-[72px] flex flex-col justify-between">
+        <div
+          data-transition-element="focus-copy"
+          className="w-full lg:w-[780px] lg:shrink-0 px-6 sm:px-14 lg:pl-[109px] lg:pr-12 pt-12 lg:pt-[123px] pb-10 lg:pb-[72px] flex flex-col justify-between"
+        >
           {/* Top Badge (Eyebrow: y=219 abs / y=128 rel to hero) */}
           <div className="flex items-center gap-3">
             <span className="font-public-condensed text-xs uppercase tracking-[0.25em] font-semibold text-[#B68A53]">
@@ -40,7 +43,10 @@ export function FocusHero() {
         </div>
 
         {/* Right Column: Desk Photo with Subtle Orbit */}
-        <div className="w-full lg:w-[586px] lg:shrink-0 relative min-h-[420px] lg:min-h-full border-t lg:border-t-0">
+        <div
+          data-transition-element="lamp-glow"
+          className="w-full lg:w-[586px] lg:shrink-0 relative min-h-[420px] lg:min-h-full border-t lg:border-t-0"
+        >
           <Image
             src="/welcome/focus-desk.jpg"
             alt="Warm lit desk with books, lamp, and coffee"
